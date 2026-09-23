@@ -1,0 +1,33 @@
+const { chromium } = require(process.env.PLAYWRIGHT_PACKAGE || 'playwright');
+const fs = require('fs');
+const path = require('path');
+(async () => {
+  const browser = await chromium.launch({headless:true});
+  const out = path.resolve(process.argv[2] || 'data/qa');
+  fs.mkdirSync(out,{recursive:true});
+  const errors=[];
+  const page=await browser.newPage({viewport:{width:1440,height:1000}});
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.goto('http://192.168.88.5:8088',{waitUntil:'networkidle'});
+  await page.locator('#chart-status').filter({hasText:'наблюдений'}).waitFor();
+  await page.screenshot({path:path.join(out,'desktop.png'),fullPage:true});
+  const initial=await page.locator('#chart-status').textContent();
+  await page.selectOption('#period','90');
+  const filtered=await page.locator('#chart-status').textContent();
+  if(initial===filtered) throw Error('Period filter did not change chart');
+  await page.locator('summary').click();
+  if(await page.locator('#values tr').count()!==10) throw Error('Missing accessible table');
+  for(const report of ['decisions','questions','sources','deployment']) {
+    const response=await page.request.get('http://192.168.88.5:8088/reports/'+report);
+    if(response.status()!==200) throw Error('Report '+report+' failed');
+  }
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('http://192.168.88.5:8088',{waitUntil:'networkidle'});
+  await page.locator('#chart-status').filter({hasText:'наблюдений'}).waitFor();
+  const dimensions=await page.evaluate(()=>({body:document.documentElement.scrollWidth,viewport:innerWidth}));
+  if(dimensions.body>dimensions.viewport) throw Error('Mobile page overflow');
+  await page.screenshot({path:path.join(out,'mobile.png'),fullPage:true});
+  if(errors.length) throw Error(errors.join('\n'));
+  console.log(JSON.stringify({initial,filtered,dimensions,errors,screenshots:out}));
+  await browser.close();
+})().catch(e=>{console.error(e);process.exit(1)});

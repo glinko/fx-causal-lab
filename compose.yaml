@@ -1,0 +1,27 @@
+services:
+  web:
+    build: .
+    image: fx-causal-lab:0.1.0
+    restart: unless-stopped
+    ports:
+      - "${FXLAB_BIND:-127.0.0.1}:8088:8088"
+    volumes:
+      - ./data:/app/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    mem_limit: 1g
+    cpus: 1.0
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8088/healthz', timeout=5)"]
+      interval: 30s
+      timeout: 6s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
