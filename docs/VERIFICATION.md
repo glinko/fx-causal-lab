@@ -50,3 +50,21 @@ Remaining: original macro releases, actual publication times, historical revisio
 - Browser verification covers the CFTC report at 1440px and 390px, reports no JavaScript errors or page-level mobile overflow, and confirms all seven report routes return HTTP 200. Screenshots: `data/qa-v04/`.
 - Deployed image `fx-causal-lab:0.4.0` is healthy on `192.168.88.5:8088`; manifest and Parquet downloads return successfully. Caddy remains active and unchanged.
 - Independent Impeccable finish review verdict: `ship`; no material hierarchy, accessibility, mobile-scroll, or time-semantics findings.
+
+## Version 0.5 FOMC statements slice — 2026-09-24
+
+- The official calendar yielded 25 target-range statements from 2023-09-20 through 2026-09-16. A special notation-vote strategy statement was excluded by link semantics.
+- Every row has a page-level `For release at` timestamp and parsed lower/upper target bounds. There are 17 holds, six cuts and one hike among the 24 rows with an in-window predecessor.
+- Dataset `bd5075d93c6feceee6e6`; normalized SHA-256 `7f01c4f0817b6834f28294a9a3c151705d92e6c533c878dac77c097ad3352901`.
+- All 25 `available_at` values remain null and strict PIT is disabled. Exact official release time is not represented as proof of historical receipt.
+
+## Version 0.6 ECB policy decisions slice — 2026-09-24
+
+- The official FOEDB index yielded 25 `Monetary policy decisions` releases from 2023-09-14 through 2026-09-10. Every retained timestamp validates as 14:15 Europe/Berlin on the date encoded in its URL.
+- Each release page yielded deposit facility, main refinancing operations and marginal lending facility rates. There are 14 holds, eight cuts and two hikes among the 24 rows with an in-window predecessor.
+- Dataset `a6778ebecbe4707bc840`; normalized SHA-256 `9d9fd8bfeb646fec45ccf7f89924cef054e8df639c90de415a7a19bc654f7cfe`.
+- All 25 `available_at` values remain null and strict PIT is disabled. Versions descriptor, metadata, data chunks and release pages are hash-pinned for offline replay.
+- Container verification: 40 tests passed, `pip check` reported no broken requirements, and both FOMC and ECB manifests replayed successfully under `--network none` with stable dataset IDs and normalized hashes.
+- Browser verification covers the merged policy report at 1440px and 390px, switches between FOMC and ECB, validates the SVG identity, reports no JavaScript errors or page-level mobile overflow, and confirms all eight report routes return HTTP 200. Screenshots: `data/qa-v06/`.
+- Deployed image `fx-causal-lab:0.6.0` is healthy on `192.168.88.5:8088`; both policy APIs return 25 rows, all four manifest/Parquet downloads succeed, and Caddy remains active and unchanged.
+- Independent Impeccable finish review verdict: `ship`; no material findings in rate semantics, PIT disclosure, mobile layout or accessibility.

@@ -94,6 +94,27 @@ def positioning(limit: int = Query(260, ge=1, le=2000)):
                        for day, leveraged, asset, dealer, available, quality in reversed(rows)], "report": report}
 
 
+@app.get("/api/policy")
+def policy(source: Literal["fomc", "ecb"] = "fomc", limit: int = Query(100, ge=1, le=1000)):
+    report = read_json("fomc.json" if source == "fomc" else "ecb_policy.json", None)
+    if report is None:
+        return {"points": [], "report": None}
+    with duckdb.connect() as con:
+        con.execute("SET TimeZone='UTC'")
+        if source == "fomc":
+            rows = con.execute("SELECT decision_date, published_at, target_lower, target_upper, target_midpoint, "
+                               "rate_change_bp, available_at FROM read_parquet(?) ORDER BY decision_date DESC LIMIT ?",
+                               [str(root()/report["files"]["statements"]), limit]).fetchall()
+        else:
+            rows = con.execute("SELECT decision_date, published_at, deposit_rate, marginal_lending_rate, deposit_rate, "
+                               "deposit_change_bp, available_at FROM read_parquet(?) ORDER BY decision_date DESC LIMIT ?",
+                               [str(root()/report["files"]["decisions"]), limit]).fetchall()
+    return {"points": [{"date": str(day), "published_at": published.isoformat(), "lower": lower, "upper": upper,
+                        "midpoint": midpoint, "change_bp": change, "available_at": available.isoformat() if available else None}
+                       for day, published, lower, upper, midpoint, change, available in reversed(rows)],
+            "report": report, "source": source}
+
+
 @app.get("/reports/market-quality", response_class=HTMLResponse)
 def market_quality(request: Request):
     report = read_json("bars.json", None)
@@ -134,6 +155,27 @@ def positioning_report(request: Request):
     return templates.TemplateResponse(request=request, name="positioning.html", context={"cftc": report, "rows": rows})
 
 
+@app.get("/reports/policy-events", response_class=HTMLResponse)
+def policy_events(request: Request):
+    fomc = read_json("fomc.json", None)
+    ecb = read_json("ecb_policy.json", None)
+    fomc_rows, ecb_rows = [], []
+    if fomc:
+        with duckdb.connect() as con:
+            con.execute("SET TimeZone='UTC'")
+            fomc_rows = con.execute("SELECT decision_date, published_at, target_lower, target_upper, rate_change_bp, available_at "
+                                    "FROM read_parquet(?) ORDER BY decision_date DESC LIMIT 25",
+                                    [str(root()/fomc["files"]["statements"])]).fetchall()
+    if ecb:
+        with duckdb.connect() as con:
+            con.execute("SET TimeZone='UTC'")
+            ecb_rows = con.execute("SELECT decision_date, published_at, deposit_rate, mro_rate, marginal_lending_rate, "
+                                   "deposit_change_bp, available_at FROM read_parquet(?) ORDER BY decision_date DESC LIMIT 25",
+                                   [str(root()/ecb["files"]["decisions"])]).fetchall()
+    return templates.TemplateResponse(request=request, name="policy.html",
+                                      context={"fomc": fomc, "ecb": ecb, "fomc_rows": fomc_rows, "ecb_rows": ecb_rows})
+
+
 @app.get("/reports/{name}", response_class=HTMLResponse)
 def document(request: Request, name: str):
     if name not in DOCS:
@@ -163,6 +205,14 @@ def download(name: str):
     if cftc:
         files["cftc.json"] = root()/"reports"/"cftc.json"
         files["cftc_eur_tff.parquet"] = root()/cftc["files"]["positions"]
+    fomc = read_json("fomc.json", None)
+    if fomc:
+        files["fomc.json"] = root()/"reports"/"fomc.json"
+        files["fomc_statements.parquet"] = root()/fomc["files"]["statements"]
+    ecb_policy = read_json("ecb_policy.json", None)
+    if ecb_policy:
+        files["ecb_policy.json"] = root()/"reports"/"ecb_policy.json"
+        files["ecb_policy_decisions.parquet"] = root()/ecb_policy["files"]["decisions"]
     if name not in files or not files[name].exists():
         raise HTTPException(404)
     return FileResponse(files[name], filename=name)

@@ -84,3 +84,21 @@ sudo docker compose exec web fxlab cftc-replay data/reports/cftc_fetch.json
 ```
 
 `cftc-backfill` сохраняет HTML расписания и годовые Futures Only ZIP, затем создаёт EUR contract `099741` Parquet. `cftc-replay` работает по закреплённым snapshots и проверяет их SHA-256. Для доказательства автономности replay можно запустить через `docker run --network none` с подключённым каталогом `data`.
+
+## FOMC statements — версия 0.5
+
+```bash
+sudo docker compose exec web fxlab fomc-backfill --from 2023-09-01 --to 2026-09-24
+sudo docker compose exec web fxlab fomc-replay data/reports/fomc_fetch.json
+```
+
+Backfill сохраняет FOMC calendar и каждую statement page. Replay проверяет hashes, время релиза, дату URL и target range до публикации нового Parquet. Для точного автономного повтора используется `docker run --network none` с bind mount каталога `data`.
+
+## ECB monetary policy decisions — версия 0.6
+
+```bash
+sudo docker compose exec web fxlab ecb-policy-backfill --from 2023-09-01 --to 2026-09-24
+sudo docker compose exec web fxlab ecb-policy-replay data/reports/ecb_policy_fetch.json
+```
+
+Backfill сохраняет FOEDB versions descriptor, metadata, необходимые chunks и каждую страницу решения. Replay проверяет SHA-256, дату URL, время 14:15 Europe/Berlin и три policy rates. Для доказательства автономности replay запускается с `docker run --network none` и bind mount каталога `data`.

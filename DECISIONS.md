@@ -66,3 +66,17 @@
 - Сохранённое расписание CFTC является предварительным и не доказывает фактическую публикацию. Для покрытых им строк `available_at` консервативно установлен на 00:00 America/New_York следующего календарного дня; `time_quality=inferred_conservative`, strict PIT отключён.
 - Для строк вне сохранённого расписания `available_at=null` и `time_quality=unknown`; они исключаются из as-of выборок. Необычная официальная report date сохраняется без исправления.
 - Исходные годовые ZIP и snapshot расписания закреплены hash. Futures + Options и roll adjustment не смешиваются с текущим Futures Only набором.
+
+## 2026-09-24 — FOMC statements
+
+- Источник событий — HTML statements, ссылки на которые взяты из официального FOMC calendar. Special notation votes и strategy statements не смешиваются с решениями по target range.
+- `published_at` извлекается из строки `For release at` и проверяется по часовому поясу America/New_York. Это точное официальное время релиза, но не доказательство исторического получения нашей системой; `available_at=null`, strict PIT выключен.
+- Target lower/upper извлекаются из текста конкретного заявления; midpoint и изменение в basis points являются детерминированными производными. Первое изменение в запрошенном окне остаётся null.
+- Consensus, forecast vintage и policy surprise не восстанавливаются из фактического решения и остаются null.
+
+## 2026-09-24 — ECB monetary policy decisions
+
+- Индекс событий берётся из официальной FOEDB: versions descriptor, metadata и необходимые data chunks сохраняются в Bronze вместе с каждой страницей `Monetary policy decisions`.
+- `published_at` берётся из FOEDB `pub_timestamp` и проверяется как 14:15 Europe/Berlin на дату URL. Это официальное время публикации, а не historical receipt; `available_at=null`, strict PIT выключен.
+- Deposit facility, main refinancing operations и marginal lending facility извлекаются из текста каждого релиза. Изменение deposit rate — детерминированная производная; для первой строки в окне она null.
+- Consensus, forecast vintage и surprise остаются null; фактическое решение их не заменяет.

@@ -33,6 +33,16 @@ def main():
     cftc.add_argument("--to", dest="end", type=date.fromisoformat, default=date.today())
     cftc_replay = commands.add_parser("cftc-replay", help="Normalize preserved CFTC snapshots without network")
     cftc_replay.add_argument("manifest", type=Path)
+    fomc = commands.add_parser("fomc-backfill", help="Fetch and normalize archived FOMC statements")
+    fomc.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 1))
+    fomc.add_argument("--to", dest="end", type=date.fromisoformat, default=date.today())
+    fomc_replay = commands.add_parser("fomc-replay", help="Normalize preserved FOMC snapshots without network")
+    fomc_replay.add_argument("manifest", type=Path)
+    ecb_policy = commands.add_parser("ecb-policy-backfill", help="Fetch and normalize ECB monetary-policy decisions")
+    ecb_policy.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 1))
+    ecb_policy.add_argument("--to", dest="end", type=date.fromisoformat, default=date.today())
+    ecb_policy_replay = commands.add_parser("ecb-policy-replay", help="Normalize preserved ECB policy snapshots offline")
+    ecb_policy_replay.add_argument("manifest", type=Path)
     replay = commands.add_parser("replay", help="Normalize preserved ECB snapshot offline")
     replay.add_argument("metadata", type=Path)
     replay.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 23))
@@ -68,6 +78,18 @@ def main():
     elif args.command == "cftc-replay":
         from .cftc import replay_cftc
         result = replay_cftc(args.manifest)
+    elif args.command == "fomc-backfill":
+        from .fomc import backfill_fomc
+        result = backfill_fomc(args.start, args.end)
+    elif args.command == "fomc-replay":
+        from .fomc import replay_fomc
+        result = replay_fomc(args.manifest)
+    elif args.command == "ecb-policy-backfill":
+        from .ecb_policy import backfill_ecb_policy
+        result = backfill_ecb_policy(args.start, args.end)
+    elif args.command == "ecb-policy-replay":
+        from .ecb_policy import replay_ecb_policy
+        result = replay_ecb_policy(args.manifest)
     else:
         from .providers import ECBReferenceProvider
         from .store import root
