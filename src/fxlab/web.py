@@ -190,6 +190,20 @@ def event_alignment(request: Request):
     return templates.TemplateResponse(request=request, name="alignment.html", context={"alignment": report, "rows": rows})
 
 
+@app.get("/reports/baseline-experiments", response_class=HTMLResponse)
+def baseline_experiments(request: Request):
+    report = read_json("baseline_experiments.json", None)
+    rows = []
+    if report:
+        with duckdb.connect() as con:
+            rows = con.execute("SELECT source, event_type, horizon_sessions, n, mean_return, median_return, hac_se, "
+                               "p_value, q_value_bh, overlapping_windows, inference_status FROM read_parquet(?) "
+                               "ORDER BY source, event_type, horizon_sessions",
+                               [str(root()/report["files"]["results"])]).fetchall()
+    return templates.TemplateResponse(request=request, name="experiments.html",
+                                      context={"experiments": report, "rows": rows})
+
+
 @app.get("/reports/{name}", response_class=HTMLResponse)
 def document(request: Request, name: str):
     if name not in DOCS:
@@ -231,6 +245,10 @@ def download(name: str):
     if alignment:
         files["event_alignment.json"] = root()/"reports"/"event_alignment.json"
         files["event_targets.parquet"] = root()/alignment["files"]["event_targets"]
+    experiments = read_json("baseline_experiments.json", None)
+    if experiments:
+        files["baseline_experiments.json"] = root()/"reports"/"baseline_experiments.json"
+        files["baseline_results.parquet"] = root()/experiments["files"]["results"]
     if name not in files or not files[name].exists():
         raise HTTPException(404)
     return FileResponse(files[name], filename=name)

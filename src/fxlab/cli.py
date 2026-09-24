@@ -44,6 +44,7 @@ def main():
     ecb_policy_replay = commands.add_parser("ecb-policy-replay", help="Normalize preserved ECB policy snapshots offline")
     ecb_policy_replay.add_argument("manifest", type=Path)
     commands.add_parser("align-events", help="Build leakage-aware EUR/USD targets for preserved events")
+    commands.add_parser("baseline-experiments", help="Build descriptive M5 event baselines and replication status")
     replay = commands.add_parser("replay", help="Normalize preserved ECB snapshot offline")
     replay.add_argument("metadata", type=Path)
     replay.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 23))
@@ -94,6 +95,9 @@ def main():
     elif args.command == "align-events":
         from .alignment import build_event_targets
         result = build_event_targets()
+    elif args.command == "baseline-experiments":
+        from .experiments import build_baseline_experiments
+        result = build_baseline_experiments()
     else:
         from .providers import ECBReferenceProvider
         from .store import root

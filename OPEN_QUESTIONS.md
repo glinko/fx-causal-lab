@@ -9,7 +9,7 @@
 5. US/DE 2Y: выбрать сопоставимые серии с доказанной частотой и временем доступности. Daily yields не подходят для измерения first-hour reaction.
 6. CFTC: восстановить исторические actual publication timestamps, включая внеплановые задержки и исправления. Текущее расписание покрывает только 38 строк консервативной оценкой; 121 строка остаётся с неизвестной доступностью.
 7. Consensus: проверить коммерческий доступ, глубину PIT, timestamps и права на использование. Точную цену не выдумывать. До появления данных CPI/NFP surprise experiments = unavailable.
-8. Выбрать 2–3 опубликованных исследования для M5, сохранить требования к данным и критерии сопоставимости. Репликация пока не выполнена.
+8. M5 registry фиксирует пять published effects и их data requirements. Для перевода из unavailable нужны historical consensus для CPI/NFP, futures/OIS surprise factors для FOMC/ECB и узкие FX windows; текущий unconditional baseline не считается репликацией.
 9. M4 использует NY17 и не пропускает неполную сессию. До строгого допуска и расширения истории нужно доказать исторические версии provider calendar и holidays; текущая calendar metadata не считается vintage.
 10. Зафиксировать train/validation/test и purge/embargo с учётом пересекающихся labels до запуска экспериментов.
 11. Настроить резервное копирование data и обновления после стабилизации ingestion. На этой стадии persistent volume не является backup.

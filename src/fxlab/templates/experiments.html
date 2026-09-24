@@ -1,0 +1,23 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Baseline experiments — FX Causal Lab</title><link rel="stylesheet" href="/static/style.css"></head><body><a class="skip" href="#main">К содержимому</a><header><a class="brand" href="/">FX Causal Lab</a><nav><a href="/">Вернуться к журналу</a></nav></header><main id="main" class="document"><h1>Baseline event study</h1>
+{% if not experiments %}<p>Baseline experiments ещё не построены.</p>{% else %}
+<p>Описательная проверка безусловной реакции EUR/USD после BLS, FOMC и ECB. {{ experiments.input_rows }} событийных строк, {{ experiments.event_groups }} групп, {{ experiments.result_rows }} комбинаций event × horizon.</p>
+<div class="notice"><strong>Это не репликация surprise-эффекта и не торговый сигнал.</strong> Строгих PIT-строк: {{ experiments.strict_pit_rows }}. После Benjamini–Hochberg число diagnostic tests с q &lt; 0.05: {{ experiments.bh_q_below_005 }}.</div>
+<div class="metric-grid" aria-label="Сводка baseline experiments"><div><strong>{{ experiments.input_rows }}</strong><span>event rows</span></div><div><strong>{{ experiments.event_groups }}</strong><span>event groups</span></div><div><strong>{{ experiments.diagnostic_inference_rows }}</strong><span>diagnostic tests</span></div><div><strong>{{ experiments.bh_q_below_005 }}</strong><span>diagnostic q &lt; 0.05</span></div></div>
+<p class="interpretation"><strong>Ноль значимых диагностик не доказывает отсутствие эффекта.</strong> Выборки малы, длинные окна перекрываются, а строгих PIT-строк нет.</p>
+<h2>Результаты нулевого baseline</h2>
+<p class="caption">Mean и HAC SE показаны в процентах. q — FDR-поправка Benjamini–Hochberg по всем diagnostic mean-return tests. Перекрывающиеся target windows перечислены явно.</p>
+<div class="table-wrap baseline-table" role="region" aria-label="Результаты baseline event study" tabindex="0"><table>
+  <thead><tr><th>Event</th><th>Horizon / N</th><th>Mean / median</th><th>HAC SE</th><th>p / q</th><th>Overlap</th><th>Статус</th></tr></thead>
+  <tbody>{% for source, kind, horizon, n, avg, med, se, p, q, overlap, status in rows %}<tr>
+    <td data-label="Event"><strong>{{ source }}</strong><span>{{ kind }}</span></td>
+    <td data-label="Horizon / N"><strong>{{ horizon }}d</strong><span>N={{ n }}</span></td>
+    <td data-label="Mean / median"><strong>{{ '%.3f%%'|format(avg*100) if avg is not none else '—' }}</strong><span>{{ '%.3f%%'|format(med*100) if med is not none else '—' }}</span></td>
+    <td data-label="HAC SE">{{ '%.3f%%'|format(se*100) if se is not none else '—' }}</td>
+    <td data-label="p / q"><strong>{{ '%.3f'|format(p) if p is not none else '—' }}</strong><span>q {{ '%.3f'|format(q) if q is not none else '—' }}</span></td>
+    <td data-label="Overlap">{{ overlap }}</td><td data-label="Статус"><span class="status {{ 'warn' if status == 'insufficient_n' else '' }}">{{ status }}</span></td>
+  </tr>{% endfor %}</tbody>
+</table></div>
+<h2>Replication registry</h2><p>Попытка начинается с проверки необходимых данных. Ни одна опубликованная гипотеза не подменяется доступным, но несопоставимым признаком.</p><div class="study-list">{% for item in experiments.replications %}<article class="study"><div><span class="status warn">{{ item.status }}</span><h3>{{ item.title }}</h3><a href="{{ item.url }}" target="_blank" rel="noopener">{{ item.source }}</a></div><p><strong>Нужно:</strong> {{ item.required }}</p><p><strong>Причина:</strong> {{ item.reason }}</p></article>{% endfor %}</div>
+<h2>Метод</h2><ul><li>Только <code>pre_event</code> BLS/FOMC/ECB; CFTC schedule events исключены.</li><li>Actual и его направление не используются как pre-event features.</li><li>Newey–West lags: 1d={{ experiments.method.hac_lags_by_horizon['1'] }}, 5d={{ experiments.method.hac_lags_by_horizon['5'] }}, 20d={{ experiments.method.hac_lags_by_horizon['20'] }}, 60d={{ experiments.method.hac_lags_by_horizon['60'] }}.</li><li>При N &lt; {{ experiments.method.minimum_n }} статистический вывод не рассчитывается.</li><li>Длинные окна перекрываются; результаты остаются exploratory и non-strict.</li></ul>
+<h2>Воспроизводимость</h2><p class="hash">Dataset: {{ experiments.dataset_id }}<br>Alignment dataset: {{ experiments.alignment_dataset_id }}<br>Parser: {{ experiments.parser }}<br>Normalized SHA-256: {{ experiments.normalized_sha256 }}</p><p><a href="/download/baseline_experiments.json">Манифест JSON</a> · <a href="/download/baseline_results.parquet">Результаты Parquet</a></p>
+{% endif %}</main><footer>FX Causal Lab · M5 descriptive baseline</footer></body></html>

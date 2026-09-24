@@ -88,3 +88,11 @@
 - Target начинается с open первой H1-свечи, начавшейся не раньше `prediction_time`. Endpoints — close 1-й, 5-й, 20-й и 60-й NY17-сесии; доходность `close/open - 1` и log-return.
 - Неполная D1-сессия инвалидирует свой и все более дальние горизонты; её нельзя пропустить и сжать trading time.
 - CFTC pre-event привязан к сохранённому schedule, а post/reaction — к консервативному `available_at`; все эти строки нестрогие. Из-за неподтверждённого market vintage строгих строк в M4 пока 0.
+
+## 2026-09-24 — M5 descriptive baseline
+
+- Published-effect replication начинается с requirements check. Пять первичных исследований занесены в registry; все помечены unavailable, потому что нет historical consensus, futures/OIS surprise factors или данных нужной intraday-частоты.
+- Фактический CPI/NFP или изменение policy rate не заменяют surprise. Их знак не используется как pre-event feature.
+- Доступный baseline оценивает только безусловную среднюю EUR/USD return после event boundary. CFTC schedule events исключены. Для `n < 8` inference не считается.
+- Standard errors — Newey–West/HAC с заранее заданными lag 0/0/1/3 для 1/5/20/60d. Показано число overlapping windows; p-values получают Benjamini–Hochberg q-value по всем diagnostic tests.
+- Ни один test не имеет q < 0.05. Это не доказывает отсутствие эффекта и не является репликацией: в текущем baseline нет surprise-признака.

@@ -110,3 +110,11 @@ sudo docker compose exec web fxlab align-events
 ```
 
 Команда не обращается к сети. Она читает текущие манифесты BLS, FOMC, ECB, CFTC и EUR/USD, проверяет anti-leakage invariants и публикует `gold/event_targets/<dataset_id>/event_targets.parquet`.
+
+## Baseline experiments — версия 0.8
+
+```bash
+sudo docker compose exec web fxlab baseline-experiments
+```
+
+Команда офлайн читает текущий event-alignment manifest, строит 28 описательных event × horizon results и публикует `gold/baseline_experiments/<dataset_id>/results.parquet`. Published-effect registry хранится в manifest вместе с required data и причиной unavailable.

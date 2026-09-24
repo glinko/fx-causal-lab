@@ -81,3 +81,16 @@ Remaining: original macro releases, actual publication times, historical revisio
 - Browser verification covers the alignment report at 1440px and 390px, reports no JavaScript errors or page-level mobile overflow, and confirms all nine report routes return HTTP 200. Screenshots: `data/qa-v07/`.
 - Deployed image `fx-causal-lab:0.7.0` is healthy on `192.168.88.5:8088`; Gold manifest and Parquet downloads succeed, and Caddy remains active and unchanged.
 - Independent Impeccable finish review verdict: `ship`; no material findings in prediction-mode clarity, PIT disclosure, mobile table behavior or accessibility.
+
+## Version 0.8 M5 descriptive baseline — 2026-09-24
+
+- Dataset `1d9ef1fec37056c48e98`; normalized SHA-256 `ef656ef290716099b3619bfc43253c69b124074f4e766056dba076b77f119385`.
+- Input: 153 pre-event BLS/FOMC/ECB rows. Output: seven event groups × four horizons = 28 rows; 20 meet the minimum N=8 diagnostic threshold.
+- Newey–West/HAC lags are 0/0/1/3 at 1/5/20/60 sessions. Overlapping windows are counted per result. Benjamini–Hochberg correction is applied across the 20 diagnostic mean-return tests.
+- No diagnostic test has BH q < 0.05. No Actual value or Actual direction is used as a pre-event feature. Strict PIT rows remain 0.
+- Five published-effect entries are recorded as unavailable with source, required data and blocking reason. Missing consensus or futures/OIS surprises are never synthesized.
+- Container test run: 48 tests passed with one upstream TestClient deprecation warning.
+- Exact Docker replay with `--network none` reproduced dataset `1d9ef1fec37056c48e98` and normalized SHA-256 `ef656ef290716099b3619bfc43253c69b124074f4e766056dba076b77f119385`.
+- Browser verification covers all ten report routes at 1440px and 390px, with no JavaScript errors or page-level mobile overflow. The final baseline table exposes q, overlap and status on desktop and as complete cards on mobile. Screenshots: `data/qa-v08-final/`.
+- Deployed image `fx-causal-lab:0.8.0` is healthy on `192.168.88.5:8088`; the baseline page, JSON manifest and Parquet download return HTTP 200. Caddy remains active and unchanged.
+- Independent Impeccable finish review verdict: `ship` after making the no-effect caveat and all statistical qualifiers immediately visible.
