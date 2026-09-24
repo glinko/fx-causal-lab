@@ -59,3 +59,19 @@ sudo docker compose exec web python tools/audit_sources.py
 H1/D1, пропуски и карантин: `data/silver/dukascopy/<dataset_id>/`. Манифест `data/reports/bars.json` указывает текущий dataset. D1 — агрегация NY17, а не независимый источник дневных цен. Загрузка с ошибкой контрольной суммы не заменяет текущий манифест. Snapshot календаря закреплён вместе с ценами.
 
 Аудит источников расходует публичные квоты; не запускать его циклически. Результат `data/reports/source_audit.json` содержит фактически измеренную глубину, сырые снимки и ограничения PIT.
+
+## BLS через Windows-коннектор
+
+Сервер получает HTTP 403 от архивных страниц BLS. На Windows выполнить с `PYTHONPATH=src` и `FXLAB_DATA=data`:
+
+```powershell
+python -m fxlab macro-fetch --from 2023-09-01 --to 2026-09-24
+```
+
+Перенести `data/bronze/bls_*` и `data/reports/bls_fetch.json` на сервер, затем:
+
+```bash
+sudo docker compose exec web fxlab macro-replay data/reports/bls_fetch.json
+```
+
+Replay не обращается к сети, проверяет SHA-256 каждого raw payload и публикует новый dataset только после успешного разбора всех релизов.

@@ -3,7 +3,6 @@ import json
 from datetime import date, datetime
 from pathlib import Path
 
-from .providers import ECBReferenceProvider
 from .recon import run_recon
 
 
@@ -22,6 +21,13 @@ def main():
     market_replay = commands.add_parser("market-replay", help="Replay exact manifest snapshots offline")
     market_replay.add_argument("manifest", type=Path)
     commands.add_parser("market-check", help="Compare broker H1 ranges with daily ECB reference")
+    for name, help_text in [("macro-backfill", "Fetch and normalize BLS archives on one host"),
+                            ("macro-fetch", "Fetch BLS archives for transfer to Ubuntu")]:
+        macro = commands.add_parser(name, help=help_text)
+        macro.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 1))
+        macro.add_argument("--to", dest="end", type=date.fromisoformat, default=date.today())
+    macro_replay = commands.add_parser("macro-replay", help="Normalize a preserved BLS fetch manifest without network")
+    macro_replay.add_argument("manifest", type=Path)
     replay = commands.add_parser("replay", help="Normalize preserved ECB snapshot offline")
     replay.add_argument("metadata", type=Path)
     replay.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 23))
@@ -30,6 +36,7 @@ def main():
     if args.command == "recon":
         result = run_recon()
     elif args.command == "backfill":
+        from .providers import ECBReferenceProvider
         result = ECBReferenceProvider().backfill(args.start, args.end)
     elif args.command == "market-backfill":
         from .market import backfill_bars
@@ -41,7 +48,17 @@ def main():
         from .quality import ecb_comparison
         from .store import root
         result = ecb_comparison(json.loads((root()/"reports"/"bars.json").read_text()))
+    elif args.command == "macro-backfill":
+        from .macro import backfill_bls_releases
+        result = backfill_bls_releases(args.start, args.end)
+    elif args.command == "macro-fetch":
+        from .macro import fetch_bls_snapshots
+        result = fetch_bls_snapshots(args.start, args.end)
+    elif args.command == "macro-replay":
+        from .macro import replay_bls_releases
+        result = replay_bls_releases(args.manifest)
     else:
+        from .providers import ECBReferenceProvider
         from .store import root
         meta = json.loads(args.metadata.read_text(encoding="utf-8"))
         body = (root() / meta["payload"]).read_bytes()

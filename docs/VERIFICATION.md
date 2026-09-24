@@ -29,3 +29,13 @@ This supersedes the earlier OHLC-provider-unvalidated note above; full historica
 Remaining: original macro releases, actual publication times, historical revisions/forecast vintages, broader source-depth/licensing checks, target construction and experiments. No causal result or strategy performance claimed.
 - Additional exact replay with Docker `--network none` passed; normalized H1 SHA-256 `af982d05648378355ff388b6468b7b0c0f7a7b56f8e7ac93e1f280ee56b55b5d`.
 - Final browser pass: screenshots data/qa-v02-final/, no errors; SVG title and accessible name match the selected description for all three series. Independent finish verdict: ship; no remaining material findings.
+
+## Version 0.3 BLS archive slice — 2026-09-24
+
+- Windows connector preserved 72 BLS snapshots: two archive indexes and 70 release pages for 2023-09 through 2026-08.
+- Offline Ubuntu normalization produced 70 release events and 105 headline observations: 34 all-items CPI MoM SA, 34 core CPI MoM SA, two separate CPI 2M values for the September–November 2025 interval, and 35 NFP changes.
+- All raw payload hashes are checked before parsing. Final dataset: `d760b7e38765578bf457`; normalized SHA-256 is recorded in its manifest.
+- Twenty-eight Python tests pass, including archive link filtering, New York DST, wording variants, unknown historical availability and corrupted-payload rejection.
+- `published_at` comes from the page embargo timestamp. `available_at` is null, consensus is null, strict PIT eligibility is false. No surprise experiment is enabled.
+- Final exact replay passed in Docker with `--network none`. The deployed Parquet has 70 unique release IDs and 105 unique observation IDs; all 105 have null `available_at` and consensus.
+- Browser verification covers desktop and 390px mobile, all six report routes, D1/H1/ECB switching, horizontal table cues, downloads, accessible chart identities and page overflow. Independent finish verdict: `ship`.

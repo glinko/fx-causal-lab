@@ -21,3 +21,5 @@
 - Verify Dukascopy redistribution terms, published quotas, historical calendar changes and revisions before expanding use.
 - Recover BLS/ECB/Fed publication archives and CFTC exceptional release dates. Audit ALFRED access without making keys a prerequisite for other sources.
 - Historical consensus remains unavailable; surprise-based experiments stay unavailable until legitimate forecast vintages are obtained.
+- BLS archive pages may be reissued at the same URL. Compare future snapshots and recover correction metadata before declaring release vintages final.
+- Establish evidence for historical `available_at` or use a documented conservative delay; embargo timestamps alone are not strict PIT availability.

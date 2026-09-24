@@ -97,6 +97,7 @@ def test_web_empty_and_loaded_data(tmp_path, monkeypatch):
     assert client.get("/").status_code == 200
     assert client.get("/api/market").json()["points"] == []
     assert client.get("/reports/nonexistent").status_code == 404
+    assert client.get("/reports/macro-data").status_code == 200
     assert client.get("/download/nonexistent").status_code == 404
     meta = save_raw("ecb", "https://example.test/fx", XML, {})
     ECBReferenceProvider().replay(XML, meta, date(2024, 1, 1), date(2024, 1, 4))

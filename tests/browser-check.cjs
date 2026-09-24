@@ -25,7 +25,7 @@ const path = require('path');
     if(await page.locator('#chart title').textContent()!==description) throw Error('Wrong SVG title for '+kind);
     if(await page.locator('#values tr').count()!==10) throw Error('Missing table for '+kind);
   }
-  for(const report of ['decisions','questions','sources','deployment','market-quality']) {
+  for(const report of ['decisions','questions','sources','deployment','market-quality','macro-data']) {
     const response=await page.request.get('http://192.168.88.5:8088/reports/'+report);
     if(response.status()!==200) throw Error('Report '+report+' failed');
   }
@@ -40,6 +40,12 @@ const path = require('path');
   await page.screenshot({path:path.join(out,'quality-mobile.png'),fullPage:true});
   await page.setViewportSize({width:1440,height:1000});
   await page.screenshot({path:path.join(out,'quality-desktop.png'),fullPage:true});
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('http://192.168.88.5:8088/reports/macro-data',{waitUntil:'networkidle'});
+  if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)) throw Error('Macro report mobile overflow');
+  await page.screenshot({path:path.join(out,'macro-mobile.png'),fullPage:true});
+  await page.setViewportSize({width:1440,height:1000});
+  await page.screenshot({path:path.join(out,'macro-desktop.png'),fullPage:true});
   if(errors.length) throw Error(errors.join('\n'));
   console.log(JSON.stringify({initial,filtered,dimensions,errors,screenshots:out}));
   await browser.close();

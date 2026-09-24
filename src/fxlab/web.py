@@ -93,6 +93,19 @@ def market_quality(request: Request):
                                      "quarantine": quarantine, "comparison": comparison})
 
 
+@app.get("/reports/macro-data", response_class=HTMLResponse)
+def macro_data(request: Request):
+    report = read_json("macro_releases.json", None)
+    rows = []
+    if report and report["files"].get("observations"):
+        with duckdb.connect() as con:
+            con.execute("SET TimeZone='UTC'")
+            rows = con.execute("SELECT observation_period, indicator, actual, unit, published_at, time_quality "
+                               "FROM read_parquet(?) ORDER BY published_at DESC, indicator LIMIT 30",
+                               [str(root()/report["files"]["observations"])]).fetchall()
+    return templates.TemplateResponse(request=request, name="macro.html", context={"macro": report, "rows": rows})
+
+
 @app.get("/reports/{name}", response_class=HTMLResponse)
 def document(request: Request, name: str):
     if name not in DOCS:
@@ -112,6 +125,12 @@ def download(name: str):
     if report:
         files.update({"eurusd_h1.parquet": root()/report["files"]["h1"], "eurusd_d1.parquet": root()/report["files"]["d1"],
                       "gaps.json": root()/report["files"]["gaps"], "quarantine.json": root()/report["files"]["quarantine"]})
+    macro = read_json("macro_releases.json", None)
+    if macro:
+        files["macro_releases.json"] = root()/"reports"/"macro_releases.json"
+        files["macro_releases.parquet"] = root()/macro["files"]["releases"]
+        if macro["files"].get("observations"):
+            files["macro_observations.parquet"] = root()/macro["files"]["observations"]
     if name not in files or not files[name].exists():
         raise HTTPException(404)
     return FileResponse(files[name], filename=name)
