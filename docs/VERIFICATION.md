@@ -68,3 +68,16 @@ Remaining: original macro releases, actual publication times, historical revisio
 - Browser verification covers the merged policy report at 1440px and 390px, switches between FOMC and ECB, validates the SVG identity, reports no JavaScript errors or page-level mobile overflow, and confirms all eight report routes return HTTP 200. Screenshots: `data/qa-v06/`.
 - Deployed image `fx-causal-lab:0.6.0` is healthy on `192.168.88.5:8088`; both policy APIs return 25 rows, all four manifest/Parquet downloads succeed, and Caddy remains active and unchanged.
 - Independent Impeccable finish review verdict: `ship`; no material findings in rate semantics, PIT disclosure, mobile layout or accessibility.
+
+## Version 0.7 M4 event alignment — 2026-09-24
+
+- Gold dataset `152e8e089a0f74aee7a8`; normalized SHA-256 `17e4fc876ae93580cc40e491cd5c09dea76cf12cd4372b3ddd5cd065c42fd4c8`.
+- 267 rows: 191 pre-event, 38 post-release and 38 reaction-confirmed. Source rows: BLS 105, FOMC 24, ECB 24 and CFTC 114 across its three modes.
+- Target coverage is 265/260/245/206 rows at 1/5/20/60 sessions. Two earliest policy events have no market anchor because EUR/USD history starts later; 121 CFTC rows have no preserved release reference and are excluded.
+- Every target starts at or after prediction time. Pre-event actuals are feature-ineligible; post-release actuals require `available_at <= prediction_time`; incomplete sessions are not skipped.
+- Strict PIT rows: 0. This is expected while event receipt and market-history vintages remain unverified.
+- Container test run: 45 tests passed with one upstream TestClient deprecation warning.
+- Offline rerun produced the same dataset ID and normalized hash. Direct Parquet assertions found zero duplicate IDs, targets before prediction time, pre-event Actual features, Actual uses before availability, or endpoints before target start.
+- Browser verification covers the alignment report at 1440px and 390px, reports no JavaScript errors or page-level mobile overflow, and confirms all nine report routes return HTTP 200. Screenshots: `data/qa-v07/`.
+- Deployed image `fx-causal-lab:0.7.0` is healthy on `192.168.88.5:8088`; Gold manifest and Parquet downloads succeed, and Caddy remains active and unchanged.
+- Independent Impeccable finish review verdict: `ship`; no material findings in prediction-mode clarity, PIT disclosure, mobile table behavior or accessibility.

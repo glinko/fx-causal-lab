@@ -176,6 +176,20 @@ def policy_events(request: Request):
                                       context={"fomc": fomc, "ecb": ecb, "fomc_rows": fomc_rows, "ecb_rows": ecb_rows})
 
 
+@app.get("/reports/event-alignment", response_class=HTMLResponse)
+def event_alignment(request: Request):
+    report = read_json("event_alignment.json", None)
+    rows = []
+    if report:
+        with duckdb.connect() as con:
+            con.execute("SET TimeZone='UTC'")
+            rows = con.execute("SELECT source, event_type, prediction_mode, prediction_time, target_start_at, "
+                               "ret_1d, ret_5d, ret_20d, ret_60d FROM read_parquet(?) "
+                               "ORDER BY prediction_time DESC, source LIMIT 30",
+                               [str(root()/report["files"]["event_targets"])]).fetchall()
+    return templates.TemplateResponse(request=request, name="alignment.html", context={"alignment": report, "rows": rows})
+
+
 @app.get("/reports/{name}", response_class=HTMLResponse)
 def document(request: Request, name: str):
     if name not in DOCS:
@@ -213,6 +227,10 @@ def download(name: str):
     if ecb_policy:
         files["ecb_policy.json"] = root()/"reports"/"ecb_policy.json"
         files["ecb_policy_decisions.parquet"] = root()/ecb_policy["files"]["decisions"]
+    alignment = read_json("event_alignment.json", None)
+    if alignment:
+        files["event_alignment.json"] = root()/"reports"/"event_alignment.json"
+        files["event_targets.parquet"] = root()/alignment["files"]["event_targets"]
     if name not in files or not files[name].exists():
         raise HTTPException(404)
     return FileResponse(files[name], filename=name)

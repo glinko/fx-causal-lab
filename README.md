@@ -2,7 +2,7 @@
 
 Исследовательский MVP EUR/USD на Ubuntu: публичные источники, provenance, проверки доступности и веб-отчёты.
 
-Версия 0.6.0: ECB reference, Dukascopy Bid H1/D1, 70 архивных релизов BLS, 159 недельных отчётов CFTC TFF, 25 заявлений FOMC и 25 решений ECB. Строгий PIT dataset и статистические эксперименты пока не готовы.
+Версия 0.7.0: первый Gold dataset выравнивает BLS, FOMC, ECB и CFTC с EUR/USD и строит targets на 1/5/20/60 NY17-сессий. Все 267 строк пока нестрогие: historical receipt событий и vintage рыночной истории не доказаны.
 
 ```bash
 pip install -c requirements.lock '.[test]'
@@ -18,14 +18,15 @@ fxlab fomc-backfill --from 2023-09-01 --to 2026-09-24
 fxlab fomc-replay data/reports/fomc_fetch.json
 fxlab ecb-policy-backfill --from 2023-09-01 --to 2026-09-24
 fxlab ecb-policy-replay data/reports/ecb_policy_fetch.json
+fxlab align-events
 uvicorn fxlab.web:app --host 127.0.0.1 --port 8088
 pytest -q
 ```
 
-[Веб-журнал](http://192.168.88.5:8088) · [Качество истории](http://192.168.88.5:8088/reports/market-quality) · [Архив BLS](http://192.168.88.5:8088/reports/macro-data) · [Решения FOMC и ECB](http://192.168.88.5:8088/reports/policy-events) · [Позиционирование CFTC](http://192.168.88.5:8088/reports/positioning)
+[Веб-журнал](http://192.168.88.5:8088) · [События и targets](http://192.168.88.5:8088/reports/event-alignment) · [Качество истории](http://192.168.88.5:8088/reports/market-quality) · [Архив BLS](http://192.168.88.5:8088/reports/macro-data) · [Решения FOMC и ECB](http://192.168.88.5:8088/reports/policy-events) · [Позиционирование CFTC](http://192.168.88.5:8088/reports/positioning)
 
 18 667 валидных H1; 780 дневных сессий, из них 772 полные. 13 некорректных OHLC исключены. Пропуски не заполняются. H1 и D1 доступны в Parquet вместе с манифестом исходных снимков. Модель хранит отдельные timestamps, provenance и nullable consensus/vintages; неизвестная историческая доступность не допускается в строгие эксперименты.
 
-M0 продолжается: BLS, FRED, Eurostat, CFTC, Fed и ECB проверены без ключей. В M3 сохранены архивные BLS pages, CFTC snapshots, 25 FOMC statements и 25 ECB monetary policy decisions. Точные официальные timestamps и ставки извлечены из каждого релиза, но `available_at` сознательно оставлен пустым. Далее: revisions, затем M4 event alignment и targets 1/5/20/60 торговых дней. M5 начинается с воспроизведения опубликованных эффектов; отсутствие сигнала допустимо.
+M4 даёт 191 pre-event, 38 post-release и 38 reaction-confirmed строк. Actual явно запрещён как feature в pre-event; post-release и reaction-confirmed создаются только при известном `available_at`. Неполная D1-сессия не пропускается и не сжимает горизонт. Далее — audit покрытия, revisions/consensus и M5 replication. Классический surprise-эффект без historical consensus будет помечен unavailable; нулевой результат допустим.
 
 См. DECISIONS.md, OPEN_QUESTIONS.md, DEPLOYMENT.md. docs/SPEC_RU.md — исходная спецификация; решения пользователя имеют приоритет. Существующие сайты Caddy не изменяются.

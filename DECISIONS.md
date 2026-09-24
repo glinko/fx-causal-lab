@@ -80,3 +80,11 @@
 - `published_at` берётся из FOEDB `pub_timestamp` и проверяется как 14:15 Europe/Berlin на дату URL. Это официальное время публикации, а не historical receipt; `available_at=null`, strict PIT выключен.
 - Deposit facility, main refinancing operations и marginal lending facility извлекаются из текста каждого релиза. Изменение deposit rate — детерминированная производная; для первой строки в окне она null.
 - Consensus, forecast vintage и surprise остаются null; фактическое решение их не заменяет.
+
+## 2026-09-24 — M4 event alignment
+
+- `pre_event` использует официальную границу релиза как `prediction_time`; Actual хранится только как event-study metadata и запрещён как feature.
+- `post_release` создаётся только если `available_at` известен. `reaction_confirmed` использует `prediction_time = available_at + 1h`; окно реакции завершается не позже prediction time.
+- Target начинается с open первой H1-свечи, начавшейся не раньше `prediction_time`. Endpoints — close 1-й, 5-й, 20-й и 60-й NY17-сесии; доходность `close/open - 1` и log-return.
+- Неполная D1-сессия инвалидирует свой и все более дальние горизонты; её нельзя пропустить и сжать trading time.
+- CFTC pre-event привязан к сохранённому schedule, а post/reaction — к консервативному `available_at`; все эти строки нестрогие. Из-за неподтверждённого market vintage строгих строк в M4 пока 0.

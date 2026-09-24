@@ -102,3 +102,11 @@ sudo docker compose exec web fxlab ecb-policy-replay data/reports/ecb_policy_fet
 ```
 
 Backfill сохраняет FOEDB versions descriptor, metadata, необходимые chunks и каждую страницу решения. Replay проверяет SHA-256, дату URL, время 14:15 Europe/Berlin и три policy rates. Для доказательства автономности replay запускается с `docker run --network none` и bind mount каталога `data`.
+
+## Event alignment — версия 0.7
+
+```bash
+sudo docker compose exec web fxlab align-events
+```
+
+Команда не обращается к сети. Она читает текущие манифесты BLS, FOMC, ECB, CFTC и EUR/USD, проверяет anti-leakage invariants и публикует `gold/event_targets/<dataset_id>/event_targets.parquet`.
