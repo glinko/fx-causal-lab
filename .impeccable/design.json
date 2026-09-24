@@ -1,0 +1,212 @@
+{
+  "components": [
+    {
+      "css": ".ds-label{font:14px/1.55 Segoe UI,Arial,sans-serif;color:var(--ink,#172c2b)}.ds-select{font:inherit;color:var(--ink,#172c2b);background:var(--white,#fff);border:1px solid #84998d;border-radius:4px;padding:8px 30px 8px 10px;max-width:100%}.ds-select:focus-visible{outline:3px solid #947126;outline-offset:4px}",
+      "name": "Series select",
+      "html": "<label class=\"ds-label\">Ряд данных <select class=\"ds-select\"><option>Dukascopy · D1 · Bid</option><option>Dukascopy · H1 · Bid</option><option>ECB · reference rate</option></select></label>",
+      "description": "Native labelled selection for measured series.",
+      "kind": "input"
+    },
+    {
+      "html": "<nav class=\"ds-nav\" aria-label=\"Разделы\"><a href=\"#market\">EUR/USD</a><a href=\"#sources\">Источники</a><a href=\"#reports\">Отчёты</a></nav>",
+      "css": ".ds-nav{display:flex;flex-wrap:wrap;gap:25px;font:14px/1.55 Segoe UI,Arial,sans-serif}.ds-nav a{color:var(--accent,#175d50);text-decoration:none}.ds-nav a:hover{color:#092c26}.ds-nav a:focus-visible{outline:3px solid #947126;outline-offset:4px}",
+      "refersTo": "navigation-link",
+      "kind": "nav",
+      "name": "Journal navigation",
+      "description": "Quiet text navigation."
+    },
+    {
+      "html": "<span class=\"ds-status\">URL доступен</span> <span class=\"ds-status ds-warn\">Требует разбора</span>",
+      "css": ".ds-status{display:inline-block;color:var(--muted,#51625f);font:12px/1.55 Segoe UI,Arial,sans-serif;white-space:nowrap}.ds-warn{color:var(--warn,#78501a)}",
+      "refersTo": "status",
+      "kind": "custom",
+      "name": "Evidence status",
+      "description": "Written status with restrained semantic color."
+    },
+    {
+      "html": "<a class=\"ds-report\" href=\"#quality\"><span>Качество H1/D1</span><span>Пропуски, карантин и сверка с ECB</span></a>",
+      "css": ".ds-report{display:flex;justify-content:space-between;gap:20px;padding:18px 0;border-bottom:1px solid var(--line,#cbd3ca);color:var(--accent,#175d50);font:16px/1.55 Segoe UI,Arial,sans-serif;text-decoration:none}.ds-report span:last-child{font-size:13px;color:var(--muted,#51625f)}.ds-report:hover{background:#ecf0e8;color:#092c26}.ds-report:focus-visible{outline:3px solid #947126;outline-offset:4px}@media(max-width:700px){.ds-report,.ds-report span{display:block}.ds-report span:last-child{margin-top:5px}}",
+      "refersTo": "report-link",
+      "kind": "custom",
+      "name": "Report row",
+      "description": "Ruled report link with supporting description."
+    },
+    {
+      "css": ".ds-details{font:14px/1.55 Segoe UI,Arial,sans-serif;color:var(--ink,#172c2b);margin-top:15px}.ds-details summary{cursor:pointer;color:var(--accent,#175d50);padding:6px 0}.ds-details summary:focus-visible{outline:3px solid #947126;outline-offset:4px}",
+      "name": "Evidence disclosure",
+      "html": "<details class=\"ds-details\"><summary>Последние значения и происхождение</summary><p>ECB · источник и контрольная сумма снимка</p></details>",
+      "description": "Native disclosure for values and provenance.",
+      "kind": "custom"
+    }
+  ],
+  "extensions": {
+    "breakpoints": [
+      {
+        "name": "stacked-layout",
+        "value": "700px"
+      },
+      {
+        "name": "compact-plot",
+        "value": "600px"
+      }
+    ],
+    "motion": [
+      {
+        "purpose": "Document navigation; auto under prefers-reduced-motion: reduce.",
+        "name": "document-scroll",
+        "value": "smooth"
+      }
+    ],
+    "shadows": [],
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "tonalRamp": [
+          "oklch(15% 0.017 106)",
+          "oklch(26% 0.017 106)",
+          "oklch(38% 0.017 106)",
+          "oklch(49% 0.017 106)",
+          "oklch(61% 0.017 106)",
+          "oklch(72% 0.017 106)",
+          "oklch(84% 0.017 106)",
+          "oklch(95% 0.017 106)"
+        ],
+        "displayName": "Paper"
+      },
+      "inset": {
+        "role": "neutral",
+        "tonalRamp": [
+          "oklch(15% 0.016 125)",
+          "oklch(26% 0.016 125)",
+          "oklch(38% 0.016 125)",
+          "oklch(49% 0.016 125)",
+          "oklch(61% 0.016 125)",
+          "oklch(72% 0.016 125)",
+          "oklch(84% 0.016 125)",
+          "oklch(95% 0.016 125)"
+        ],
+        "displayName": "Inset"
+      },
+      "white": {
+        "role": "neutral",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26% 0 0)",
+          "oklch(38% 0 0)",
+          "oklch(49% 0 0)",
+          "oklch(61% 0 0)",
+          "oklch(72% 0 0)",
+          "oklch(84% 0 0)",
+          "oklch(95% 0 0)"
+        ],
+        "displayName": "White"
+      },
+      "line": {
+        "role": "neutral",
+        "tonalRamp": [
+          "oklch(15% 0.014 141)",
+          "oklch(26% 0.014 141)",
+          "oklch(38% 0.014 141)",
+          "oklch(49% 0.014 141)",
+          "oklch(61% 0.014 141)",
+          "oklch(72% 0.014 141)",
+          "oklch(84% 0.014 141)",
+          "oklch(95% 0.014 141)"
+        ],
+        "displayName": "Line"
+      },
+      "warn": {
+        "role": "secondary",
+        "tonalRamp": [
+          "oklch(15% 0.087 71)",
+          "oklch(26% 0.087 71)",
+          "oklch(38% 0.087 71)",
+          "oklch(49% 0.087 71)",
+          "oklch(61% 0.087 71)",
+          "oklch(72% 0.087 71)",
+          "oklch(84% 0.087 71)",
+          "oklch(95% 0.087 71)"
+        ],
+        "displayName": "Warning ochre"
+      },
+      "accent": {
+        "role": "primary",
+        "tonalRamp": [
+          "oklch(15% 0.073 175)",
+          "oklch(26% 0.073 175)",
+          "oklch(38% 0.073 175)",
+          "oklch(49% 0.073 175)",
+          "oklch(61% 0.073 175)",
+          "oklch(72% 0.073 175)",
+          "oklch(84% 0.073 175)",
+          "oklch(95% 0.073 175)"
+        ],
+        "displayName": "Green ink accent"
+      },
+      "muted": {
+        "role": "neutral",
+        "tonalRamp": [
+          "oklch(15% 0.024 172)",
+          "oklch(26% 0.024 172)",
+          "oklch(38% 0.024 172)",
+          "oklch(49% 0.024 172)",
+          "oklch(61% 0.024 172)",
+          "oklch(72% 0.024 172)",
+          "oklch(84% 0.024 172)",
+          "oklch(95% 0.024 172)"
+        ],
+        "displayName": "Muted ink"
+      },
+      "ink": {
+        "role": "neutral",
+        "tonalRamp": [
+          "oklch(15% 0.027 186)",
+          "oklch(26% 0.027 186)",
+          "oklch(38% 0.027 186)",
+          "oklch(49% 0.027 186)",
+          "oklch(61% 0.027 186)",
+          "oklch(72% 0.027 186)",
+          "oklch(84% 0.027 186)",
+          "oklch(95% 0.027 186)"
+        ],
+        "displayName": "Ink"
+      }
+    }
+  },
+  "narrative": {
+    "rules": [
+      {
+        "section": "colors",
+        "name": "The Evidence Rule",
+        "body": "Keep data limitations next to the measured evidence they qualify."
+      },
+      {
+        "section": "typography",
+        "name": "The Reading Rule",
+        "body": "Use serif headings to structure the journal and sans-serif text for evidence, navigation and controls."
+      }
+    ],
+    "keyCharacteristics": [
+      "Light reading surface and green ink.",
+      "Evidence tables and a working measured series.",
+      "Adjacent caveats and explicit provenance.",
+      "Stacked mobile headings and contained table scrolling."
+    ],
+    "dos": [
+      "Do retain adjacent caveats, provenance and explicit data status.",
+      "Do keep series labels, accessible names and downloads consistent with the selected data.",
+      "Do preserve keyboard focus and a table representation of recent values.",
+      "Do stack mobile controls and contain dense table scrolling."
+    ],
+    "overview": "A simple research journal combines evidence tables with a full-width measured series. Light paper, dark green ink and restrained warning ochre support detailed reading by one researcher. The interface remains an operating and reading surface, with no decorative charts or fabricated metrics.\n\nSerif journal headings frame familiar sans-serif controls and tables. The chart is a working plot with date ranges and exact values; limitations remain adjacent to the evidence. Local assets and a locally served display font keep the journal independent of external font services.",
+    "donts": [
+      "Don't invent experiment results or turn the working plot into decoration.",
+      "Don't imply that an available endpoint is validated research data.",
+      "Don't bridge missing observations or conceal incomplete sessions as complete evidence."
+    ],
+    "northStar": "Research journal"
+  },
+  "generatedAt": "2026-09-24T00:37:51.4708183Z",
+  "schemaVersion": 2,
+  "title": "Design System: FX Causal Lab"
+}

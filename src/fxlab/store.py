@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from uuid import uuid4
 
+from . import __version__
+
 
 def root() -> Path:
     return Path(os.environ.get("FXLAB_DATA", "data"))
@@ -28,6 +30,6 @@ def save_raw(source: str, url: str, body: bytes, headers: dict, status_code: int
     meta = {"source": source, "source_url": url, "sha256": digest,
             "ingested_at": datetime.now(timezone.utc).isoformat(),
             "headers": {k: v for k, v in headers.items() if k.lower() in {"content-type", "last-modified", "etag", "date"}},
-            "status_code": status_code, "parser_version": "0.1.0", "payload": str(payload.relative_to(root()))}
+            "status_code": status_code, "parser_version": __version__, "payload": str(payload.relative_to(root()))}
     atomic_json(directory / f"{digest}.{uuid4().hex}.json", meta)
     return meta

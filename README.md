@@ -1,31 +1,23 @@
 # FX Causal Lab
 
-Исследовательский MVP EUR/USD. Ubuntu-first, публичные источники, point-in-time проверки и веб-отчёты.
+Исследовательский MVP EUR/USD на Ubuntu: публичные источники, provenance, проверки доступности и веб-отчёты.
 
-Текущая версия: начальный сервис и ECB reference data slice. **Не торговая система и не завершённая Research Platform v1.**
+Версия 0.2.0: ECB reference, Dukascopy Bid H1 и дневные NY17 сессии, карантин, отчёт качества и offline replay. Строгий PIT dataset и статистические эксперименты пока не готовы.
 
 ```bash
-python -m venv .venv
-. .venv/bin/activate
-pip install -e '.[test]'
+pip install -c requirements.lock '.[test]'
 fxlab backfill --from 2023-09-23 --to 2026-09-23
-fxlab recon
+fxlab market-backfill --from 2023-09-23 --to 2026-09-23
+fxlab market-replay data/reports/bars.json
+fxlab market-check
 uvicorn fxlab.web:app --host 127.0.0.1 --port 8088
 pytest -q
 ```
 
-Либо Docker Compose. На сервере [журнал](http://192.168.88.5:8088) показывает реальные загруженные данные и состояние источников.
+[Веб-журнал](http://192.168.88.5:8088) · [Качество истории](http://192.168.88.5:8088/reports/market-quality)
 
-См. `DECISIONS.md`, `OPEN_QUESTIONS.md`, `SOURCE_MATRIX.md`, `DEPLOYMENT.md`. Исходная спецификация находится в `docs/SPEC_RU.md`; решения пользователя имеют приоритет над ней.
+18 667 валидных H1; 780 дневных сессий, из них 772 полные. 13 некорректных OHLC исключены. Пропуски не заполняются. H1 и D1 доступны в Parquet вместе с манифестом исходных снимков. Модель хранит отдельные timestamps, provenance и nullable consensus/vintages; неизвестная историческая доступность не допускается в строгие эксперименты.
 
-## Что реализовано
+M0 продолжается: BLS, FRED, Eurostat и CFTC проверены на реальных исторических ответах без ключей. Полная матрица — SOURCE_MATRIX.md. Далее M3: календари публикаций, оригинальные releases и revisions; затем M4: event alignment и targets 1/5/20/60 торговых дней. M5 начинается с воспроизведения опубликованных эффектов; отсутствие сигнала допустимо.
 
-- Отдельный веб-сервис, график ECB EUR/USD, выбор периода, данные для скачивания и отчёты.
-- Immutable raw payloads, отдельные ingestion receipts, воспроизводимая offline-нормализация.
-- Parquet + DuckDB для reference series; без ложных OHLC и PIT claims.
-- Контракт MarketProvider, модели provenance/vintages/consensus, as-of selection и anti-leakage window checks.
-- Проверка доступности 15 источников с сервера и сохранением доказательств.
-
-## Что дальше
-
-Завершить M0 и выбрать OHLC provider, затем закончить core schemas/коллекторы и H1/D1. Для M5 сначала опубликованные эффекты; для M6 граф гипотез. GraphML, graph UI, макроадаптеры, features и эксперименты пока не реализованы.
+См. DECISIONS.md, OPEN_QUESTIONS.md, DEPLOYMENT.md. docs/SPEC_RU.md — исходная спецификация; решения пользователя имеют приоритет. Существующие сайты Caddy не изменяются.

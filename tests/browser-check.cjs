@@ -17,7 +17,15 @@ const path = require('path');
   if(initial===filtered) throw Error('Period filter did not change chart');
   await page.locator('summary').click();
   if(await page.locator('#values tr').count()!==10) throw Error('Missing accessible table');
-  for(const report of ['decisions','questions','sources','deployment']) {
+  for(const kind of ['h1','ecb','d1']) {
+    await page.selectOption('#series',kind);
+    await page.locator('#chart-status').filter({hasText:'наблюдений'}).waitFor();
+    const description=await page.locator('#series-description').textContent();
+    if(await page.locator('#chart').getAttribute('aria-label')!==description) throw Error('Wrong accessible chart identity for '+kind);
+    if(await page.locator('#chart title').textContent()!==description) throw Error('Wrong SVG title for '+kind);
+    if(await page.locator('#values tr').count()!==10) throw Error('Missing table for '+kind);
+  }
+  for(const report of ['decisions','questions','sources','deployment','market-quality']) {
     const response=await page.request.get('http://192.168.88.5:8088/reports/'+report);
     if(response.status()!==200) throw Error('Report '+report+' failed');
   }
@@ -27,6 +35,11 @@ const path = require('path');
   const dimensions=await page.evaluate(()=>({body:document.documentElement.scrollWidth,viewport:innerWidth}));
   if(dimensions.body>dimensions.viewport) throw Error('Mobile page overflow');
   await page.screenshot({path:path.join(out,'mobile.png'),fullPage:true});
+  await page.goto('http://192.168.88.5:8088/reports/market-quality',{waitUntil:'networkidle'});
+  if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)) throw Error('Quality mobile overflow');
+  await page.screenshot({path:path.join(out,'quality-mobile.png'),fullPage:true});
+  await page.setViewportSize({width:1440,height:1000});
+  await page.screenshot({path:path.join(out,'quality-desktop.png'),fullPage:true});
   if(errors.length) throw Error(errors.join('\n'));
   console.log(JSON.stringify({initial,filtered,dimensions,errors,screenshots:out}));
   await browser.close();

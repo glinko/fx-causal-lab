@@ -34,6 +34,11 @@ def probe(source):
                 valid = data.get("status") == "REQUEST_SUCCEEDED" and bool(data.get("Results", {}).get("series", [{}])[0].get("data"))
             elif source["id"] == "eurostat":
                 valid = bool(response.json().get("value"))
+            elif source["id"] == "fred":
+                import csv
+                import io
+                rows = list(csv.DictReader(io.StringIO(response.text)))
+                valid = any(row.get("DGS2") not in {None, "", "."} for row in rows)
             elif source["id"] == "cftc":
                 import io
                 import zipfile

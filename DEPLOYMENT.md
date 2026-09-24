@@ -44,3 +44,18 @@ sudo docker compose stop
 Docker и Compose установлены из репозиториев Ubuntu. Системные сервисы Docker/containerd включены; существующий Caddyfile не изменён. Привязка порта задаётся `.env`: `FXLAB_BIND=192.168.88.5`. Для другого сервера изменить значение. Не публиковать сервис наружу без аутентификации.
 
 Контейнер read-only, uid 1000; записывать разрешено в data и временный tmpfs. После перезагрузки контейнер поднимается через `restart: unless-stopped`. Загрузки запускаются вручную; обещания ежедневного автоматического обновления нет.
+
+## H1/D1 — версия 0.2
+
+```bash
+sudo docker compose exec web fxlab market-backfill --from 2023-09-23 --to 2026-09-23
+sudo docker compose exec web fxlab market-replay data/reports/bars.json
+sudo docker compose exec web fxlab market-check
+sudo docker compose exec web python tools/audit_sources.py
+```
+
+`market-replay` использует точные snapshots из манифеста, проверяет их hash и hash нормализованных H1. Не требует сети. `--offline` у backfill использует текущий cache; для точного повтора конкретного запуска нужен именно `market-replay`.
+
+H1/D1, пропуски и карантин: `data/silver/dukascopy/<dataset_id>/`. Манифест `data/reports/bars.json` указывает текущий dataset. D1 — агрегация NY17, а не независимый источник дневных цен. Загрузка с ошибкой контрольной суммы не заменяет текущий манифест. Snapshot календаря закреплён вместе с ценами.
+
+Аудит источников расходует публичные квоты; не запускать его циклически. Результат `data/reports/source_audit.json` содержит фактически измеренную глубину, сырые снимки и ограничения PIT.

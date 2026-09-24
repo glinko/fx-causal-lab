@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+from typing import Literal
 
 import duckdb
 import markdown
@@ -11,6 +12,7 @@ from fastapi.templating import Jinja2Templates
 
 from .recon import CONFIG
 from .store import root
+from . import __version__
 
 PACKAGE = Path(__file__).parent
 PROJECT = Path(os.environ.get("FXLAB_PROJECT", "."))
@@ -36,13 +38,14 @@ async def security_headers(request: Request, call_next):
 
 @app.get("/healthz")
 def health():
-    return {"status": "ok", "version": "0.1.0"}
+    return {"status": "ok", "version": __version__}
 
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     return templates.TemplateResponse(request=request, name="index.html", context={
         "market": read_json("market.json", None),
+        "bars": read_json("bars.json", None),
         "sources": read_json("sources.json", json.loads(CONFIG.read_text(encoding="utf-8"))),
     })
 
@@ -62,6 +65,34 @@ def sources():
     return read_json("sources.json", [])
 
 
+@app.get("/api/bars")
+def bars(frequency: Literal["h1", "d1"] = "d1"):
+    report = read_json("bars.json", None)
+    if report is None:
+        return {"points": [], "report": None}
+    with duckdb.connect() as con:
+        con.execute("SET TimeZone='UTC'")
+        quality = "within_schedule" if frequency == "h1" else "complete"
+        rows = con.execute(f"SELECT bar_end, open, high, low, close, {quality} FROM read_parquet(?) ORDER BY bar_start",
+                           [str(root() / report["files"][frequency])]).fetchall()
+    return {"points": [{"date": t.isoformat(), "open": o, "high": h, "low": l, "value": c, "complete": q}
+                       for t, o, h, l, c, q in rows], "report": report}
+
+
+@app.get("/reports/market-quality", response_class=HTMLResponse)
+def market_quality(request: Request):
+    report = read_json("bars.json", None)
+    gaps, quarantine = [], []
+    if report:
+        gaps = json.loads((root()/report["files"]["gaps"]).read_text())
+        quarantine = json.loads((root()/report["files"]["quarantine"]).read_text())
+    comparison = read_json("ecb_comparison.json", None)
+    if not report or not comparison or comparison.get("dataset_id") != report["dataset_id"]:
+        comparison = None
+    return templates.TemplateResponse(request=request, name="quality.html", context={"bars": report, "gaps": gaps,
+                                     "quarantine": quarantine, "comparison": comparison})
+
+
 @app.get("/reports/{name}", response_class=HTMLResponse)
 def document(request: Request, name: str):
     if name not in DOCS:
@@ -74,7 +105,13 @@ def document(request: Request, name: str):
 @app.get("/download/{name}")
 def download(name: str):
     files = {"market.json": root() / "reports" / "market.json", "sources.json": root() / "reports" / "sources.json",
-             "ecb_eurusd.parquet": root() / "silver" / "ecb_eurusd.parquet"}
+             "ecb_eurusd.parquet": root() / "silver" / "ecb_eurusd.parquet",
+             "bars.json": root()/"reports"/"bars.json", "ecb_comparison.json": root()/"reports"/"ecb_comparison.json",
+             "source_audit.json": root()/"reports"/"source_audit.json"}
+    report = read_json("bars.json", None)
+    if report:
+        files.update({"eurusd_h1.parquet": root()/report["files"]["h1"], "eurusd_d1.parquet": root()/report["files"]["d1"],
+                      "gaps.json": root()/report["files"]["gaps"], "quarantine.json": root()/report["files"]["quarantine"]})
     if name not in files or not files[name].exists():
         raise HTTPException(404)
     return FileResponse(files[name], filename=name)

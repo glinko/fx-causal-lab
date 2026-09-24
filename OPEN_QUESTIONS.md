@@ -14,3 +14,10 @@
 10. Зафиксировать train/validation/test и purge/embargo с учётом пересекающихся labels до запуска экспериментов.
 11. Настроить резервное копирование data и обновления после стабилизации ingestion. На этой стадии persistent volume не является backup.
 12. При необходимости доступа вне LAN — отдельно выбрать домен и аутентификацию; сейчас внешней публикации нет.
+
+## H1/D1 follow-up
+
+- Investigate 13 invalid provider OHLC and 8 incomplete NY17 sessions; no guessed replacement.
+- Verify Dukascopy redistribution terms, published quotas, historical calendar changes and revisions before expanding use.
+- Recover BLS/ECB/Fed publication archives and CFTC exceptional release dates. Audit ALFRED access without making keys a prerequisite for other sources.
+- Historical consensus remains unavailable; surprise-based experiments stay unavailable until legitimate forecast vintages are obtained.

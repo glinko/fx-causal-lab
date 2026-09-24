@@ -1,9 +1,135 @@
-# Research journal
+---
+name: FX Causal Lab
+description: A simple research journal for measured EUR/USD evidence.
+colors:
+  paper: "#f7f7f2"
+  ink: "#172c2b"
+  muted: "#51625f"
+  line: "#cbd3ca"
+  accent: "#175d50"
+  white: "#fff"
+  warn: "#78501a"
+  inset: "#e9eee5"
+typography:
+  headline:
+    fontFamily: "PT Serif, Georgia, serif"
+    fontSize: "27px"
+    fontWeight: 400
+    lineHeight: 1.2
+  body:
+    fontFamily: "Segoe UI, Arial, sans-serif"
+    fontSize: "16px"
+    fontWeight: 400
+    lineHeight: 1.55
+  detail:
+    fontFamily: "Segoe UI, Arial, sans-serif"
+    fontSize: "14px"
+  metadata:
+    fontFamily: "Segoe UI, Arial, sans-serif"
+    fontSize: "13px"
+spacing:
+  compact: "12px"
+  medium: "20px"
+  section: "40px"
+components:
+  navigation-link:
+    textColor: "{colors.accent}"
+    typography: "{typography.detail}"
+  status:
+    textColor: "{colors.muted}"
+  report-link:
+    textColor: "{colors.accent}"
+    padding: "18px 0"
+---
 
-Simple research journal, evidence tables and a full-width measured series. Operate/read mode for one researcher. Light paper surface chosen for reading detailed reports. Dark green ink, restrained warning ochre; no decorative charts or fabricated metrics.
+# Design System: FX Causal Lab
 
-The product brief delegates routine choices and requests a simple interface without another decision round. Typography uses a serif for journal headings and a familiar readable sans for tables. The chart is a working plot with date range and exact values, not decoration. Data limitations appear adjacent to the chart.
+## Overview
 
-Seven considered grounded structures: statistical release bulletin, experiment logbook, data catalog, laboratory instrument, research journal (chosen), field observation register, annotated economic atlas. The journal supplies honest provenance and long-form reading without introducing decorative workflows.
+**Creative North Star: "Research journal"**
 
-Mobile: stacked headings, full-width plot, horizontal scroll only within data tables. Keyboard-visible focus and accessible table alternative to chart. All assets local; no analytics or external font dependency.
+A simple research journal combines evidence tables with a full-width measured series. Light paper, dark green ink and restrained warning ochre support detailed reading by one researcher. The interface remains an operating and reading surface, with no decorative charts or fabricated metrics.
+
+Serif journal headings frame familiar sans-serif controls and tables. The chart is a working plot with date ranges and exact values; limitations remain adjacent to the evidence. Local assets and a locally served display font keep the journal independent of external font services.
+
+**Key Characteristics:**
+- Light reading surface and green ink.
+- Evidence tables and a working measured series.
+- Adjacent caveats and explicit provenance.
+- Stacked mobile headings and contained table scrolling.
+
+## Colors
+
+The palette is quiet paper and green ink, with ochre reserved for caution.
+
+### Primary
+- **Green ink accent:** links, disclosure controls and the measured chart line.
+
+### Neutral
+- **Paper:** page background.
+- **Ink:** primary reading text and identity.
+- **Muted ink:** explanatory text, coverage, axes and metadata.
+- **Line:** table rules, container outlines and page dividers.
+- **White:** controls and the plot reading surface.
+- **Inset:** notices and document code blocks.
+
+Warning ochre supports written caution statuses. Status wording carries meaning independently of color.
+
+**The Evidence Rule.** Keep data limitations next to the measured evidence they qualify.
+
+## Typography
+
+**Display Font:** locally served PT Serif, with Georgia and serif fallbacks.
+**Body Font:** Segoe UI, with Arial and sans-serif fallbacks.
+**Label/Mono Font:** monospace for hashes.
+
+The serif supplies journal character; the sans-serif maintains legible data and controls. Section headings use the headline token. Journal titles are slightly larger (30px desktop, 27px mobile); document titles use 32px. Tables and controls use the detail role, while coverage and captions use metadata. Table headers use compact uppercase labels (12px, weight 600, .04em tracking). These are column labels, not decorative section kickers.
+
+**The Reading Rule.** Use serif headings to structure the journal and sans-serif text for evidence, navigation and controls.
+
+## Layout
+
+The journal uses a centered reading column, with a main maximum width of 1240px and 40px horizontal padding. Documents narrow to 1120px. Sections have 40px top separation; document prose is constrained to 80ch. The chart spans the available content width, followed by its caveat and a disclosure for recent values and provenance.
+
+At 700px and below, page padding becomes 20px, headings and controls stack, the edition label disappears and report links stack their descriptive text. Source tables retain a readable minimum width inside horizontal scrolling containers. The page itself should fit the viewport. The plot switches to a shorter drawing and fewer axis labels below a measured width of 600px.
+
+## Elevation & Depth
+
+Surfaces are flat. Thin rules and restrained paper, inset and white backgrounds distinguish sections; no shadows are used. Report links gain a quiet tinted background on hover. Keyboard focus uses an ochre outline with an offset, rather than simulated elevation.
+
+## Shapes
+
+Reading surfaces and evidence tables remain rectangular. Native selects have a small corner radius (4px) and a thin green-gray border. Tables use horizontal rules, without separate rounded cells or card wrappers.
+
+## Components
+
+### Controls and navigation
+
+Text links and native selects keep operations simple. Series and period selects have visible labels; series controls stack and fill the available width on mobile. Links, selects and disclosure summaries share a visible keyboard focus outline (3px, offset 4px). Navigation wraps with the header. The journal includes a focus-revealed skip link.
+
+### Evidence tables and statuses
+
+Tables align text left, use restrained uppercase column headings, and separate rows with thin rules. Row labels are emphasized; supporting technical details are smaller and muted. Neutral, validated and caution states retain explanatory text. Dense tables scroll within their container.
+
+### Report links and disclosures
+
+Reports are full-width ruled text rows, pairing a title with quieter explanatory text. The whole row is a link with a hover tint. Native details/summary discloses recent values and provenance without leaving the plot.
+
+### Working plot
+
+A thin green series sits on white with muted grid lines and axes. Pointer inspection exposes the date and exact value; recent observations also have a table representation. Series changes update the description, accessible chart label, caveat, coverage and download target together. D1, H1 and ECB retain their distinct source and timing language. Missing H1 hours break the line; incomplete daily sessions are not drawn as complete evidence. Loading, empty and failure states use plain explanatory text. The ECB reference series is explicitly distinguished from a tradable candle.
+
+Smooth document scrolling is disabled when reduced motion is requested. Chart changes are immediate and do not add ornamental animation.
+
+## Do's and Don'ts
+
+### Do:
+- **Do** retain adjacent caveats, provenance and explicit data status.
+- **Do** keep series labels, accessible names and downloads consistent with the selected data.
+- **Do** preserve keyboard focus and a table representation of recent values.
+- **Do** stack mobile controls and contain dense table scrolling.
+
+### Don't:
+- **Don't** invent experiment results or turn the working plot into decoration.
+- **Don't** imply that an available endpoint is validated research data.
+- **Don't** bridge missing observations or conceal incomplete sessions as complete evidence.
