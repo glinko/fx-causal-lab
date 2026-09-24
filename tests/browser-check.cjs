@@ -25,7 +25,7 @@ const path = require('path');
     if(await page.locator('#chart title').textContent()!==description) throw Error('Wrong SVG title for '+kind);
     if(await page.locator('#values tr').count()!==10) throw Error('Missing table for '+kind);
   }
-  for(const report of ['decisions','questions','sources','deployment','market-quality','macro-data','positioning','policy-events','event-alignment','baseline-experiments']) {
+  for(const report of ['decisions','questions','sources','deployment','market-quality','macro-data','positioning','policy-events','event-alignment','baseline-experiments','causal-graph']) {
     const response=await page.request.get('http://192.168.88.5:8088/reports/'+report);
     if(response.status()!==200) throw Error('Report '+report+' failed');
   }
@@ -77,6 +77,22 @@ const path = require('path');
   await page.screenshot({path:path.join(out,'experiments-mobile.png'),fullPage:true});
   await page.setViewportSize({width:1440,height:1000});
   await page.screenshot({path:path.join(out,'experiments-desktop.png'),fullPage:true});
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('http://192.168.88.5:8088/reports/causal-graph',{waitUntil:'networkidle'});
+  await page.locator('#graph-status').filter({hasText:'18 узлов'}).waitFor();
+  await page.locator('#graph-chain').selectOption('cpi_us');
+  await page.locator('#graph-status').filter({hasText:'7 узлов'}).waitFor();
+  if(await page.locator('#graph-title').count()!==1 || await page.locator('#graph-desc').count()!==1) throw Error('Graph accessible name missing after redraw');
+  if(await page.locator('#graph-node-controls button').count()!==7) throw Error('Accessible graph node controls missing');
+  await page.locator('.graph-node').first().focus();
+  await page.keyboard.press('Enter');
+  if(!await page.locator('#graph-detail').getByText('available_non_strict').count()) throw Error('Graph node detail missing');
+  if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)) throw Error('Graph mobile overflow');
+  await page.screenshot({path:path.join(out,'graph-mobile.png'),fullPage:true});
+  await page.locator('#graph-chain').selectOption('all');
+  await page.setViewportSize({width:1440,height:1000});
+  await page.locator('#graph-status').filter({hasText:'18 узлов'}).waitFor();
+  await page.screenshot({path:path.join(out,'graph-desktop.png'),fullPage:true});
   if(errors.length) throw Error(errors.join('\n'));
   console.log(JSON.stringify({initial,filtered,dimensions,errors,screenshots:out}));
   await browser.close();

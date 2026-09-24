@@ -115,6 +115,17 @@ def policy(source: Literal["fomc", "ecb"] = "fomc", limit: int = Query(100, ge=1
             "report": report, "source": source}
 
 
+@app.get("/api/causal-graph")
+def causal_graph_api():
+    report = read_json("causal_graph.json", None)
+    if report is None:
+        return {"nodes": [], "links": [], "chains": [], "report": None}
+    graph_path = root() / report["files"]["json"]
+    graph = json.loads(graph_path.read_text(encoding="utf-8"))
+    graph["report"] = report
+    return graph
+
+
 @app.get("/reports/market-quality", response_class=HTMLResponse)
 def market_quality(request: Request):
     report = read_json("bars.json", None)
@@ -204,6 +215,16 @@ def baseline_experiments(request: Request):
                                       context={"experiments": report, "rows": rows})
 
 
+@app.get("/reports/causal-graph", response_class=HTMLResponse)
+def causal_graph_report(request: Request):
+    report = read_json("causal_graph.json", None)
+    graph_data = None
+    if report:
+        graph_data = json.loads((root()/report["files"]["json"]).read_text(encoding="utf-8"))
+    return templates.TemplateResponse(request=request, name="graph.html",
+                                      context={"graph": report, "graph_data": graph_data})
+
+
 @app.get("/reports/{name}", response_class=HTMLResponse)
 def document(request: Request, name: str):
     if name not in DOCS:
@@ -249,6 +270,11 @@ def download(name: str):
     if experiments:
         files["baseline_experiments.json"] = root()/"reports"/"baseline_experiments.json"
         files["baseline_results.parquet"] = root()/experiments["files"]["results"]
+    graph = read_json("causal_graph.json", None)
+    if graph:
+        files["causal_graph.json"] = root()/graph["files"]["json"]
+        files["causal_graph.graphml"] = root()/graph["files"]["graphml"]
+        files["causal_graph_manifest.json"] = root()/"reports"/"causal_graph.json"
     if name not in files or not files[name].exists():
         raise HTTPException(404)
     return FileResponse(files[name], filename=name)

@@ -96,3 +96,12 @@
 - Доступный baseline оценивает только безусловную среднюю EUR/USD return после event boundary. CFTC schedule events исключены. Для `n < 8` inference не считается.
 - Standard errors — Newey–West/HAC с заранее заданными lag 0/0/1/3 для 1/5/20/60d. Показано число overlapping windows; p-values получают Benjamini–Hochberg q-value по всем diagnostic tests.
 - Ни один test не имеет q < 0.05. Это не доказывает отсутствие эффекта и не является репликацией: в текущем baseline нет surprise-признака.
+
+## 2026-09-24 — M6 causal hypothesis graph
+
+- `config/graph_schema.yaml` задаёт разрешённые node/edge types и обязательные поля; `config/causal_graph.yaml` хранит 7 приоритетных исследовательских цепочек. OpenSPG пока не требуется.
+- Направленный граф обязан быть DAG. Валидатор отклоняет неизвестные типы и ссылки, дубликаты ID, self-edges, отрицательные или перевёрнутые lag intervals и циклы.
+- Каждая связь имеет знак, допустимый lag и `evidence_status`. Стрелка — гипотеза или преобразование, а не автоматически подтверждённая причинность.
+- `available_non_strict` означает только наличие текущего набора данных. Это не strict PIT readiness. Ни одна цепочка пока не имеет strict-ready статуса.
+- Временные ряды и observation-level события остаются в Parquet. Граф хранит смысловые сущности, связи, ограничения и ссылки на data manifests.
+- Portable outputs — JSON и GraphML. Интерактивная веб-карта использует те же экспортированные данные, поэтому визуализация не является отдельным источником истины.

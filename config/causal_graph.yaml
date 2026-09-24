@@ -1,0 +1,196 @@
+graph_version: 0.1.0
+title: EUR/USD causal hypothesis graph
+description: >-
+  Research ontology for seven MVP chains. Arrows are hypotheses and temporal
+  constraints, not established causal effects or trading signals.
+nodes:
+  - id: us_cpi_release
+    type: EconomicRelease
+    label: US CPI release
+    layer: event
+    order: 0
+    data_status: available_non_strict
+    data_ref: macro_releases.json
+    limitation: Actual exists, but historical receipt and consensus do not.
+  - id: us_nfp_release
+    type: EconomicRelease
+    label: US NFP release
+    layer: event
+    order: 1
+    data_status: available_non_strict
+    data_ref: macro_releases.json
+    limitation: Actual exists, but historical receipt and consensus do not.
+  - id: fomc_decision
+    type: PolicyDecision
+    label: FOMC decision
+    layer: event
+    order: 2
+    data_status: available_non_strict
+    data_ref: fomc.json
+    limitation: Published time exists; futures target/path surprise does not.
+  - id: ecb_decision
+    type: PolicyDecision
+    label: ECB decision
+    layer: event
+    order: 3
+    data_status: available_non_strict
+    data_ref: ecb_policy.json
+    limitation: Published time exists; OIS target/communication surprise does not.
+  - id: oil_price
+    type: Commodity
+    label: Oil price
+    layer: event
+    order: 4
+    data_status: unavailable
+    limitation: No versioned oil market series is ingested.
+  - id: cftc_eur_positioning
+    type: PositioningMetric
+    label: CFTC EUR positioning
+    layer: event
+    order: 5
+    data_status: available_non_strict
+    data_ref: cftc.json
+    limitation: Most historical availability is unknown; no strict PIT rows.
+  - id: us_cpi_surprise
+    type: Surprise
+    label: US CPI surprise
+    layer: surprise
+    order: 0
+    data_status: unavailable
+    limitation: Historical point-in-time consensus is absent.
+  - id: us_nfp_surprise
+    type: Surprise
+    label: US NFP surprise
+    layer: surprise
+    order: 1
+    data_status: unavailable
+    limitation: Historical point-in-time consensus is absent.
+  - id: fomc_path_surprise
+    type: Surprise
+    label: FOMC path surprise
+    layer: surprise
+    order: 2
+    data_status: unavailable
+    limitation: Futures-based target/path factors are absent.
+  - id: ecb_policy_surprise
+    type: Surprise
+    label: ECB policy surprise
+    layer: surprise
+    order: 3
+    data_status: unavailable
+    limitation: Intraday OIS target/communication factors are absent.
+  - id: us_inflation_expectation
+    type: Expectation
+    label: US inflation expectation
+    layer: expectation
+    order: 0
+    data_status: unavailable
+    limitation: No versioned breakeven or survey-expectation series is ingested.
+  - id: eu_inflation_expectation
+    type: Expectation
+    label: EA inflation expectation
+    layer: expectation
+    order: 1
+    data_status: unavailable
+    limitation: No versioned euro-area inflation-expectation series is ingested.
+  - id: fed_rate_expectation
+    type: InterestRate
+    label: Fed rate expectation
+    layer: expectation
+    order: 2
+    data_status: unavailable
+    limitation: No point-in-time futures or OIS curve is ingested.
+  - id: ecb_rate_expectation
+    type: InterestRate
+    label: ECB rate expectation
+    layer: expectation
+    order: 3
+    data_status: unavailable
+    limitation: No point-in-time euro OIS curve is ingested.
+  - id: us_2y_yield
+    type: InterestRate
+    label: US 2Y yield
+    layer: rates
+    order: 0
+    data_status: unavailable
+    limitation: Source reconnaissance exists, but no versioned series is ingested.
+  - id: eu_2y_yield
+    type: InterestRate
+    label: EA 2Y proxy yield
+    layer: rates
+    order: 1
+    data_status: unavailable
+    limitation: A stable euro-area 2Y proxy and vintage policy are unresolved.
+  - id: us_eu_2y_spread
+    type: MarketVariable
+    label: US–EA 2Y spread
+    layer: spread
+    order: 0
+    data_status: unavailable
+    limitation: Both point-in-time component yields are required.
+  - id: eurusd
+    type: CurrencyPair
+    label: EUR/USD
+    layer: fx
+    order: 0
+    data_status: available_non_strict
+    data_ref: bars.json
+    limitation: H1/D1 history exists, but its historical receipt vintage is unverified.
+edges:
+  - {id: cpi_release_surprise, source: us_cpi_release, target: us_cpi_surprise, type: DERIVED_FROM, sign: unknown, lag_min: 0, lag_max: 0, horizon_unit: hours, evidence_status: unavailable, limitation: Requires point-in-time consensus.}
+  - {id: cpi_surprise_inflation, source: us_cpi_surprise, target: us_inflation_expectation, type: CAUSES_HYPOTHESIS, sign: positive, lag_min: 0, lag_max: 5, horizon_unit: trading_days, evidence_status: untested, source_ids: [macro-surprise-fx-jump, realtime-fundamentals-eurusd]}
+  - {id: inflation_fed_expectation, source: us_inflation_expectation, target: fed_rate_expectation, type: CAUSES_HYPOTHESIS, sign: positive, lag_min: 0, lag_max: 20, horizon_unit: trading_days, evidence_status: untested}
+  - {id: fed_expectation_us2y, source: fed_rate_expectation, target: us_2y_yield, type: CAUSES_HYPOTHESIS, sign: positive, lag_min: 0, lag_max: 5, horizon_unit: trading_days, evidence_status: untested}
+  - {id: nfp_release_surprise, source: us_nfp_release, target: us_nfp_surprise, type: DERIVED_FROM, sign: unknown, lag_min: 0, lag_max: 0, horizon_unit: hours, evidence_status: unavailable, limitation: Requires point-in-time consensus.}
+  - {id: nfp_surprise_fed_expectation, source: us_nfp_surprise, target: fed_rate_expectation, type: CAUSES_HYPOTHESIS, sign: mixed, lag_min: 0, lag_max: 5, horizon_unit: trading_days, evidence_status: untested, source_ids: [macro-surprise-fx-jump, us-macro-interdealer-fx]}
+  - {id: fomc_decision_path_surprise, source: fomc_decision, target: fomc_path_surprise, type: DERIVED_FROM, sign: unknown, lag_min: 0, lag_max: 1, horizon_unit: hours, evidence_status: unavailable, limitation: Requires futures target/path factors.}
+  - {id: fomc_surprise_us2y, source: fomc_path_surprise, target: us_2y_yield, type: CAUSES_HYPOTHESIS, sign: positive, lag_min: 0, lag_max: 1, horizon_unit: trading_days, evidence_status: untested, source_ids: [fomc-path-surprise-fx]}
+  - {id: ecb_decision_policy_surprise, source: ecb_decision, target: ecb_policy_surprise, type: DERIVED_FROM, sign: unknown, lag_min: 0, lag_max: 2, horizon_unit: hours, evidence_status: unavailable, limitation: Requires OIS target/communication factors.}
+  - {id: ecb_surprise_eu2y, source: ecb_policy_surprise, target: eu_2y_yield, type: CAUSES_HYPOTHESIS, sign: positive, lag_min: 0, lag_max: 1, horizon_unit: trading_days, evidence_status: untested, source_ids: [ecb-policy-surprises-eurusd]}
+  - {id: us2y_spread, source: us_2y_yield, target: us_eu_2y_spread, type: COMPONENT_OF, sign: positive, lag_min: 0, lag_max: 0, horizon_unit: hours, evidence_status: unavailable}
+  - {id: eu2y_spread, source: eu_2y_yield, target: us_eu_2y_spread, type: COMPONENT_OF, sign: negative, lag_min: 0, lag_max: 0, horizon_unit: hours, evidence_status: unavailable}
+  - {id: spread_eurusd, source: us_eu_2y_spread, target: eurusd, type: CAUSES_HYPOTHESIS, sign: negative, lag_min: 1, lag_max: 60, horizon_unit: trading_days, evidence_status: untested}
+  - {id: oil_us_inflation, source: oil_price, target: us_inflation_expectation, type: CAUSES_HYPOTHESIS, sign: positive, lag_min: 1, lag_max: 60, horizon_unit: trading_days, evidence_status: untested}
+  - {id: oil_eu_inflation, source: oil_price, target: eu_inflation_expectation, type: CAUSES_HYPOTHESIS, sign: positive, lag_min: 1, lag_max: 60, horizon_unit: trading_days, evidence_status: untested}
+  - {id: eu_inflation_ecb_expectation, source: eu_inflation_expectation, target: ecb_rate_expectation, type: CAUSES_HYPOTHESIS, sign: positive, lag_min: 0, lag_max: 20, horizon_unit: trading_days, evidence_status: untested}
+  - {id: ecb_expectation_eu2y, source: ecb_rate_expectation, target: eu_2y_yield, type: CAUSES_HYPOTHESIS, sign: positive, lag_min: 0, lag_max: 5, horizon_unit: trading_days, evidence_status: untested}
+  - id: positioning_moderates_eurusd
+    source: cftc_eur_positioning
+    target: eurusd
+    type: MODERATES
+    sign: mixed
+    lag_min: 1
+    lag_max: 20
+    horizon_unit: trading_days
+    evidence_status: unavailable
+    conditioning_on: [us_cpi_surprise, us_nfp_surprise]
+    limitation: Strict positioning availability and macro surprises are absent.
+chains:
+  - id: cpi_us
+    title: CPI US → surprise → rates → EUR/USD
+    node_ids: [us_cpi_release, us_cpi_surprise, us_inflation_expectation, fed_rate_expectation, us_2y_yield, us_eu_2y_spread, eurusd]
+    edge_ids: [cpi_release_surprise, cpi_surprise_inflation, inflation_fed_expectation, fed_expectation_us2y, us2y_spread, spread_eurusd]
+  - id: nfp
+    title: NFP → surprise → rates → EUR/USD
+    node_ids: [us_nfp_release, us_nfp_surprise, fed_rate_expectation, us_2y_yield, us_eu_2y_spread, eurusd]
+    edge_ids: [nfp_release_surprise, nfp_surprise_fed_expectation, fed_expectation_us2y, us2y_spread, spread_eurusd]
+  - id: fomc
+    title: FOMC → path surprise → rates → EUR/USD
+    node_ids: [fomc_decision, fomc_path_surprise, us_2y_yield, us_eu_2y_spread, eurusd]
+    edge_ids: [fomc_decision_path_surprise, fomc_surprise_us2y, us2y_spread, spread_eurusd]
+  - id: ecb
+    title: ECB → policy surprise → rates → EUR/USD
+    node_ids: [ecb_decision, ecb_policy_surprise, eu_2y_yield, us_eu_2y_spread, eurusd]
+    edge_ids: [ecb_decision_policy_surprise, ecb_surprise_eu2y, eu2y_spread, spread_eurusd]
+  - id: yield_spread
+    title: US–EA 2Y spread → EUR/USD
+    node_ids: [us_2y_yield, eu_2y_yield, us_eu_2y_spread, eurusd]
+    edge_ids: [us2y_spread, eu2y_spread, spread_eurusd]
+  - id: oil
+    title: Oil → inflation expectations → rates → EUR/USD
+    node_ids: [oil_price, us_inflation_expectation, eu_inflation_expectation, fed_rate_expectation, ecb_rate_expectation, us_2y_yield, eu_2y_yield, us_eu_2y_spread, eurusd]
+    edge_ids: [oil_us_inflation, oil_eu_inflation, inflation_fed_expectation, eu_inflation_ecb_expectation, fed_expectation_us2y, ecb_expectation_eu2y, us2y_spread, eu2y_spread, spread_eurusd]
+  - id: positioning_macro
+    title: CFTC positioning × macro surprise → EUR/USD
+    node_ids: [cftc_eur_positioning, us_cpi_surprise, us_nfp_surprise, eurusd]
+    edge_ids: [positioning_moderates_eurusd]

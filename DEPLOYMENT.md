@@ -118,3 +118,11 @@ sudo docker compose exec web fxlab baseline-experiments
 ```
 
 Команда офлайн читает текущий event-alignment manifest, строит 28 описательных event × horizon results и публикует `gold/baseline_experiments/<dataset_id>/results.parquet`. Published-effect registry хранится в manifest вместе с required data и причиной unavailable.
+
+## Causal hypothesis graph — версия 0.9
+
+```bash
+sudo docker compose exec web fxlab graph-build
+```
+
+Команда не обращается к сети. Она проверяет YAML schema и definition, запрещает циклы и некорректные ссылки, затем публикует JSON и GraphML в `data/graph/<dataset_id>/`. Временные ряды в граф не копируются. Текущий report доступен на `/reports/causal-graph`, exports — через `/download/causal_graph.json` и `/download/causal_graph.graphml`.

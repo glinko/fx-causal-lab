@@ -1,0 +1,41 @@
+schema_version: 0.1.0
+node_types:
+  - CurrencyPair
+  - Currency
+  - Country
+  - EconomicIndicator
+  - EconomicRelease
+  - Expectation
+  - Surprise
+  - MarketVariable
+  - InterestRate
+  - Commodity
+  - PositioningMetric
+  - PolicyDecision
+  - Organization
+  - ExternalEvent
+  - Sector
+  - Hypothesis
+  - Experiment
+  - DataSource
+edge_types:
+  - AFFECTS
+  - CAUSES_HYPOTHESIS
+  - COMPONENT_OF
+  - PUBLISHED_BY
+  - EXPECTED_BY
+  - SURPRISE_OF
+  - LEADS
+  - CORRELATES_WITH
+  - MEDIATED_BY
+  - MODERATES
+  - VALIDATED_BY
+  - CONTRADICTED_BY
+  - DERIVED_FROM
+signs: [positive, negative, mixed, unknown]
+horizon_units: [hours, trading_days, months, structural]
+evidence_statuses: [untested, unavailable, descriptive, supported, contradicted]
+data_statuses: [available_non_strict, unavailable]
+required_node_fields: [id, type, label, layer, order, data_status]
+required_edge_fields: [id, source, target, type, sign, lag_min, lag_max, horizon_unit, evidence_status]
+

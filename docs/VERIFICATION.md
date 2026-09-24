@@ -94,3 +94,14 @@ Remaining: original macro releases, actual publication times, historical revisio
 - Browser verification covers all ten report routes at 1440px and 390px, with no JavaScript errors or page-level mobile overflow. The final baseline table exposes q, overlap and status on desktop and as complete cards on mobile. Screenshots: `data/qa-v08-final/`.
 - Deployed image `fx-causal-lab:0.8.0` is healthy on `192.168.88.5:8088`; the baseline page, JSON manifest and Parquet download return HTTP 200. Caddy remains active and unchanged.
 - Independent Impeccable finish review verdict: `ship` after making the no-effect caveat and all statistical qualifiers immediately visible.
+
+## Version 0.9 M6 causal hypothesis graph — 2026-09-24
+
+- YAML schema and definition validate as a directed acyclic graph with 18 semantic nodes, 18 edges and seven priority EUR/USD chains. Validation rejects duplicate/unknown references, self-edges, invalid lag intervals and cycles.
+- Six nodes map to currently available but non-strict datasets; 12 required nodes are unavailable. Edge evidence status is 7 unavailable and 11 untested. All seven chains remain blocked and strict-ready count is 0.
+- Dataset `38633b58c4737e3e2092`; normalized SHA-256 `49136f86413dacb011a39f07b8496871b3a607b3db9492095dd6a410a1f809ca`.
+- Two Docker runs with `--network none` reproduced the same dataset ID and normalized hash. JSON and GraphML exports were written; the test suite reads the GraphML back through NetworkX and confirms 18 nodes/18 edges.
+- Container verification: 52 tests passed; `pip check` found no broken requirements. The existing upstream TestClient deprecation warning remains non-blocking.
+- Browser verification covers all 11 report routes at 1440px and 390px. Chain filtering, keyboard node activation, retained SVG title/description, the native HTML node-control equivalent, downloads and page-level overflow checks pass with no JavaScript errors. Screenshots: `data/qa-v09-final/`.
+- Deployed image `fx-causal-lab:0.9.0` is healthy on `192.168.88.5:8088`; report, API, JSON, GraphML and manifest return HTTP 200. Caddy remains active and unchanged.
+- Independent Impeccable finish review verdict: `ship` after the SVG accessible-name fix and addition of native HTML node controls.
