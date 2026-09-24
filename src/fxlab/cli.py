@@ -28,6 +28,11 @@ def main():
         macro.add_argument("--to", dest="end", type=date.fromisoformat, default=date.today())
     macro_replay = commands.add_parser("macro-replay", help="Normalize a preserved BLS fetch manifest without network")
     macro_replay.add_argument("manifest", type=Path)
+    cftc = commands.add_parser("cftc-backfill", help="Fetch and normalize CFTC EUR TFF Futures Only positioning")
+    cftc.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 1))
+    cftc.add_argument("--to", dest="end", type=date.fromisoformat, default=date.today())
+    cftc_replay = commands.add_parser("cftc-replay", help="Normalize preserved CFTC snapshots without network")
+    cftc_replay.add_argument("manifest", type=Path)
     replay = commands.add_parser("replay", help="Normalize preserved ECB snapshot offline")
     replay.add_argument("metadata", type=Path)
     replay.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 23))
@@ -57,6 +62,12 @@ def main():
     elif args.command == "macro-replay":
         from .macro import replay_bls_releases
         result = replay_bls_releases(args.manifest)
+    elif args.command == "cftc-backfill":
+        from .cftc import backfill_cftc
+        result = backfill_cftc(args.start, args.end)
+    elif args.command == "cftc-replay":
+        from .cftc import replay_cftc
+        result = replay_cftc(args.manifest)
     else:
         from .providers import ECBReferenceProvider
         from .store import root

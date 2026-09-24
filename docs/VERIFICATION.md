@@ -39,3 +39,14 @@ Remaining: original macro releases, actual publication times, historical revisio
 - `published_at` comes from the page embargo timestamp. `available_at` is null, consensus is null, strict PIT eligibility is false. No surprise experiment is enabled.
 - Final exact replay passed in Docker with `--network none`. The deployed Parquet has 70 unique release IDs and 105 unique observation IDs; all 105 have null `available_at` and consensus.
 - Browser verification covers desktop and 390px mobile, all six report routes, D1/H1/ECB switching, horizontal table cues, downloads, accessible chart identities and page overflow. Independent finish verdict: `ship`.
+
+## Version 0.4 CFTC positioning slice — 2026-09-24
+
+- Official annual TFF Futures Only snapshots normalize to 159 unique EUR contract `099741` rows from 2023-09-05 through 2026-09-15.
+- Dataset `5fa5ee27e7f1ee4c7bb2`; normalized SHA-256 `6d3e1877c3e4fe764350e1ac1b217081805dcf82efc5110027824c03680a6126`.
+- 38 rows are covered by the preserved current release schedule and receive `inferred_conservative` availability at 00:00 New York time after the scheduled release day. 121 rows remain unknown; strict PIT eligibility is false for all rows.
+- One official non-Tuesday report date is preserved. No guessed correction, historical actual release timestamp, options position, or roll adjustment is added.
+- Exact replay passed in Docker with `--network none`; 32 Python tests and `pip check` passed. The API returns 159 rows: 38 with availability and 121 unknown; no available timestamp is on or before its report date.
+- Browser verification covers the CFTC report at 1440px and 390px, reports no JavaScript errors or page-level mobile overflow, and confirms all seven report routes return HTTP 200. Screenshots: `data/qa-v04/`.
+- Deployed image `fx-causal-lab:0.4.0` is healthy on `192.168.88.5:8088`; manifest and Parquet downloads return successfully. Caddy remains active and unchanged.
+- Independent Impeccable finish review verdict: `ship`; no material hierarchy, accessibility, mobile-scroll, or time-semantics findings.

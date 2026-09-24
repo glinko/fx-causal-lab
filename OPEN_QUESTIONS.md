@@ -7,7 +7,7 @@
 3. Для каждого macro series определить canonical ID, units, историческую глубину, календарь, original releases и vintages. HTTP 200 и один валидный sample не закрывают M0.
 4. FRED/ALFRED API требуют ключа; проверить публичные альтернативы для bootstrap, не выдавая current revised values за исторические vintages.
 5. US/DE 2Y: выбрать сопоставимые серии с доказанной частотой и временем доступности. Daily yields не подходят для измерения first-hour reaction.
-6. CFTC: собрать actual publication calendar, включая праздники и задержки; Tuesday report date не является release date.
+6. CFTC: восстановить исторические actual publication timestamps, включая внеплановые задержки и исправления. Текущее расписание покрывает только 38 строк консервативной оценкой; 121 строка остаётся с неизвестной доступностью.
 7. Consensus: проверить коммерческий доступ, глубину PIT, timestamps и права на использование. Точную цену не выдумывать. До появления данных CPI/NFP surprise experiments = unavailable.
 8. Выбрать 2–3 опубликованных исследования для M5, сохранить требования к данным и критерии сопоставимости. Репликация пока не выполнена.
 9. Определить торговый календарь и границы D1/H1. Не считать пропущенные торговые дни дополнительными горизонтом и не переносить цены через разрывы молча.
@@ -23,3 +23,4 @@
 - Historical consensus remains unavailable; surprise-based experiments stay unavailable until legitimate forecast vintages are obtained.
 - BLS archive pages may be reissued at the same URL. Compare future snapshots and recover correction metadata before declaring release vintages final.
 - Establish evidence for historical `available_at` or use a documented conservative delay; embargo timestamps alone are not strict PIT availability.
+- CFTC: решить отдельным экспериментом, нужны ли Futures + Options, continuous-contract/roll features и нормализация по open interest. Не смешивать определения с уже сохранённым Futures Only рядом.

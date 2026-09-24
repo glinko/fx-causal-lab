@@ -75,3 +75,12 @@ sudo docker compose exec web fxlab macro-replay data/reports/bls_fetch.json
 ```
 
 Replay не обращается к сети, проверяет SHA-256 каждого raw payload и публикует новый dataset только после успешного разбора всех релизов.
+
+## CFTC TFF positioning — версия 0.4
+
+```bash
+sudo docker compose exec web fxlab cftc-backfill --from 2023-09-01 --to 2026-09-24
+sudo docker compose exec web fxlab cftc-replay data/reports/cftc_fetch.json
+```
+
+`cftc-backfill` сохраняет HTML расписания и годовые Futures Only ZIP, затем создаёт EUR contract `099741` Parquet. `cftc-replay` работает по закреплённым snapshots и проверяет их SHA-256. Для доказательства автономности replay можно запустить через `docker run --network none` с подключённым каталогом `data`.

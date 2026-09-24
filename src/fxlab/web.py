@@ -79,6 +79,21 @@ def bars(frequency: Literal["h1", "d1"] = "d1"):
                        for t, o, h, l, c, q in rows], "report": report}
 
 
+@app.get("/api/positioning")
+def positioning(limit: int = Query(260, ge=1, le=2000)):
+    report = read_json("cftc.json", None)
+    if report is None:
+        return {"points": [], "report": None}
+    with duckdb.connect() as con:
+        con.execute("SET TimeZone='UTC'")
+        rows = con.execute("SELECT report_date, leveraged_funds_net, asset_manager_net, dealer_net, available_at, time_quality "
+                           "FROM read_parquet(?) ORDER BY report_date DESC LIMIT ?",
+                           [str(root()/report["files"]["positions"]), limit]).fetchall()
+    return {"points": [{"date": str(day), "leveraged": leveraged, "asset_manager": asset, "dealer": dealer,
+                        "available_at": available.isoformat() if available else None, "time_quality": quality}
+                       for day, leveraged, asset, dealer, available, quality in reversed(rows)], "report": report}
+
+
 @app.get("/reports/market-quality", response_class=HTMLResponse)
 def market_quality(request: Request):
     report = read_json("bars.json", None)
@@ -106,6 +121,19 @@ def macro_data(request: Request):
     return templates.TemplateResponse(request=request, name="macro.html", context={"macro": report, "rows": rows})
 
 
+@app.get("/reports/positioning", response_class=HTMLResponse)
+def positioning_report(request: Request):
+    report = read_json("cftc.json", None)
+    rows = []
+    if report:
+        with duckdb.connect() as con:
+            con.execute("SET TimeZone='UTC'")
+            rows = con.execute("SELECT report_date, leveraged_funds_net, asset_manager_net, dealer_net, "
+                               "available_at, time_quality FROM read_parquet(?) ORDER BY report_date DESC LIMIT 20",
+                               [str(root()/report["files"]["positions"])]).fetchall()
+    return templates.TemplateResponse(request=request, name="positioning.html", context={"cftc": report, "rows": rows})
+
+
 @app.get("/reports/{name}", response_class=HTMLResponse)
 def document(request: Request, name: str):
     if name not in DOCS:
@@ -131,6 +159,10 @@ def download(name: str):
         files["macro_releases.parquet"] = root()/macro["files"]["releases"]
         if macro["files"].get("observations"):
             files["macro_observations.parquet"] = root()/macro["files"]["observations"]
+    cftc = read_json("cftc.json", None)
+    if cftc:
+        files["cftc.json"] = root()/"reports"/"cftc.json"
+        files["cftc_eur_tff.parquet"] = root()/cftc["files"]["positions"]
     if name not in files or not files[name].exists():
         raise HTTPException(404)
     return FileResponse(files[name], filename=name)
