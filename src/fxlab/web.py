@@ -225,6 +225,21 @@ def causal_graph_report(request: Request):
                                       context={"graph": report, "graph_data": graph_data})
 
 
+@app.get("/reports/interaction-experiments", response_class=HTMLResponse)
+def interaction_experiments(request: Request):
+    report = read_json("interaction_experiments.json", None)
+    rows = []
+    if report:
+        with duckdb.connect() as connection:
+            rows = connection.execute(
+                "SELECT feature_name,source,event_type,regime,horizon_sessions,n,mean_return,median_return,"
+                "positive_share,overlapping_windows,inference_status,sample_warning FROM read_parquet(?) "
+                "ORDER BY feature_name,source,event_type,regime,horizon_sessions",
+                [str(root()/report["files"]["results"])]).fetchall()
+    return templates.TemplateResponse(request=request, name="interactions.html",
+                                      context={"interactions": report, "rows": rows})
+
+
 @app.get("/reports/{name}", response_class=HTMLResponse)
 def document(request: Request, name: str):
     if name not in DOCS:
@@ -275,6 +290,11 @@ def download(name: str):
         files["causal_graph.json"] = root()/graph["files"]["json"]
         files["causal_graph.graphml"] = root()/graph["files"]["graphml"]
         files["causal_graph_manifest.json"] = root()/"reports"/"causal_graph.json"
+    interactions = read_json("interaction_experiments.json", None)
+    if interactions:
+        files["interaction_experiments.json"] = root()/"reports"/"interaction_experiments.json"
+        files["interaction_features.parquet"] = root()/interactions["files"]["features"]
+        files["interaction_results.parquet"] = root()/interactions["files"]["results"]
     if name not in files or not files[name].exists():
         raise HTTPException(404)
     return FileResponse(files[name], filename=name)

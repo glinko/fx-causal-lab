@@ -46,6 +46,7 @@ def main():
     commands.add_parser("align-events", help="Build leakage-aware EUR/USD targets for preserved events")
     commands.add_parser("baseline-experiments", help="Build descriptive M5 event baselines and replication status")
     commands.add_parser("graph-build", help="Validate and export the M6 causal-hypothesis graph")
+    commands.add_parser("interaction-experiments", help="Build leakage-aware M7 descriptive regime slices")
     replay = commands.add_parser("replay", help="Normalize preserved ECB snapshot offline")
     replay.add_argument("metadata", type=Path)
     replay.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 23))
@@ -102,6 +103,9 @@ def main():
     elif args.command == "graph-build":
         from .causal_graph import build_causal_graph
         result = build_causal_graph()
+    elif args.command == "interaction-experiments":
+        from .interactions import build_interaction_experiments
+        result = build_interaction_experiments()
     else:
         from .providers import ECBReferenceProvider
         from .store import root

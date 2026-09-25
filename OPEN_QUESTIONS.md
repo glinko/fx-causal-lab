@@ -16,7 +16,8 @@
 12. При необходимости доступа вне LAN — отдельно выбрать домен и аутентификацию; сейчас внешней публикации нет.
 13. FOMC: найти независимое доказательство historical availability/receipt и архив изменений страниц. До этого точный официальный release time хранится отдельно от `available_at`.
 14. ECB: FOEDB и страницы релизов подтвердили 14:15 Europe/Berlin для текущего окна. Остаётся найти независимое доказательство historical receipt, архив изменений страниц и проверку исключений при расширении истории.
-15. M6 graph фиксирует 7 цепочек, но все они blocked для strict inference. Перед M7 определить минимальные честные interaction checks на уже доступных non-strict данных и не подменять отсутствующий surprise знаком Actual.
+15. M7 дал только 31 positioning-regime feature row после as-of и minimum-history фильтров; 114 событий не имеют доступной позиции, ещё 8 имеют недостаточную историю. Решить, расширять ли historical CFTC availability до любых formal contrasts.
+16. После M7 review выбрать следующий data investment: historical consensus, futures/OIS surprise factors, сопоставимые US/EA yields или восстановление historical CFTC availability. OpenSPG/GNN/web-platform expansion не должны опережать этот выбор.
 
 ## H1/D1 follow-up
 

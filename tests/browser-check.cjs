@@ -25,7 +25,7 @@ const path = require('path');
     if(await page.locator('#chart title').textContent()!==description) throw Error('Wrong SVG title for '+kind);
     if(await page.locator('#values tr').count()!==10) throw Error('Missing table for '+kind);
   }
-  for(const report of ['decisions','questions','sources','deployment','market-quality','macro-data','positioning','policy-events','event-alignment','baseline-experiments','causal-graph']) {
+  for(const report of ['decisions','questions','sources','deployment','market-quality','macro-data','positioning','policy-events','event-alignment','baseline-experiments','causal-graph','interaction-experiments']) {
     const response=await page.request.get('http://192.168.88.5:8088/reports/'+report);
     if(response.status()!==200) throw Error('Report '+report+' failed');
   }
@@ -93,7 +93,22 @@ const path = require('path');
   await page.setViewportSize({width:1440,height:1000});
   await page.locator('#graph-status').filter({hasText:'18 узлов'}).waitFor();
   await page.screenshot({path:path.join(out,'graph-desktop.png'),fullPage:true});
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('http://192.168.88.5:8088/reports/interaction-experiments',{waitUntil:'networkidle'});
+  await page.getByText('Это описательные non-strict срезы').waitFor();
+  const interactionAll=await page.locator('#interaction-status').textContent();
+  await page.locator('#interaction-feature').selectOption('positioning_regime');
+  const interactionFiltered=await page.locator('#interaction-status').textContent();
+  if(interactionAll===interactionFiltered) throw Error('Interaction filter did not change result count');
+  await page.locator('#interaction-next').click();
+  const interactionNext=await page.locator('#interaction-status').textContent();
+  if(interactionNext===interactionFiltered) throw Error('Interaction pagination did not advance');
+  if(await page.locator('.interaction-table tbody tr:visible').count()>12) throw Error('Interaction pagination shows too many rows');
+  if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)) throw Error('Interactions mobile overflow');
+  await page.screenshot({path:path.join(out,'interactions-mobile.png'),fullPage:true});
+  await page.setViewportSize({width:1440,height:1000});
+  await page.screenshot({path:path.join(out,'interactions-desktop.png'),fullPage:true});
   if(errors.length) throw Error(errors.join('\n'));
-  console.log(JSON.stringify({initial,filtered,dimensions,errors,screenshots:out}));
+  console.log(JSON.stringify({initial,filtered,dimensions,interactionAll,interactionFiltered,errors,screenshots:out}));
   await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});

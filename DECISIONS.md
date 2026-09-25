@@ -105,3 +105,12 @@
 - `available_non_strict` означает только наличие текущего набора данных. Это не strict PIT readiness. Ни одна цепочка пока не имеет strict-ready статуса.
 - Временные ряды и observation-level события остаются в Parquet. Граф хранит смысловые сущности, связи, ограничения и ссылки на data manifests.
 - Portable outputs — JSON и GraphML. Интерактивная веб-карта использует те же экспортированные данные, поэтому визуализация не является отдельным источником истины.
+
+## 2026-09-24 — M7 descriptive interactions
+
+- Без historical consensus нельзя запускать `surprise × positioning` или `surprise × market regime`. Actual и его знак не используются как замена surprise.
+- Выполняются два смежных описательных вопроса: event occurrence × CFTC positioning regime и event occurrence × trailing 20-session EUR/USD trend. В отчёте прямо указано, какие исходные гипотезы они не заменяют.
+- Positioning feature — последний `leveraged_funds_net_share_oi`, доступный не позже `prediction_time`. Режим определяется expanding percentile только по 8–52 уже доступным отчётам; будущая выборка не участвует в границах.
+- FX trend — знак return за 20 полных NY17-сессий. Используются только дневные бары с `available_at <= prediction_time`; target начинается после prediction boundary.
+- CFTC availability и market-history vintage остаются non-strict. Поэтому p/q-values, formal regime contrasts, причинный вывод и торговое правило не рассчитываются.
+- Planned registry отдельно сохраняет blocked interactions для surprise, oil/inflation expectations и rate differential/risk sentiment. Недоступные входы не синтезируются.

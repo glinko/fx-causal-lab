@@ -126,3 +126,11 @@ sudo docker compose exec web fxlab graph-build
 ```
 
 Команда не обращается к сети. Она проверяет YAML schema и definition, запрещает циклы и некорректные ссылки, затем публикует JSON и GraphML в `data/graph/<dataset_id>/`. Временные ряды в граф не копируются. Текущий report доступен на `/reports/causal-graph`, exports — через `/download/causal_graph.json` и `/download/causal_graph.graphml`.
+
+## Interaction experiments — версия 0.10
+
+```bash
+sudo docker compose exec web fxlab interaction-experiments
+```
+
+Команда работает офлайн поверх текущих M4 targets, CFTC и D1 manifests. Она публикует point-in-time joined feature rows и описательные regime summaries в `data/gold/interaction_experiments/<dataset_id>/`. Report доступен на `/reports/interaction-experiments`; feature и result Parquet отдаются отдельными downloads. Команда не рассчитывает surprise из Actual и не делает inferential claims.

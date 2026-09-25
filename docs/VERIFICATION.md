@@ -105,3 +105,17 @@ Remaining: original macro releases, actual publication times, historical revisio
 - Browser verification covers all 11 report routes at 1440px and 390px. Chain filtering, keyboard node activation, retained SVG title/description, the native HTML node-control equivalent, downloads and page-level overflow checks pass with no JavaScript errors. Screenshots: `data/qa-v09-final/`.
 - Deployed image `fx-causal-lab:0.9.0` is healthy on `192.168.88.5:8088`; report, API, JSON, GraphML and manifest return HTTP 200. Caddy remains active and unchanged.
 - Independent Impeccable finish review verdict: `ship` after the SVG accessible-name fix and addition of native HTML node controls.
+
+## Version 0.10 M7 descriptive interactions — 2026-09-24
+
+- Dataset `f317798e36f1d94acc36`; normalized SHA-256 `beb6f739dd9fd41f716af6bd31fac13f35de5ec5d0522d86b203c3be203fbea6`.
+- From 153 pre-event BLS/FOMC/ECB rows, the as-of join produced 181 feature rows: 150 trailing-20-session FX-trend regimes and 31 expanding CFTC-positioning regimes. Output contains 22 event/regime groups and 88 horizon summaries.
+- Positioning excludes 114 event rows with no available CFTC observation and eight with fewer than eight previously available reports. FX trend excludes three early events with fewer than 21 available complete D1 sessions.
+- The 88 summaries contain 16 single-observation rows, 33 additional rows with N<8 and 39 rows with N>=8. All remain descriptive non-strict; no p-values, q-values, formal regime contrasts, causal claims or trading rules are produced.
+- Actual, Actual sign and post-release reactions are absent from features. Each feature has `available_at <= prediction_time`; targets retain the M4 boundary. Strict PIT rows remain 0.
+- The requirements registry keeps surprise × positioning, surprise × regime, oil × inflation expectations and rate differential × risk sentiment unavailable with their missing inputs and reasons.
+- Two Docker executions with `--network none` reproduced the same dataset ID and normalized hash. Feature and result Parquet plus the manifest are downloadable.
+- Container verification: 56 tests passed; `pip check` found no broken requirements. The existing upstream TestClient deprecation warning remains non-blocking.
+- Browser verification covers all 12 report routes at 1440px and 390px. Filter and pagination changes are asserted, at most 12 result rows are visible, no JavaScript errors or page-level mobile overflow occur. Screenshots: `data/qa-v010-final2/`.
+- Deployed image `fx-causal-lab:0.10.0` is healthy on `192.168.88.5:8088`; report, manifest and both Parquet downloads return HTTP 200. Caddy remains active and unchanged.
+- Independent Impeccable finish review verdict: `ship`; no material findings in scientific framing, sample warnings, requirements, exclusions, mobile layout or accessibility.
