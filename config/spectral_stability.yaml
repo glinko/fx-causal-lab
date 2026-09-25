@@ -1,0 +1,7 @@
+version: denn-spectral-stability-1
+rolling_window_sessions: 1024
+rolling_step_sessions: 256
+expanding_minimum_sessions: 1024
+expanding_step_sessions: 256
+registered_lags: [0, 1, 5, 20]
+

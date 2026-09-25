@@ -6,10 +6,13 @@ from pathlib import Path
 import duckdb
 import pytest
 
-from fxlab.denn import age_decay, build_denn_baseline, build_spectral_baseline, exponential_memory
+from fxlab.denn import (
+    age_decay, build_denn_baseline, build_spectral_baseline, build_spectral_stability, exponential_memory,
+)
 from fxlab.denn.pipeline import _asinh_change, _fit_ridge, _predict
 from fxlab.denn.spectral import _load_config as load_spectral_config
 from fxlab.denn.spectral import haar_energy, lag_correlations, welch_spectra
+from fxlab.denn.stability import chronological_windows
 
 
 def test_decay_and_memory_half_life():
@@ -57,6 +60,16 @@ def test_spectral_config_identity_ignores_platform_line_endings(tmp_path):
     lf_path.write_bytes(source.replace("\r\n", "\n").encode())
     crlf_path.write_bytes(source.replace("\r\n", "\n").replace("\n", "\r\n").encode())
     assert load_spectral_config(lf_path)[1] == load_spectral_config(crlf_path)[1]
+
+
+def test_stability_windows_include_latest_endpoint_without_duplicates():
+    windows = chronological_windows(2500, 1024, 256, 1024, 256)
+    rolling = [row for row in windows if row["mode"] == "rolling"]
+    expanding = [row for row in windows if row["mode"] == "expanding"]
+    assert rolling[-1]["end"] == 2500
+    assert expanding[-1]["end"] == 2500
+    assert len({(row["start"], row["end"]) for row in rolling}) == len(rolling)
+    assert len({row["end"] for row in expanding}) == len(expanding)
 
 
 def test_full_denn_pipeline_is_deterministic_and_temporally_aligned(tmp_path, monkeypatch):
@@ -125,3 +138,16 @@ def test_full_denn_pipeline_is_deterministic_and_temporally_aligned(tmp_path, mo
         assert connection.execute("SELECT count(*) FROM read_parquet(?)", [bands]).fetchone()[0] == 25
         assert connection.execute("SELECT count(*) FROM read_parquet(?)", [wavelets]).fetchone()[0] == 36
         assert connection.execute("SELECT count(*) FROM read_parquet(?)", [lags]).fetchone()[0] == 605
+
+    first_stability = build_spectral_stability()
+    second_stability = build_spectral_stability()
+    assert first_stability["dataset_id"] == second_stability["dataset_id"]
+    assert first_stability["normalized_sha256"] == second_stability["normalized_sha256"]
+    assert len(first_stability["leaders"]) == 10
+    assert len(first_stability["lag_one"]) == 10
+    assert first_stability["rolling_windows"] > 0 and first_stability["expanding_windows"] > 0
+    with duckdb.connect() as connection:
+        band_summary = str(tmp_path / first_stability["files"]["band_summary"])
+        lag_summary = str(tmp_path / first_stability["files"]["lag_summary"])
+        assert connection.execute("SELECT count(*) FROM read_parquet(?)", [band_summary]).fetchone()[0] == 50
+        assert connection.execute("SELECT count(*) FROM read_parquet(?)", [lag_summary]).fetchone()[0] == 40

@@ -160,5 +160,14 @@
 - Config identity нормализует CRLF/LF перед SHA-256, чтобы Windows checkout и Ubuntu release не создавали разные dataset IDs из одного YAML.
 - Coherence, phase и максимум по 121 лагу — full-sample descriptive diagnostics. Они не являются out-of-sample signal, причинностью или significance test.
 - Самая высокая mean coherence в полном sample относится к 2Y spread changes в полосе 30–90 sessions, но phase показывает обратный порядок: EUR/USD leads примерно на 41 session. Этот результат нельзя использовать как подтверждение rates → FX.
+
+## 2026-09-25 — DENN spectral stability v0.16
+
+- Параметры stability зафиксированы отдельно от full-sample config: rolling 1024 sessions с шагом 256; expanding от 1024 sessions с шагом 256; зарегистрированные лаги 0/1/5/20.
+- Если шаг не попадает точно в конец sample, добавляется последнее end-aligned окно. Это правило является частью deterministic contract.
+- Для каждой factor×window вычисляются те же пять spectral bands. Отчёт показывает modal band share, распределение mean coherence и consistency знака phase-derived lead.
+- Lag stability не сканирует максимум: сводка строится только по четырём заранее заданным лагам. Веб-отчёт выделяет lag +1 как проверку результата v0.15.
+- Rolling/expanding результаты не являются prediction folds, significance test или причинным доказательством. Dynamic/graph training остаётся заблокирован до интерпретации устойчивости и следующего design gate.
+- Rolling-окна перекрываются на 75%, expanding-окна вложены. Доли окон не интерпретируются как независимые вероятности; modal-band comparison также учитывает, что slow band содержит меньше frequency bins и имеет повышенную sampling variability.
 - Dynamic GNN остаётся заблокирован до rolling/expanding spectral stability: знак, band, phase и lag должны проверяться на временных окнах без отбора по полному sample.
 - Главный acquisition report переименован в Open Data Coverage. Vendor материалы остаются в optional/history разделе и не формируют статус готовности MVP.

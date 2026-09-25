@@ -20,7 +20,7 @@
 16. Завершить free/public continuous coverage: выбрать и документировать долгую US/EU equity proxy history и расширить EUR/USD до общего периода 2004/2005+.
 17. [Закрыто в v0.14] Реализованы deterministic DENN snapshots, decay kernels, шесть зафиксированных features и purged walk-forward benchmark. Все current-history строки явно non-strict.
 18. [Закрыто в v0.15] Реализованы фиксированный preprocessing contract, FFT/Welch bands, coherence/phase, Haar energy и lag scan. Full-sample maxima явно descriptive.
-19. Проверить rolling/expanding spectral stability: долю окон со стабильным знаком, band, phase direction и lag; параметры окон фиксировать до просмотра результата.
+19. [Закрыто в v0.16] Проверены fixed rolling/expanding spectral windows, modal band share, phase-direction consistency и заранее зарегистрированные lag 0/1/5/20. Результаты остаются descriptive non-strict.
 20. Для futures/OIS policy surprises отдельно проверить доступность контрактной истории и intraday timestamps для FOMC и ECB; фактическое изменение ставки не заменяет surprise factor.
 21. Historical consensus sample и его лицензирование отложены до завершения free/public dataset и spectral MVP; schema и null semantics остаются готовыми.
 22. До расширения любого публичного источника проверить условия локального хранения и derived research use. Доступный HTTP endpoint сам по себе не доказывает эти права.

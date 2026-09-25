@@ -26,11 +26,12 @@ fxlab open-data-backfill --from 2004-09-06
 fxlab open-data-backfill --from 2004-09-06 --offline
 fxlab denn-baseline
 fxlab denn-spectral
+fxlab denn-spectral-stability
 uvicorn fxlab.web:app --host 127.0.0.1 --port 8088
 pytest -q
 ```
 
-[Веб-журнал](http://192.168.88.5:8088) · [Spectral baseline](http://192.168.88.5:8088/reports/denn-spectral) · [DENN baseline](http://192.168.88.5:8088/reports/denn-baseline) · [Data Coverage Matrix](http://192.168.88.5:8088/reports/data-coverage) · [Interaction experiments](http://192.168.88.5:8088/reports/interaction-experiments) · [Карта гипотез](http://192.168.88.5:8088/reports/causal-graph) · [Baseline experiments](http://192.168.88.5:8088/reports/baseline-experiments) · [События и targets](http://192.168.88.5:8088/reports/event-alignment) · [Качество истории](http://192.168.88.5:8088/reports/market-quality) · [Архив BLS](http://192.168.88.5:8088/reports/macro-data) · [Решения FOMC и ECB](http://192.168.88.5:8088/reports/policy-events) · [Позиционирование CFTC](http://192.168.88.5:8088/reports/positioning)
+[Веб-журнал](http://192.168.88.5:8088) · [Spectral stability](http://192.168.88.5:8088/reports/denn-spectral-stability) · [Spectral baseline](http://192.168.88.5:8088/reports/denn-spectral) · [DENN baseline](http://192.168.88.5:8088/reports/denn-baseline) · [Data Coverage Matrix](http://192.168.88.5:8088/reports/data-coverage) · [Interaction experiments](http://192.168.88.5:8088/reports/interaction-experiments) · [Карта гипотез](http://192.168.88.5:8088/reports/causal-graph) · [Baseline experiments](http://192.168.88.5:8088/reports/baseline-experiments) · [События и targets](http://192.168.88.5:8088/reports/event-alignment) · [Качество истории](http://192.168.88.5:8088/reports/market-quality) · [Архив BLS](http://192.168.88.5:8088/reports/macro-data) · [Решения FOMC и ECB](http://192.168.88.5:8088/reports/policy-events) · [Позиционирование CFTC](http://192.168.88.5:8088/reports/positioning)
 
 18 667 валидных H1; 780 дневных сессий, из них 772 полные. 13 некорректных OHLC исключены. Пропуски не заполняются. H1 и D1 доступны в Parquet вместе с манифестом исходных снимков. Модель хранит отдельные timestamps, provenance и nullable consensus/vintages; неизвестная историческая доступность не допускается в строгие эксперименты.
 
