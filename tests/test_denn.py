@@ -6,8 +6,9 @@ from pathlib import Path
 import duckdb
 import pytest
 
-from fxlab.denn import age_decay, build_denn_baseline, exponential_memory
+from fxlab.denn import age_decay, build_denn_baseline, build_spectral_baseline, exponential_memory
 from fxlab.denn.pipeline import _asinh_change, _fit_ridge, _predict
+from fxlab.denn.spectral import haar_energy, lag_correlations, welch_spectra
 
 
 def test_decay_and_memory_half_life():
@@ -28,6 +29,25 @@ def test_ridge_solver_predicts_linear_relation():
 def test_oil_transform_accepts_negative_prices():
     values = [20.0] * 20 + [-37.63]
     assert math.isfinite(_asinh_change(values, 20, 20))
+
+
+def test_spectral_primitives_detect_known_frequency_and_lead():
+    factor = [math.sin(2 * math.pi * index / 16) for index in range(1024)]
+    target = [math.sin(2 * math.pi * (index - 4) / 16) for index in range(1024)]
+    spectra = welch_spectra(factor, target, 256, 128)
+    peak = max(spectra, key=lambda row: row["factor_power"])
+    assert peak["period_sessions"] == pytest.approx(16)
+    assert peak["coherence"] == pytest.approx(1)
+    assert peak["factor_lead_sessions"] == pytest.approx(4, abs=0.05)
+
+    pseudo_random = [float((index * 73 + index * index * 19) % 997) for index in range(400)]
+    delayed = [0.0] * 4 + pseudo_random[:-4]
+    strongest = max(lag_correlations(pseudo_random, delayed, 8), key=lambda row: abs(row["correlation"]))
+    assert strongest["lag_sessions"] == 4
+    assert strongest["correlation"] == pytest.approx(1)
+    wavelets = haar_energy(factor, 6)
+    assert len(wavelets) == 6
+    assert all(0 <= row["energy_share"] <= 1 for row in wavelets)
 
 
 def test_full_denn_pipeline_is_deterministic_and_temporally_aligned(tmp_path, monkeypatch):
@@ -82,3 +102,17 @@ def test_full_denn_pipeline_is_deterministic_and_temporally_aligned(tmp_path, mo
             "count(*) FILTER (WHERE source IS NULL OR unit IS NULL) FROM read_parquet(?)", [snapshots]
         ).fetchone()
         assert provenance == (1, 0)
+
+    first_spectral = build_spectral_baseline()
+    second_spectral = build_spectral_baseline()
+    assert first_spectral["dataset_id"] == second_spectral["dataset_id"]
+    assert first_spectral["normalized_sha256"] == second_spectral["normalized_sha256"]
+    assert len(first_spectral["band_metrics"]) == 25
+    assert len(first_spectral["strongest_lags"]) == 5
+    with duckdb.connect() as connection:
+        bands = str(tmp_path / first_spectral["files"]["bands"])
+        wavelets = str(tmp_path / first_spectral["files"]["wavelets"])
+        lags = str(tmp_path / first_spectral["files"]["lags"])
+        assert connection.execute("SELECT count(*) FROM read_parquet(?)", [bands]).fetchone()[0] == 25
+        assert connection.execute("SELECT count(*) FROM read_parquet(?)", [wavelets]).fetchone()[0] == 36
+        assert connection.execute("SELECT count(*) FROM read_parquet(?)", [lags]).fetchone()[0] == 605

@@ -56,6 +56,7 @@ def main():
     open_data.add_argument("--offline", action="store_true", help="Use preserved source snapshots only")
     open_data.add_argument("--refresh", action="store_true", help="Fetch new snapshots even when cache exists")
     commands.add_parser("denn-baseline", help="Build deterministic DENN snapshots, features and purged walk-forward baseline")
+    commands.add_parser("denn-spectral", help="Build FFT, wavelet, coherence, phase and lead-lag diagnostics")
     replay = commands.add_parser("replay", help="Normalize preserved ECB snapshot offline")
     replay.add_argument("metadata", type=Path)
     replay.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 23))
@@ -127,6 +128,9 @@ def main():
     elif args.command == "denn-baseline":
         from .denn import build_denn_baseline
         result = build_denn_baseline()
+    elif args.command == "denn-spectral":
+        from .denn import build_spectral_baseline
+        result = build_spectral_baseline()
     else:
         from .providers import ECBReferenceProvider
         from .store import root

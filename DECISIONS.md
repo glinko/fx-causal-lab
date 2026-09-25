@@ -150,4 +150,14 @@
 - ECB EUR/USD reference и current-history inputs не являются executable PIT market state. Поэтому результаты описываются как non-strict OOS diagnostics, а не causal effect или торговая стратегия.
 - Dukascopy D1 остаётся отдельным market-price dataset, но его локальное отсутствие больше не блокирует long common grid: обязательный DENN bootstrap использует явно помеченный ECB reference. Отсутствующий optional ряд фиксируется как `MISSING_LOCAL_DATA`, а не подменяется.
 - Следующий исследовательский слой — spectral baseline (FFT/wavelet/coherence/lag) на той же закреплённой сетке. Dynamic GNN остаётся после него.
+
+## 2026-09-25 — DENN spectral baseline v0.15
+
+- Spectral preprocessing зафиксирован до анализа: EUR/USD и VIX log differences, yield-spread differences, Brent/WTI asinh differences. Forward fill и интерполяция запрещены.
+- Частота определяется в common-grid sessions, а не календарных днях: common grid нерегулярен по календарю из-за разных праздников источников.
+- Welch contract: Hann windows длиной 256 sessions, step 128; пять заранее заданных period bands от 2 до 256 sessions. Haar decomposition использует шесть уровней.
+- Положительный lag означает `factor[t]` против `EURUSD[t+lag]`; положительный phase-derived lead означает factor leads target. Оба соглашения закреплены synthetic test с известным периодом и задержкой.
+- Coherence, phase и максимум по 121 лагу — full-sample descriptive diagnostics. Они не являются out-of-sample signal, причинностью или significance test.
+- Самая высокая mean coherence в полном sample относится к 2Y spread changes в полосе 30–90 sessions, но phase показывает обратный порядок: EUR/USD leads примерно на 41 session. Этот результат нельзя использовать как подтверждение rates → FX.
+- Dynamic GNN остаётся заблокирован до rolling/expanding spectral stability: знак, band, phase и lag должны проверяться на временных окнах без отбора по полному sample.
 - Главный acquisition report переименован в Open Data Coverage. Vendor материалы остаются в optional/history разделе и не формируют статус готовности MVP.

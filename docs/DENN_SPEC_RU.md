@@ -137,8 +137,9 @@ Dynamic GNN не является первым шагом. Сначала реа
 1. Free/public data coverage и реальные локальные Parquet.
 2. Общая D1 сетка без скрытого forward fill.
 3. Deterministic DENN snapshot/decay features и purged walk-forward baseline на continuous factors — реализовано в v0.14.
-4. FFT, wavelet, coherence и lag baseline.
-5. Только затем temporal/graph training.
+4. FFT, Haar wavelet energy, Welch coherence/phase и lag baseline — реализовано в v0.15 как full-sample descriptive diagnostic.
+5. Rolling/expanding spectral stability без выбора параметров по полному sample.
+6. Только затем temporal/graph training.
 
 Consensus schema сохраняется, но vendor evaluation приостановлен до завершения free/public dataset и spectral MVP. Существующий CPI/NFP tick/M1 код сохраняется как первый event-study prototype.
 

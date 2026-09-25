@@ -1,0 +1,20 @@
+version: denn-spectral-1
+window_length: 256
+window_step: 128
+maximum_lag_sessions: 60
+wavelet_levels: 6
+
+bands:
+  - {name: fast, minimum_period: 2, maximum_period: 5}
+  - {name: weekly, minimum_period: 5, maximum_period: 10}
+  - {name: tactical, minimum_period: 10, maximum_period: 30}
+  - {name: monthly, minimum_period: 30, maximum_period: 90}
+  - {name: slow, minimum_period: 90, maximum_period: 256}
+
+series:
+  EURUSD_RETURN: {source: EURUSD_REF, transform: log_difference, role: target}
+  SPREAD_2Y_CHANGE: {source: US_EA_2Y, transform: difference, role: factor}
+  SPREAD_10Y_CHANGE: {source: US_EA_10Y, transform: difference, role: factor}
+  BRENT_CHANGE: {source: BRENT, transform: asinh_difference, scale: 20.0, role: factor}
+  WTI_CHANGE: {source: WTI, transform: asinh_difference, scale: 20.0, role: factor}
+  VIX_RETURN: {source: VIX, transform: log_difference, role: factor}

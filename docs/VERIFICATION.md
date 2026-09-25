@@ -169,3 +169,13 @@ Remaining: original macro releases, actual publication times, historical revisio
 - Container verification: 71 tests passed and `pip check` found no broken requirements. The existing upstream TestClient deprecation warning remains non-blocking.
 - Deployed image `fx-causal-lab:0.14.0` is healthy on `192.168.88.5:8088`. The report, JSON manifest and four Parquet downloads return HTTP 200.
 - Browser verification confirmed four horizon rows, no JavaScript warnings/errors and no page-level overflow at a 390px viewport (`scrollWidth` 375). Caddy was not changed.
+
+## Version 0.15 DENN spectral baseline — 2026-09-25
+
+- Input coverage dataset `1d90dc4ce3e596158090`, deterministic baseline `d6368f13122676b3fa55`; spectral dataset `2774a65ea59eb03600da`, normalized SHA-256 `2774a65ea59eb03600dab2e1bb22fe2b34ebde1ce293de8f02cc00c1c7eb5501`.
+- The fixed preprocessing contract produced 5,216 aligned one-session changes for EUR/USD, US–EA 2Y/10Y spreads, Brent, WTI and VIX. No input is forward-filled.
+- Welch diagnostics use 39 Hann windows of 256 common sessions with step 128. Output contains 25 factor×band rows, 36 Haar detail-energy rows and 605 correlations covering five factors × 121 lags.
+- A synthetic 16-session signal delayed by four sessions verifies FFT frequency, coherence, phase-derived lead sign and direct lag convention. Negative WTI remains supported through asinh differences.
+- Highest full-sample mean coherence is 0.245 for 2Y spread changes in the 30–90-session band, with peak coherence 0.358 near 85.3 sessions. Its phase implies EUR/USD leads the spread by about 41 sessions, so it does not confirm the hypothesized rates → FX direction.
+- The strongest absolute direct lag correlation is −0.198 for 2Y spread changes at factor lead +1 common session. Other maxima are −0.156 for 10Y spread at +1, 0.100 for Brent at 0, −0.064 for VIX at 0 and 0.046 for WTI at 0.
+- Two server executions with `--network none` reproduced the same dataset ID and normalized hash. All results remain `descriptive_non_strict`; no significance, causality or trading claim is made.

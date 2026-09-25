@@ -183,3 +183,13 @@ sudo docker run --rm --network none --user 1000:1000 \
 ```
 
 Все входы current-history имеют `strict_pit_eligible=false`; `published_at`, `available_at` и `revision_id` остаются null, пока исторические vintages не доказаны. Для ежедневного observation известна дата, но не точное intraday время. Это exploratory OOS benchmark, а не causal или trading result.
+
+## DENN spectral baseline — версия 0.15
+
+```bash
+sudo docker compose exec web fxlab denn-spectral
+```
+
+Команда работает офлайн поверх текущих `data_coverage.json`, common D1 Parquet и совпадающего `denn_baseline.json`. Она публикует standardized changes, FFT/Welch band metrics, Haar wavelet energy и корреляции для лагов −60…+60 в `data/gold/denn_spectral/<dataset_id>/`. Report доступен на `/reports/denn-spectral`.
+
+Периоды измеряются в common-grid sessions. Результат full-sample и non-strict: он предназначен для выбора проверяемых rolling-stability гипотез, а не для causal claim или торгового сигнала.

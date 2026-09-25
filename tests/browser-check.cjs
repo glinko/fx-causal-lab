@@ -26,7 +26,7 @@ const baseUrl = process.env.FXLAB_BASE_URL || 'http://192.168.88.5:8088';
     if(await page.locator('#chart title').textContent()!==description) throw Error('Wrong SVG title for '+kind);
     if(await page.locator('#values tr').count()!==10) throw Error('Missing table for '+kind);
   }
-  for(const report of ['decisions','questions','sources','deployment','denn','market-quality','macro-data','positioning','policy-events','event-alignment','baseline-experiments','causal-graph','interaction-experiments','readiness-review','acquisition-review','data-coverage','denn-baseline']) {
+  for(const report of ['decisions','questions','sources','deployment','denn','market-quality','macro-data','positioning','policy-events','event-alignment','baseline-experiments','causal-graph','interaction-experiments','readiness-review','acquisition-review','data-coverage','denn-baseline','denn-spectral']) {
     const response=await page.request.get(baseUrl+'/reports/'+report);
     if(response.status()!==200) throw Error('Report '+report+' failed');
   }
@@ -145,6 +145,14 @@ const baseUrl = process.env.FXLAB_BASE_URL || 'http://192.168.88.5:8088';
   await page.screenshot({path:path.join(out,'denn-mobile.png'),fullPage:true});
   await page.setViewportSize({width:1440,height:1000});
   await page.screenshot({path:path.join(out,'denn-desktop.png'),fullPage:true});
+  await page.setViewportSize({width:390,height:844});
+  await page.goto(baseUrl+'/reports/denn-spectral',{waitUntil:'networkidle'});
+  await page.getByText('Full-sample descriptive analysis.').waitFor();
+  if(await page.locator('.spectral-table tbody tr').count()!==25) throw Error('Spectral band count mismatch');
+  if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)) throw Error('Spectral mobile overflow');
+  await page.screenshot({path:path.join(out,'spectral-mobile.png'),fullPage:true});
+  await page.setViewportSize({width:1440,height:1000});
+  await page.screenshot({path:path.join(out,'spectral-desktop.png'),fullPage:true});
   if(errors.length) throw Error(errors.join('\n'));
   console.log(JSON.stringify({initial,filtered,dimensions,interactionAll,interactionFiltered,errors,screenshots:out}));
   await browser.close();

@@ -273,6 +273,12 @@ def denn_baseline(request: Request):
     return templates.TemplateResponse(request=request, name="denn.html", context={"denn": report, "folds": folds})
 
 
+@app.get("/reports/denn-spectral", response_class=HTMLResponse)
+def denn_spectral(request: Request):
+    report = read_json("denn_spectral.json", None)
+    return templates.TemplateResponse(request=request, name="spectral.html", context={"spectral": report})
+
+
 @app.get("/reports/{name}", response_class=HTMLResponse)
 def document(request: Request, name: str):
     if name not in DOCS:
@@ -347,6 +353,11 @@ def download(name: str):
         files["denn_baseline.json"] = root()/"reports"/"denn_baseline.json"
         for label, relative in denn["files"].items():
             files[f"denn_{label}.parquet"] = root()/relative
+    spectral = read_json("denn_spectral.json", None)
+    if spectral:
+        files["denn_spectral.json"] = root()/"reports"/"denn_spectral.json"
+        for label, relative in spectral["files"].items():
+            files[f"spectral_{label}.parquet"] = root()/relative
     if name not in files or not files[name].exists():
         raise HTTPException(404)
     return FileResponse(files[name], filename=name)
