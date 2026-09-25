@@ -142,3 +142,35 @@ def test_bad_replay_checksum_keeps_current_dataset(tmp_path, monkeypatch):
                              cutoff=datetime(2024, 2, 1, tzinfo=UTC), expected_checksum="wrong")
     assert json.loads(current.read_text()) == {"dataset_id": "existing"}
     assert not (tmp_path / "silver").exists()
+
+
+def test_rate_limit_retries_with_conservative_delay(tmp_path, monkeypatch):
+    import fxlab.market as market
+    monkeypatch.setenv("FXLAB_DATA", str(tmp_path))
+    sleeps = []
+    monkeypatch.setattr(market.time, "sleep", sleeps.append)
+
+    class Response:
+        def __init__(self, status, body):
+            self.status_code = status
+            self.content = body
+            self.headers = {}
+            self.url = "https://example.test/month"
+
+        def raise_for_status(self):
+            if self.status_code >= 400:
+                raise AssertionError("unexpected terminal HTTP error")
+
+        def json(self):
+            return {"ok": True}
+
+    class Client:
+        responses = iter([Response(429, b"limited-1"), Response(429, b"limited-2"), Response(200, b'{"ok":true}')])
+
+        def get(self, url):
+            return next(self.responses)
+
+    value, meta = market.fetch_snapshot(Client(), "https://example.test/month")
+    assert value == {"ok": True}
+    assert sleeps == [30.0, 30.0, 2.1]
+    assert (tmp_path / meta["payload"]).read_bytes() == b'{"ok":true}'

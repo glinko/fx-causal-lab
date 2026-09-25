@@ -54,11 +54,11 @@ Serif journal headings frame familiar sans-serif controls and tables. The chart 
 
 The post-MVP readiness review extends that journal into a decision ledger. It puts the technical and research verdicts side by side, then moves through gate evidence, the first acquisition action and a ranked data queue. Counts remain audit gates rather than optimistic KPIs, and the queue explains its coverage score instead of implying price or expected return.
 
-The acquisition review carries the same ledger into procurement. Provider claims become an acceptance contract before purchase, while a decoded EUR/USD tick sample proves the free transport path without implying strict point-in-time readiness. The split verdict, measured sample, vendor comparison and acceptance checklist keep what was observed separate from what remains documented or unverified.
+The open-data coverage report carries the same ledger into acquisition. A source becomes visible as integrated only after a real download, normalized Parquet and measured coverage. Common overlap is primary evidence; premium candidates remain a quiet optional section. The earlier tick sample survives as a separate event-study prototype.
 
 **Key Characteristics:**
 - Light reading surface and green ink.
-- Evidence ledgers, a working measured series, a ranked data queue and an acquisition acceptance contract.
+- Evidence ledgers, a working measured series, a measured data-coverage matrix and a ranked public-data queue.
 - Adjacent caveats and explicit provenance.
 - Stacked mobile headings and contained table scrolling.
 
@@ -97,7 +97,7 @@ The journal uses a centered reading column, with a main maximum width of 1240px 
 
 Decision reviews lead with a two-column verdict divided by one rule, followed by four equal gate cells and one bordered first-action block. Milestone evidence uses ruled three-column rows; platform decisions and the ranked data queue follow beneath in reading order. This sequence makes the next research investment visible in the first viewport without detaching it from its evidence.
 
-Acquisition reviews keep the dual procurement decision and four measured sample counters in the first viewport. A two-column sample ledger follows, then vendor rows, the numbered acceptance contract, documented constraints and reproducibility evidence. The order lets the researcher decide whether transport works before reading provider claims, while the final hashes and downloads keep the result reproducible.
+The data-coverage report opens with the integration rule, measured counts and the exact common-overlap interval. The evidence table follows before the candidate queue and optional premium sources. Rows expose dates, observations, weekday coverage, status and direct Parquet access; limitations and hashes close the report.
 
 At 700px and below, page padding becomes 20px, headings and controls stack, the edition label disappears and report links stack their descriptive text. The dual verdict becomes one column, the four gates become a two-by-two grid, and milestone and platform-decision rows collapse into a single reading flow. Source and ranked-queue tables retain a readable minimum width inside horizontally scrollable, keyboard-focusable containers. The page itself should fit the viewport. The plot switches to a shorter drawing and fewer axis labels below a measured width of 600px.
 
@@ -127,11 +127,11 @@ The readiness surface pairs a plain-ink technical verdict with an ochre research
 
 **The Decision-Ledger Rule.** Every readiness verdict must expose the evidence, limitation and next action that make the decision auditable.
 
-### Acquisition acceptance ledger
+### Open-data coverage ledger
 
-The acquisition surface pairs a positive narrow-window FX transport verdict with an ochre blocked procurement verdict. Four compact counters report only decoded ticks, normalized M1 rows, event-window minutes and strict PIT experiments. A sample ledger then exposes timestamps and spread statistics before any vendor comparison. Provider rows distinguish documented capability, access, research fit and unverified claims; the numbered acceptance list applies one small export to every check before payment or integration. Documented constraints, source snapshots, hashes and downloadable artifacts complete the chain of evidence.
+The coverage surface states the integration rule before showing any count. Compact counters report integrated datasets, continuous D1 series, common observations and optional paid groups. A ruled table shows the actual temporal coverage and download for every local series. The public-data queue and optional premium sources are visually subordinate to measured datasets.
 
-**The Acceptance-Before-Purchase Rule.** Provider claims remain provisional until the same representative export passes vintage semantics, coverage, licensing, price and reproducibility checks.
+**The Download-Before-Ready Rule.** A reachable API is a candidate; only raw snapshot + normalized Parquet + measured coverage is integrated.
 
 ### Report links and disclosures
 

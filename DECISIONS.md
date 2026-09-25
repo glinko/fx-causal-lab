@@ -120,7 +120,7 @@
 - M0–M7 доказали сквозную техническую цепочку, но не строгую исследовательскую готовность: strict PIT rows, доступные published-effect replications и strict-ready graph chains остаются равны нулю.
 - OpenSPG и GNN/ML отложены. Они не создадут отсутствующие forecast vintages, policy-surprise factors, yields или исторические availability timestamps.
 - Текущий веб-интерфейс достаточен для следующего этапа: он показывает отчёты, граф, ограничения и downloads. Расширение UI не опережает получение данных.
-- Приоритет №1 — проверить historical consensus вместе с narrow-window FX. Далее идут futures/OIS policy surprises, сопоставимые US/EA 2Y yields, oil/inflation-expectation vintages и historical CFTC availability.
+- Этот прежний приоритет отменён решением 2026-09-25 ниже. Readiness review остаётся историческим снимком состояния v0.11.
 - Research-unlock score — прозрачная метрика покрытия существующего графа, published replications и planned interactions. Она не является cost-benefit оценкой; стоимость, лицензирование и качество источника пока неизвестны.
 
 ## 2026-09-24 — consensus and narrow-window FX acquisition audit
@@ -130,3 +130,13 @@
 - Econoday и Trading Economics проходят следующий одинаковый sample test для CPI/NFP. Econoday публично заявляет historical as-released archive с 2001 года; Trading Economics документирует PIT calendar schema и REST API. Эти claims ещё не являются принятым dataset.
 - LSEG/Reuters Polls и Bloomberg оставлены enterprise alternatives. Они документируют богатое consensus/release-time покрытие, но не соответствуют minimal-budget bootstrap без существующей лицензии.
 - До закупки обязательны: глубина CPI/NFP, финальный pre-release forecast vintage, stable event IDs, first-release Actual, revisions, минимум 95% numeric consensus после объяснённых исключений, права локального хранения и проверка sample против BLS.
+
+## 2026-09-25 — free/public data first и DENN
+
+- Consensus procurement приостановлен. Consensus — optional enrichment; отсутствие vendor sample не блокирует dataset build, DENN feature generation или spectral MVP.
+- Existing CPI/NFP tick/M1 работа сохраняется как первый event-study prototype. Она не является главным acquisition workflow.
+- Источник считается интегрированным только после фактической загрузки raw payload, нормализации в Parquet, проверки дат/дубликатов/finite values и публикации coverage manifest.
+- Tier A: EUR/USD D1/H1, US и euro-area 2Y/10Y, производные spreads, Brent, WTI, VIX и US/EU equity proxies. Общая D1 сетка строится inner join без forward fill.
+- Current-history series без доказанных vintages получают `strict_pit_eligible=false`. Это допускает exploratory spectral baseline, но не строгие causal claims.
+- Первая DENN реализация: единая snapshot schema, deterministic features, decay kernels и baseline на 5–6 continuous factors. Dynamic GNN, OpenSPG и AnyJev не опережают воспроизводимый walk-forward baseline.
+- Главный acquisition report переименован в Open Data Coverage. Vendor материалы остаются в optional/history разделе и не формируют статус готовности MVP.

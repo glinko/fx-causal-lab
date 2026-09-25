@@ -12,6 +12,7 @@ sudo docker compose logs --tail=100 web
 curl -fsS http://192.168.88.5:8088/healthz
 sudo docker compose exec web fxlab --help
 sudo docker compose exec web fxlab recon
+sudo docker compose exec web fxlab open-data-backfill --from 2004-09-06
 sudo docker compose exec web fxlab backfill --from 2023-09-23 --to 2026-09-23
 sudo docker compose exec web python -m pytest -q -p no:cacheprovider
 ```
@@ -151,3 +152,16 @@ sudo docker compose exec web fxlab acquisition-audit --offline
 ```
 
 Первый запуск сохраняет официальные documentation snapshots и один дневной EUR/USD tick-файл Dukascopy. Replay с `--offline` проверяет hashes, декодирует ticks, агрегирует bid/ask M1 и публикует `data/silver/dukascopy_tick_sample/<dataset_id>/eurusd_m1.parquet`. Report доступен на `/reports/acquisition-review`; JSON и M1 Parquet имеют отдельные downloads. Команда не покупает подписку и не включает strict experiments.
+
+Этот модуль сохранён как event-study prototype. Vendor procurement не является текущим блокером или главным направлением acquisition.
+
+## Open public data coverage — версия 0.13
+
+```bash
+sudo docker compose exec web fxlab open-data-backfill --from 2004-09-06
+sudo docker compose exec web fxlab open-data-backfill --from 2004-09-06 --offline
+```
+
+Первый запуск сохраняет Treasury XML по годам, ECB yield-curve CSV, EIA Brent/WTI XLS и Cboe VIX CSV, затем добавляет текущий EUR/USD D1 manifest. Каждая серия публикуется отдельно в `data/silver/open_daily/<dataset_id>/`; inner-overlap без forward fill — в `data/gold/open_daily/<dataset_id>/common_d1.parquet`.
+
+`data/reports/data_coverage.json` является доказательством интеграции: источник, даты, rows, weekday coverage, local file и общий overlap. `--offline` повторяет нормализацию только из сохранённых snapshots и проверяет их hashes. Все current-history series пока non-strict PIT.

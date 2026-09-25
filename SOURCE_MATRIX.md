@@ -2,6 +2,22 @@
 
 Measured 2026-09-23/24 from the Ubuntu server. HTTP success is not PIT validation. [Detailed audit JSON](/download/source_audit.json).
 
+## Free/public continuous coverage — v0.13
+
+The live [Data Coverage Matrix](/reports/data-coverage) is authoritative for integration status. `READY` requires a downloaded raw snapshot, a normalized local Parquet and measured coverage; a documented endpoint alone stays a candidate.
+
+| Series | Public source | Format | Intended range | PIT treatment |
+|---|---|---|---|---|
+| US 2Y / 10Y | U.S. Treasury daily par yield curve | yearly Atom/XML | 2004+ | current-history, non-strict |
+| Euro-area 2Y / 10Y | ECB AAA euro-area spot curve | SDMX CSV | 2004-09-06+ | current-history, non-strict |
+| US–EA spreads | deterministic inner-date difference | Parquet | shared yield dates | inherits both inputs |
+| Brent / WTI spot | EIA daily history | XLS | available full history | current-history, non-strict |
+| VIX close | Cboe historical daily prices | CSV | available full history | current-history, non-strict |
+| EUR/USD | Dukascopy H1 → NY17 D1 | JSON → Parquet | current local market manifest | current-history, non-strict |
+| US / European equities | source selection pending | — | target 2004/2005+ | unavailable until downloaded |
+
+Measured dataset `1d90dc4ce3e596158090` contains 5 217 common dates from 2004-09-07 through 2026-09-22. The long grid uses the official ECB daily reference rate; Dukascopy remains the separate three-year H1/NY17-D1 tradable-price series. No missing weekday is forward-filled. Historical consensus and other licensed feeds are optional and do not block this matrix.
+
 | Source / API | Auth | History / frequency | Timestamps / revisions | Format / limits / cost | PIT |
 |---|---|---|---|---|---|
 | [ECB](https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist.xml) ([docs](https://data.ecb.europa.eu/help/api/overview)) | Public | FX reference history; exact range measured by backfill; Daily / event | Observation date; publication usually around 16:00 CET, exact historical times unverified; Current FX snapshot is not a vintage archive | XML / SDMX; Not verified; Public download; usage terms apply | Unverified; excluded from strict PIT |

@@ -186,6 +186,13 @@ def fetch_snapshot(client, url, *, offline=False, refresh=False, pinned=None):
         response = client.get(url)
         meta = save_raw("dukascopy", str(response.url), response.content, dict(response.headers), response.status_code)
         if response.status_code == 429:
+            if attempt < 2:
+                try:
+                    delay = min(60.0, float(response.headers.get("retry-after", "30")))
+                except ValueError:
+                    delay = 30.0
+                time.sleep(delay)
+                continue
             raise RuntimeError("Provider rate limit: stopped, preserve cache and retry later; Retry-After=" + response.headers.get("retry-after", "unspecified"))
         if response.status_code >= 500 and attempt < 2:
             time.sleep(2 ** attempt)
@@ -193,7 +200,8 @@ def fetch_snapshot(client, url, *, offline=False, refresh=False, pinned=None):
         response.raise_for_status()
         data = response.json()
         atomic_json(cached, meta)
-        time.sleep(0.35)
+        # Public historical transport is deliberately throttled; cached months return immediately.
+        time.sleep(2.1)
         return data, meta
     raise RuntimeError("Provider unavailable")
 

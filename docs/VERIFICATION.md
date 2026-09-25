@@ -145,3 +145,14 @@ Remaining: original macro releases, actual publication times, historical revisio
 - Browser verification covers all 14 report routes at 1440px and 390px, verifies both decision statements, four vendor candidates and seven acceptance checks, and reports no JavaScript errors or page-level mobile overflow. Screenshots: `data/qa-v012/`.
 - Deployed image `fx-causal-lab:0.12.0` is healthy on `192.168.88.5:8088`; report, JSON manifest and M1 Parquet return HTTP 200. Strict PIT eligibility remains false and Caddy remains active and unchanged.
 - Independent Impeccable finish review verdict: `ship`; all five contract sections passed with no material visual, responsive or accessibility finding.
+
+## Version 0.13 free/public data coverage — 2026-09-25
+
+- Real downloads were normalized for U.S. Treasury 2Y/10Y, ECB euro-area AAA 2Y/10Y, EIA Brent/WTI, Cboe VIX, ECB EUR/USD reference and the existing Dukascopy EUR/USD D1 series. US–EA 2Y/10Y spreads are deterministic date intersections.
+- Coverage manifest dataset `1d90dc4ce3e596158090`; normalized SHA-256 `1826792a8557a569c4052484d542b3c4eae3c67576cef689a699759c777c1019`.
+- The report contains 11 continuous D1 series plus CFTC EUR and BLS event datasets. Ten continuous series meet the configured long-history readiness threshold; Dukascopy remains partial.
+- The spectral-bootstrap common grid uses eight continuous inputs and contains 5 217 dates from 2004-09-07 through 2026-09-22. It uses ECB EUR/USD reference for long D1 coverage and keeps Dukascopy H1/NY17 D1 separate.
+- No source row or common-grid date is forward-filled. All downloaded current histories remain `strict_pit_eligible=false`; the ECB rate is explicitly not an executable OHLC price.
+- Exact replay passed in Docker with `--network none` and reproduced the dataset ID and normalized hash. The server test suite passed 71 tests; the only warning is the existing upstream TestClient deprecation.
+- The attempted long Dukascopy H1 expansion preserved 33 additional monthly snapshots before the provider rate limit stopped publication of a replacement dataset. The previous validated three-year market manifest remains current; cached progress is retained for a later respectful resume.
+- Consensus procurement is paused and optional. The v0.12 tick/M1 work is retained as the first CPI/NFP event-study prototype.

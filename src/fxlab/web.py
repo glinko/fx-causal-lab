@@ -19,7 +19,8 @@ PROJECT = Path(os.environ.get("FXLAB_PROJECT", "."))
 app = FastAPI(title="FX Causal Lab", docs_url=None, redoc_url=None)
 app.mount("/static", StaticFiles(directory=PACKAGE / "static"), name="static")
 templates = Jinja2Templates(directory=PACKAGE / "templates")
-DOCS = {"decisions": "DECISIONS.md", "questions": "OPEN_QUESTIONS.md", "sources": "SOURCE_MATRIX.md", "deployment": "DEPLOYMENT.md"}
+DOCS = {"decisions": "DECISIONS.md", "questions": "OPEN_QUESTIONS.md", "sources": "SOURCE_MATRIX.md",
+        "deployment": "DEPLOYMENT.md", "denn": "docs/DENN_SPEC_RU.md"}
 
 
 def read_json(name, default):
@@ -252,6 +253,12 @@ def acquisition_review(request: Request):
     return templates.TemplateResponse(request=request, name="acquisition.html", context={"acquisition": report})
 
 
+@app.get("/reports/data-coverage", response_class=HTMLResponse)
+def data_coverage(request: Request):
+    report = read_json("data_coverage.json", None)
+    return templates.TemplateResponse(request=request, name="coverage.html", context={"coverage": report})
+
+
 @app.get("/reports/{name}", response_class=HTMLResponse)
 def document(request: Request, name: str):
     if name not in DOCS:
@@ -314,6 +321,13 @@ def download(name: str):
     if acquisition:
         files["acquisition_review.json"] = root()/"reports"/"acquisition_review.json"
         files["eurusd_m1_sample.parquet"] = root()/acquisition["files"]["m1_sample"]
+    coverage = read_json("data_coverage.json", None)
+    if coverage:
+        files["data_coverage.json"] = root()/"reports"/"data_coverage.json"
+        files["common_d1.parquet"] = root()/coverage["files"]["common_d1"]
+        for series_id, relative in coverage["files"].items():
+            if series_id != "common_d1":
+                files[f"{series_id.lower()}.parquet"] = root()/relative
     if name not in files or not files[name].exists():
         raise HTTPException(404)
     return FileResponse(files[name], filename=name)

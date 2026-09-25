@@ -25,3 +25,6 @@ User specification in docs/SPEC_RU.md. Local legacy forex datasets contain known
 
 ## Product Principles
 Provenance first. No look-ahead. Document assumptions without interrupting routine development. Reproduce published effects before exploratory hypothesis searches.
+
+## Current Research Direction
+Free/public historical coverage comes before vendor consensus. Build a common D1 continuous-factor dataset, deterministic DENN snapshot/decay features and a spectral baseline before any Dynamic GNN. Keep the CPI/NFP tick work as an event-study prototype and keep premium sources optional.

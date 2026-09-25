@@ -50,6 +50,11 @@ def main():
     commands.add_parser("review-readiness", help="Build the M0-M7 readiness review and post-MVP decision gate")
     acquisition = commands.add_parser("acquisition-audit", help="Audit consensus candidates and a Dukascopy tick sample")
     acquisition.add_argument("--offline", action="store_true", help="Use preserved documentation and tick snapshots only")
+    open_data = commands.add_parser("open-data-backfill", help="Download, normalize and measure free/public historical series")
+    open_data.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2004, 9, 6))
+    open_data.add_argument("--to", dest="end", type=date.fromisoformat, default=date.today())
+    open_data.add_argument("--offline", action="store_true", help="Use preserved source snapshots only")
+    open_data.add_argument("--refresh", action="store_true", help="Fetch new snapshots even when cache exists")
     replay = commands.add_parser("replay", help="Normalize preserved ECB snapshot offline")
     replay.add_argument("metadata", type=Path)
     replay.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 23))
@@ -115,6 +120,9 @@ def main():
     elif args.command == "acquisition-audit":
         from .acquisition import build_acquisition_review
         result = build_acquisition_review(offline=args.offline)
+    elif args.command == "open-data-backfill":
+        from .open_data import build_open_data_coverage
+        result = build_open_data_coverage(args.start, args.end, offline=args.offline, refresh=args.refresh)
     else:
         from .providers import ECBReferenceProvider
         from .store import root
