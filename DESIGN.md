@@ -52,9 +52,11 @@ A simple research journal combines evidence tables with a full-width measured se
 
 Serif journal headings frame familiar sans-serif controls and tables. The chart is a working plot with date ranges and exact values; limitations remain adjacent to the evidence. Local assets and a locally served display font keep the journal independent of external font services.
 
+The post-MVP readiness review extends that journal into a decision ledger. It puts the technical and research verdicts side by side, then moves through gate evidence, the first acquisition action and a ranked data queue. Counts remain audit gates rather than optimistic KPIs, and the queue explains its coverage score instead of implying price or expected return.
+
 **Key Characteristics:**
 - Light reading surface and green ink.
-- Evidence tables and a working measured series.
+- Evidence ledgers, a working measured series and a ranked data queue.
 - Adjacent caveats and explicit provenance.
 - Stacked mobile headings and contained table scrolling.
 
@@ -91,7 +93,9 @@ The serif supplies journal character; the sans-serif maintains legible data and 
 
 The journal uses a centered reading column, with a main maximum width of 1240px and 40px horizontal padding. Documents narrow to 1120px. Sections have 40px top separation; document prose is constrained to 80ch. The chart spans the available content width, followed by its caveat and a disclosure for recent values and provenance.
 
-At 700px and below, page padding becomes 20px, headings and controls stack, the edition label disappears and report links stack their descriptive text. Source tables retain a readable minimum width inside horizontal scrolling containers. The page itself should fit the viewport. The plot switches to a shorter drawing and fewer axis labels below a measured width of 600px.
+Decision reviews lead with a two-column verdict divided by one rule, followed by four equal gate cells and one bordered first-action block. Milestone evidence uses ruled three-column rows; platform decisions and the ranked data queue follow beneath in reading order. This sequence makes the next research investment visible in the first viewport without detaching it from its evidence.
+
+At 700px and below, page padding becomes 20px, headings and controls stack, the edition label disappears and report links stack their descriptive text. The dual verdict becomes one column, the four gates become a two-by-two grid, and milestone and platform-decision rows collapse into a single reading flow. Source and ranked-queue tables retain a readable minimum width inside horizontally scrollable, keyboard-focusable containers. The page itself should fit the viewport. The plot switches to a shorter drawing and fewer axis labels below a measured width of 600px.
 
 ## Elevation & Depth
 
@@ -100,6 +104,8 @@ Surfaces are flat. Thin rules and restrained paper, inset and white backgrounds 
 ## Shapes
 
 Reading surfaces and evidence tables remain rectangular. Native selects have a small corner radius (4px) and a thin green-gray border. Tables use horizontal rules, without separate rounded cells or card wrappers.
+
+Decision ledgers and gate grids use shared outer rules and square cells. The first-action block is the one bordered white callout in the readiness sequence; its restraint preserves the journal form instead of introducing a dashboard card language.
 
 ## Components
 
@@ -110,6 +116,12 @@ Text links and native selects keep operations simple. Series and period selects 
 ### Evidence tables and statuses
 
 Tables align text left, use restrained uppercase column headings, and separate rows with thin rules. Row labels are emphasized; supporting technical details are smaller and muted. Neutral, validated and caution states retain explanatory text. Dense tables scroll within their container.
+
+### Readiness decision ledger
+
+The readiness surface pairs a plain-ink technical verdict with an ochre research blocker. Four compact research gates sit below as equal ruled cells; they are evidence checks, not celebratory KPI tiles. A bordered white action block then names the first concrete data-acquisition check. Milestone evidence, platform deferrals and the ranked data queue continue as ruled rows and tables, with muted explanatory copy adjacent to every status and score.
+
+**The Decision-Ledger Rule.** Every readiness verdict must expose the evidence, limitation and next action that make the decision auditable.
 
 ### Report links and disclosures
 
@@ -128,8 +140,10 @@ Smooth document scrolling is disabled when reduced motion is requested. Chart ch
 - **Do** keep series labels, accessible names and downloads consistent with the selected data.
 - **Do** preserve keyboard focus and a table representation of recent values.
 - **Do** stack mobile controls and contain dense table scrolling.
+- **Do** pair readiness verdicts and ranked scores with their evidence, limitation and first concrete follow-up.
 
 ### Don't:
 - **Don't** invent experiment results or turn the working plot into decoration.
 - **Don't** imply that an available endpoint is validated research data.
 - **Don't** bridge missing observations or conceal incomplete sessions as complete evidence.
+- **Don't** present gate counts as optimistic KPIs or let a coverage score imply cost, value or expected return.

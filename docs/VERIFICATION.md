@@ -119,3 +119,16 @@ Remaining: original macro releases, actual publication times, historical revisio
 - Browser verification covers all 12 report routes at 1440px and 390px. Filter and pagination changes are asserted, at most 12 result rows are visible, no JavaScript errors or page-level mobile overflow occur. Screenshots: `data/qa-v010-final2/`.
 - Deployed image `fx-causal-lab:0.10.0` is healthy on `192.168.88.5:8088`; report, manifest and both Parquet downloads return HTTP 200. Caddy remains active and unchanged.
 - Independent Impeccable finish review verdict: `ship`; no material findings in scientific framing, sample warnings, requirements, exclusions, mobile layout or accessibility.
+
+## Version 0.11 M0–M7 readiness review — 2026-09-24
+
+- Dataset `9da3e3a3c91151440e94`; normalized SHA-256 `46da50ad7e22551efbcc9453842168af0f9b795ef5bda39089359e6f3e0f12a0`.
+- The review reads all current M0–M7 manifests and records eight milestone assessments. M0 and M3 remain partial; the implemented M1–M7 slices are explicitly distinguished from strict research readiness.
+- All four evidence gates remain zero: strict PIT rows, available published-effect replications, strict-ready graph chains and strict interaction rows.
+- Research-unlock ranking is historical consensus + narrow-window FX (18), futures/OIS policy surprises (15), comparable US/EA 2Y yields (11), oil/inflation-expectation vintages (7), and historical CFTC availability (4). The score excludes cost, licensing and source quality.
+- Decision: defer OpenSPG and GNN/ML, keep the current web scope, and investigate the ranked data packages before adding platform complexity.
+- Two Docker executions with `--network none` reproduced the same dataset ID and normalized hash.
+- Container verification: 58 tests passed; `pip check` found no broken requirements. The existing upstream TestClient deprecation warning remains non-blocking.
+- Browser verification covers all 13 report routes at 1440px and 390px, verifies both decision statements, eight milestones and five priorities, and reports no JavaScript errors or page-level mobile overflow. Screenshots: `data/qa-v011/`.
+- Deployed image `fx-causal-lab:0.11.0` is healthy on `192.168.88.5:8088`; report and JSON manifest return HTTP 200. Caddy remains active and unchanged.
+- Independent Impeccable finish review verdict: `ship`; all five direction-contract sections passed with no material visual, responsive or accessibility finding.

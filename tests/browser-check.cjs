@@ -25,7 +25,7 @@ const path = require('path');
     if(await page.locator('#chart title').textContent()!==description) throw Error('Wrong SVG title for '+kind);
     if(await page.locator('#values tr').count()!==10) throw Error('Missing table for '+kind);
   }
-  for(const report of ['decisions','questions','sources','deployment','market-quality','macro-data','positioning','policy-events','event-alignment','baseline-experiments','causal-graph','interaction-experiments']) {
+  for(const report of ['decisions','questions','sources','deployment','market-quality','macro-data','positioning','policy-events','event-alignment','baseline-experiments','causal-graph','interaction-experiments','readiness-review']) {
     const response=await page.request.get('http://192.168.88.5:8088/reports/'+report);
     if(response.status()!==200) throw Error('Report '+report+' failed');
   }
@@ -108,6 +108,16 @@ const path = require('path');
   await page.screenshot({path:path.join(out,'interactions-mobile.png'),fullPage:true});
   await page.setViewportSize({width:1440,height:1000});
   await page.screenshot({path:path.join(out,'interactions-desktop.png'),fullPage:true});
+  await page.setViewportSize({width:390,height:844});
+  await page.goto('http://192.168.88.5:8088/reports/readiness-review',{waitUntil:'networkidle'});
+  await page.getByText('Доказан сквозным запуском').waitFor();
+  await page.getByText('Заблокировано PIT-данными').waitFor();
+  if(await page.locator('.milestone-list article').count()!==8) throw Error('Readiness milestone count mismatch');
+  if(await page.locator('.readiness-table tbody tr').count()!==5) throw Error('Readiness priority count mismatch');
+  if(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth)) throw Error('Readiness mobile overflow');
+  await page.screenshot({path:path.join(out,'readiness-mobile.png'),fullPage:true});
+  await page.setViewportSize({width:1440,height:1000});
+  await page.screenshot({path:path.join(out,'readiness-desktop.png'),fullPage:true});
   if(errors.length) throw Error(errors.join('\n'));
   console.log(JSON.stringify({initial,filtered,dimensions,interactionAll,interactionFiltered,errors,screenshots:out}));
   await browser.close();

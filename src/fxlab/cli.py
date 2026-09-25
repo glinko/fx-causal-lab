@@ -47,6 +47,7 @@ def main():
     commands.add_parser("baseline-experiments", help="Build descriptive M5 event baselines and replication status")
     commands.add_parser("graph-build", help="Validate and export the M6 causal-hypothesis graph")
     commands.add_parser("interaction-experiments", help="Build leakage-aware M7 descriptive regime slices")
+    commands.add_parser("review-readiness", help="Build the M0-M7 readiness review and post-MVP decision gate")
     replay = commands.add_parser("replay", help="Normalize preserved ECB snapshot offline")
     replay.add_argument("metadata", type=Path)
     replay.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 23))
@@ -106,6 +107,9 @@ def main():
     elif args.command == "interaction-experiments":
         from .interactions import build_interaction_experiments
         result = build_interaction_experiments()
+    elif args.command == "review-readiness":
+        from .readiness import build_readiness_review
+        result = build_readiness_review()
     else:
         from .providers import ECBReferenceProvider
         from .store import root

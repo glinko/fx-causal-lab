@@ -108,6 +108,7 @@ def test_web_empty_and_loaded_data(tmp_path, monkeypatch):
     assert client.get("/reports/causal-graph").status_code == 200
     assert client.get("/api/causal-graph").json()["nodes"] == []
     assert client.get("/reports/interaction-experiments").status_code == 200
+    assert client.get("/reports/readiness-review").status_code == 200
     assert client.get("/download/nonexistent").status_code == 404
     meta = save_raw("ecb", "https://example.test/fx", XML, {})
     ECBReferenceProvider().replay(XML, meta, date(2024, 1, 1), date(2024, 1, 4))

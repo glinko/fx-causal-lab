@@ -37,6 +37,41 @@
       "html": "<details class=\"ds-details\"><summary>Последние значения и происхождение</summary><p>ECB · источник и контрольная сумма снимка</p></details>",
       "description": "Native disclosure for values and provenance.",
       "kind": "custom"
+    },
+    {
+      "name": "Readiness verdict ledger",
+      "kind": "custom",
+      "description": "Paired technical and research verdicts with the blocked state carried by ochre text.",
+      "html": "<div class=\"ds-ledger\" aria-label=\"Решение после M7\"><section><strong>Технический MVP</strong><h2>Доказан сквозным запуском</h2><p>Контур воспроизводится.</p></section><section class=\"ds-ledger-blocked\"><strong>Строгое исследование</strong><h2>Заблокировано PIT-данными</h2><p>Исторические availability contracts отсутствуют.</p></section></div>",
+      "css": ".ds-ledger{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line,#cbd3ca);border-bottom:1px solid var(--line,#cbd3ca);font-family:Segoe UI,Arial,sans-serif;color:var(--ink,#172c2b)}.ds-ledger section{padding:24px 28px 24px 0}.ds-ledger section+section{padding-left:28px;border-left:1px solid var(--line,#cbd3ca)}.ds-ledger strong{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted,#51625f)}.ds-ledger h2{font:400 24px/1.2 \"PT Serif\",Georgia,serif;margin:8px 0}.ds-ledger p{font-size:13px;color:var(--muted,#51625f);margin:0}.ds-ledger-blocked h2{color:var(--warn,#78501a)}@media(max-width:700px){.ds-ledger{grid-template-columns:1fr}.ds-ledger section{padding:20px 0}.ds-ledger section+section{padding:20px 0;border-left:0;border-top:1px solid var(--line,#cbd3ca)}}"
+    },
+    {
+      "name": "Research gate grid",
+      "kind": "custom",
+      "description": "Four compact evidence checks presented as ruled cells rather than celebratory KPIs.",
+      "html": "<div class=\"ds-gates\" aria-label=\"Контрольные ворота исследования\"><div><strong>8</strong><span>milestones reviewed</span></div><div><strong>0</strong><span>strict PIT rows</span></div><div><strong>0</strong><span>replications available</span></div><div><strong>0</strong><span>strict graph chains</span></div></div>",
+      "css": ".ds-gates{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line,#cbd3ca);border:1px solid var(--line,#cbd3ca);font-family:Segoe UI,Arial,sans-serif;color:var(--ink,#172c2b)}.ds-gates>div{background:var(--white,#fff);padding:18px}.ds-gates strong,.ds-gates span{display:block}.ds-gates strong{font:400 26px/1.2 \"PT Serif\",Georgia,serif}.ds-gates span{font-size:12px;color:var(--muted,#51625f);margin-top:4px}@media(max-width:700px){.ds-gates{grid-template-columns:repeat(2,minmax(0,1fr))}}"
+    },
+    {
+      "name": "First research action",
+      "kind": "card",
+      "description": "A single restrained callout for the next concrete acquisition check.",
+      "html": "<section class=\"ds-action\"><h2>Следующее действие</h2><p><strong>Consensus и surprise history</strong></p><p>Проверить временные метки публикации и доступность архивов.</p></section>",
+      "css": ".ds-action{padding:20px 22px;background:var(--white,#fff);border:1px solid var(--line,#cbd3ca);font-family:Segoe UI,Arial,sans-serif;color:var(--ink,#172c2b)}.ds-action h2{font:400 19px/1.2 \"PT Serif\",Georgia,serif;margin:0 0 10px}.ds-action p{margin:4px 0;font-size:14px}"
+    },
+    {
+      "name": "Milestone evidence row",
+      "kind": "custom",
+      "description": "Ruled row joining milestone identity, status and supporting evidence.",
+      "html": "<article class=\"ds-milestone\"><div><strong>M7</strong><span>mvp_complete</span></div><h3>Decision review</h3><p>Evidence, limitations and the reproducible artifact remain together.</p></article>",
+      "css": ".ds-milestone{display:grid;grid-template-columns:120px minmax(190px,.7fr) minmax(320px,1.5fr);gap:18px;align-items:start;padding:16px 0;border-top:1px solid var(--line,#cbd3ca);border-bottom:1px solid var(--line,#cbd3ca);font-family:Segoe UI,Arial,sans-serif;color:var(--ink,#172c2b)}.ds-milestone div strong,.ds-milestone div span{display:block}.ds-milestone div strong{font:400 18px/1.2 \"PT Serif\",Georgia,serif}.ds-milestone div span{font-size:12px;color:#236045}.ds-milestone h3{font:400 17px/1.2 \"PT Serif\",Georgia,serif;margin:2px 0}.ds-milestone p{font-size:13px;color:var(--muted,#51625f);margin:2px 0}@media(max-width:700px){.ds-milestone{display:block}.ds-milestone div{display:flex;justify-content:space-between;gap:15px}.ds-milestone h3{margin-top:8px}}"
+    },
+    {
+      "name": "Ranked data queue",
+      "kind": "custom",
+      "description": "Horizontally contained evidence table ranking data packages by documented research coverage.",
+      "html": "<div class=\"ds-queue\" role=\"region\" aria-label=\"Приоритет данных\" tabindex=\"0\"><table><thead><tr><th>Приоритет</th><th>Пакет</th><th>Score</th><th>Следующая проверка</th></tr></thead><tbody><tr><td>1</td><td><strong>Consensus history</strong><small>consensus</small></td><td>12</td><td>Проверить архив и timestamp contract</td></tr></tbody></table></div>",
+      "css": ".ds-queue{overflow-x:auto;font-family:Segoe UI,Arial,sans-serif;color:var(--ink,#172c2b)}.ds-queue:focus-visible{outline:3px solid #947126;outline-offset:4px}.ds-queue table{width:100%;min-width:720px;border-collapse:collapse;text-align:left;font-size:13px}.ds-queue th{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted,#51625f);font-weight:600;padding:13px 12px;border-bottom:1px solid #92a599}.ds-queue td{padding:15px 12px;border-bottom:1px solid var(--line,#cbd3ca);vertical-align:top}.ds-queue td:first-child{padding-left:0;font:400 20px/1.2 \"PT Serif\",Georgia,serif}.ds-queue td:last-child{min-width:280px}.ds-queue small{display:block;color:var(--muted,#51625f);font-size:11px;margin-top:5px}"
     }
   ],
   "extensions": {
@@ -184,11 +219,16 @@
         "section": "typography",
         "name": "The Reading Rule",
         "body": "Use serif headings to structure the journal and sans-serif text for evidence, navigation and controls."
+      },
+      {
+        "section": "components",
+        "name": "The Decision-Ledger Rule",
+        "body": "Every readiness verdict must expose the evidence, limitation and next action that make the decision auditable."
       }
     ],
     "keyCharacteristics": [
       "Light reading surface and green ink.",
-      "Evidence tables and a working measured series.",
+      "Evidence ledgers, a working measured series and a ranked data queue.",
       "Adjacent caveats and explicit provenance.",
       "Stacked mobile headings and contained table scrolling."
     ],
@@ -196,17 +236,19 @@
       "Do retain adjacent caveats, provenance and explicit data status.",
       "Do keep series labels, accessible names and downloads consistent with the selected data.",
       "Do preserve keyboard focus and a table representation of recent values.",
-      "Do stack mobile controls and contain dense table scrolling."
+      "Do stack mobile controls and contain dense table scrolling.",
+      "Do pair readiness verdicts and ranked scores with their evidence, limitation and first concrete follow-up."
     ],
-    "overview": "A simple research journal combines evidence tables with a full-width measured series. Light paper, dark green ink and restrained warning ochre support detailed reading by one researcher. The interface remains an operating and reading surface, with no decorative charts or fabricated metrics.\n\nSerif journal headings frame familiar sans-serif controls and tables. The chart is a working plot with date ranges and exact values; limitations remain adjacent to the evidence. Local assets and a locally served display font keep the journal independent of external font services.",
+    "overview": "A simple research journal combines evidence tables with a full-width measured series. Light paper, dark green ink and restrained warning ochre support detailed reading by one researcher. The interface remains an operating and reading surface, with no decorative charts or fabricated metrics.\n\nSerif journal headings frame familiar sans-serif controls and tables. The chart is a working plot with date ranges and exact values; limitations remain adjacent to the evidence. Local assets and a locally served display font keep the journal independent of external font services.\n\nThe post-MVP readiness review extends that journal into a decision ledger. It puts the technical and research verdicts side by side, then moves through gate evidence, the first acquisition action and a ranked data queue. Counts remain audit gates rather than optimistic KPIs, and the queue explains its coverage score instead of implying price or expected return.",
     "donts": [
       "Don't invent experiment results or turn the working plot into decoration.",
       "Don't imply that an available endpoint is validated research data.",
-      "Don't bridge missing observations or conceal incomplete sessions as complete evidence."
+      "Don't bridge missing observations or conceal incomplete sessions as complete evidence.",
+      "Don't present gate counts as optimistic KPIs or let a coverage score imply cost, value or expected return."
     ],
     "northStar": "Research journal"
   },
-  "generatedAt": "2026-09-24T00:37:51.4708183Z",
+  "generatedAt": "2026-09-25T00:46:04Z",
   "schemaVersion": 2,
   "title": "Design System: FX Causal Lab"
 }

@@ -114,3 +114,11 @@
 - FX trend — знак return за 20 полных NY17-сессий. Используются только дневные бары с `available_at <= prediction_time`; target начинается после prediction boundary.
 - CFTC availability и market-history vintage остаются non-strict. Поэтому p/q-values, formal regime contrasts, причинный вывод и торговое правило не рассчитываются.
 - Planned registry отдельно сохраняет blocked interactions для surprise, oil/inflation expectations и rate differential/risk sentiment. Недоступные входы не синтезируются.
+
+## 2026-09-24 — post-M7 decision gate
+
+- M0–M7 доказали сквозную техническую цепочку, но не строгую исследовательскую готовность: strict PIT rows, доступные published-effect replications и strict-ready graph chains остаются равны нулю.
+- OpenSPG и GNN/ML отложены. Они не создадут отсутствующие forecast vintages, policy-surprise factors, yields или исторические availability timestamps.
+- Текущий веб-интерфейс достаточен для следующего этапа: он показывает отчёты, граф, ограничения и downloads. Расширение UI не опережает получение данных.
+- Приоритет №1 — проверить historical consensus вместе с narrow-window FX. Далее идут futures/OIS policy surprises, сопоставимые US/EA 2Y yields, oil/inflation-expectation vintages и historical CFTC availability.
+- Research-unlock score — прозрачная метрика покрытия существующего графа, published replications и planned interactions. Она не является cost-benefit оценкой; стоимость, лицензирование и качество источника пока неизвестны.

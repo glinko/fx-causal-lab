@@ -134,3 +134,11 @@ sudo docker compose exec web fxlab interaction-experiments
 ```
 
 Команда работает офлайн поверх текущих M4 targets, CFTC и D1 manifests. Она публикует point-in-time joined feature rows и описательные regime summaries в `data/gold/interaction_experiments/<dataset_id>/`. Report доступен на `/reports/interaction-experiments`; feature и result Parquet отдаются отдельными downloads. Команда не рассчитывает surprise из Actual и не делает inferential claims.
+
+## M0–M7 readiness review — версия 0.11
+
+```bash
+sudo docker compose exec web fxlab review-readiness
+```
+
+Команда офлайн читает текущие manifests M0–M7, фиксирует milestone status, research gates, post-MVP platform decision и ранжированную очередь data investments. Report доступен на `/reports/readiness-review`, машиночитаемый manifest — `/download/readiness_review.json`.

@@ -18,6 +18,8 @@
 14. ECB: FOEDB и страницы релизов подтвердили 14:15 Europe/Berlin для текущего окна. Остаётся найти независимое доказательство historical receipt, архив изменений страниц и проверку исключений при расширении истории.
 15. M7 дал только 31 positioning-regime feature row после as-of и minimum-history фильтров; 114 событий не имеют доступной позиции, ещё 8 имеют недостаточную историю. Решить, расширять ли historical CFTC availability до любых formal contrasts.
 16. После M7 review выбрать следующий data investment: historical consensus, futures/OIS surprise factors, сопоставимые US/EA yields или восстановление historical CFTC availability. OpenSPG/GNN/web-platform expansion не должны опережать этот выбор.
+17. Post-M7 review выбрал первым кандидатом historical consensus + narrow-window FX по research-unlock coverage. Теперь проверить PIT depth, forecast vintages, точные timestamps, лицензию, стоимость и возможность легального воспроизводимого хранения до закупки.
+18. Для futures/OIS policy surprises отдельно проверить доступность контрактной истории и intraday timestamps для FOMC и ECB; фактическое изменение ставки не заменяет surprise factor.
 
 ## H1/D1 follow-up
 

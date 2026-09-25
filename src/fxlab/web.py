@@ -240,6 +240,12 @@ def interaction_experiments(request: Request):
                                       context={"interactions": report, "rows": rows})
 
 
+@app.get("/reports/readiness-review", response_class=HTMLResponse)
+def readiness_review(request: Request):
+    report = read_json("readiness_review.json", None)
+    return templates.TemplateResponse(request=request, name="readiness.html", context={"review": report})
+
+
 @app.get("/reports/{name}", response_class=HTMLResponse)
 def document(request: Request, name: str):
     if name not in DOCS:
@@ -295,6 +301,9 @@ def download(name: str):
         files["interaction_experiments.json"] = root()/"reports"/"interaction_experiments.json"
         files["interaction_features.parquet"] = root()/interactions["files"]["features"]
         files["interaction_results.parquet"] = root()/interactions["files"]["results"]
+    readiness = read_json("readiness_review.json", None)
+    if readiness:
+        files["readiness_review.json"] = root()/"reports"/"readiness_review.json"
     if name not in files or not files[name].exists():
         raise HTTPException(404)
     return FileResponse(files[name], filename=name)
