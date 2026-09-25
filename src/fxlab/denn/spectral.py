@@ -174,7 +174,7 @@ def _load_config(path: Path) -> tuple[dict, str]:
         previous_maximum = band["maximum_period"]
     if config["bands"][-1]["maximum_period"] > config["window_length"]:
         raise ValueError("Spectral period exceeds the Welch window")
-    return config, hashlib.sha256(body).hexdigest()
+    return config, hashlib.sha256(body.replace(b"\r\n", b"\n")).hexdigest()
 
 
 def _load_inputs() -> tuple[list, dict[str, list[float]], dict, dict]:

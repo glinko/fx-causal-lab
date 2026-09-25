@@ -8,6 +8,7 @@ import pytest
 
 from fxlab.denn import age_decay, build_denn_baseline, build_spectral_baseline, exponential_memory
 from fxlab.denn.pipeline import _asinh_change, _fit_ridge, _predict
+from fxlab.denn.spectral import _load_config as load_spectral_config
 from fxlab.denn.spectral import haar_energy, lag_correlations, welch_spectra
 
 
@@ -48,6 +49,14 @@ def test_spectral_primitives_detect_known_frequency_and_lead():
     wavelets = haar_energy(factor, 6)
     assert len(wavelets) == 6
     assert all(0 <= row["energy_share"] <= 1 for row in wavelets)
+
+
+def test_spectral_config_identity_ignores_platform_line_endings(tmp_path):
+    source = Path("config/spectral.yaml").read_text(encoding="utf-8")
+    lf_path, crlf_path = tmp_path / "lf.yaml", tmp_path / "crlf.yaml"
+    lf_path.write_bytes(source.replace("\r\n", "\n").encode())
+    crlf_path.write_bytes(source.replace("\r\n", "\n").replace("\n", "\r\n").encode())
+    assert load_spectral_config(lf_path)[1] == load_spectral_config(crlf_path)[1]
 
 
 def test_full_denn_pipeline_is_deterministic_and_temporally_aligned(tmp_path, monkeypatch):

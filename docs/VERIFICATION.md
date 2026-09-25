@@ -176,6 +176,7 @@ Remaining: original macro releases, actual publication times, historical revisio
 - The fixed preprocessing contract produced 5,216 aligned one-session changes for EUR/USD, US–EA 2Y/10Y spreads, Brent, WTI and VIX. No input is forward-filled.
 - Welch diagnostics use 39 Hann windows of 256 common sessions with step 128. Output contains 25 factor×band rows, 36 Haar detail-energy rows and 605 correlations covering five factors × 121 lags.
 - A synthetic 16-session signal delayed by four sessions verifies FFT frequency, coherence, phase-derived lead sign and direct lag convention. Negative WTI remains supported through asinh differences.
+- A cross-platform config test verifies identical YAML identity under LF and CRLF line endings.
 - Highest full-sample mean coherence is 0.245 for 2Y spread changes in the 30–90-session band, with peak coherence 0.358 near 85.3 sessions. Its phase implies EUR/USD leads the spread by about 41 sessions, so it does not confirm the hypothesized rates → FX direction.
 - The strongest absolute direct lag correlation is −0.198 for 2Y spread changes at factor lead +1 common session. Other maxima are −0.156 for 10Y spread at +1, 0.100 for Brent at 0, −0.064 for VIX at 0 and 0.046 for WTI at 0.
 - Two server executions with `--network none` reproduced the same dataset ID and normalized hash. All results remain `descriptive_non_strict`; no significance, causality or trading claim is made.

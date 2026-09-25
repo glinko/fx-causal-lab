@@ -74,7 +74,7 @@ def _load_config(path: Path = CONFIG_PATH) -> tuple[dict, str]:
         raise ValueError("Each DENN node requires type, source, unit and half-life")
     if sorted(config["horizons"]) != [1, 5, 20, 60]:
         raise ValueError("DENN horizons must remain 1/5/20/60")
-    return config, hashlib.sha256(body).hexdigest()
+    return config, hashlib.sha256(body.replace(b"\r\n", b"\n")).hexdigest()
 
 
 def _load_common() -> tuple[list[date], dict[str, list[float]], dict]:

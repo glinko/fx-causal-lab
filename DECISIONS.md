@@ -157,6 +157,7 @@
 - Частота определяется в common-grid sessions, а не календарных днях: common grid нерегулярен по календарю из-за разных праздников источников.
 - Welch contract: Hann windows длиной 256 sessions, step 128; пять заранее заданных period bands от 2 до 256 sessions. Haar decomposition использует шесть уровней.
 - Положительный lag означает `factor[t]` против `EURUSD[t+lag]`; положительный phase-derived lead означает factor leads target. Оба соглашения закреплены synthetic test с известным периодом и задержкой.
+- Config identity нормализует CRLF/LF перед SHA-256, чтобы Windows checkout и Ubuntu release не создавали разные dataset IDs из одного YAML.
 - Coherence, phase и максимум по 121 лагу — full-sample descriptive diagnostics. Они не являются out-of-sample signal, причинностью или significance test.
 - Самая высокая mean coherence в полном sample относится к 2Y spread changes в полосе 30–90 sessions, но phase показывает обратный порядок: EUR/USD leads примерно на 41 session. Этот результат нельзя использовать как подтверждение rates → FX.
 - Dynamic GNN остаётся заблокирован до rolling/expanding spectral stability: знак, band, phase и lag должны проверяться на временных окнах без отбора по полному sample.
