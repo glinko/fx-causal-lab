@@ -71,3 +71,14 @@ def test_coverage_builds_actual_parquet_and_derived_spreads(tmp_path, monkeypatc
     with duckdb.connect() as connection:
         assert connection.execute("SELECT value FROM read_parquet(?) ORDER BY observation_date", [str(spread)]).fetchall() == [(0.5,), (1.0,)]
         assert connection.execute("SELECT count(*) FROM read_parquet(?)", [str(common)]).fetchone()[0] == 2
+
+    def missing_eurusd(*_args):
+        raise FileNotFoundError("Dukascopy D1 is absent")
+
+    monkeypatch.setattr(open_data, "_load_eurusd", missing_eurusd)
+    without_auxiliary_price = open_data.build_open_data_coverage(date(2005, 1, 3), date(2005, 1, 4))
+    assert without_auxiliary_price["counts"]["continuous_d1"] == 10
+    assert without_auxiliary_price["counts"]["missing_optional"] == 1
+    assert without_auxiliary_price["unavailable_series"][0]["series_id"] == "EURUSD"
+    assert "EURUSD" not in without_auxiliary_price["files"]
+    assert without_auxiliary_price["common_overlap"]["rows"] == 2

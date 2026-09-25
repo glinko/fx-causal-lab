@@ -259,6 +259,20 @@ def data_coverage(request: Request):
     return templates.TemplateResponse(request=request, name="coverage.html", context={"coverage": report})
 
 
+@app.get("/reports/denn-baseline", response_class=HTMLResponse)
+def denn_baseline(request: Request):
+    report = read_json("denn_baseline.json", None)
+    folds = []
+    if report:
+        with duckdb.connect() as connection:
+            folds = connection.execute(
+                "SELECT test_year,horizon_sessions,test_rows,selected_lambda,skill_vs_mean,correlation,sign_accuracy "
+                "FROM read_parquet(?) ORDER BY test_year DESC,horizon_sessions LIMIT 24",
+                [str(root() / report["files"]["folds"])],
+            ).fetchall()
+    return templates.TemplateResponse(request=request, name="denn.html", context={"denn": report, "folds": folds})
+
+
 @app.get("/reports/{name}", response_class=HTMLResponse)
 def document(request: Request, name: str):
     if name not in DOCS:
@@ -328,6 +342,11 @@ def download(name: str):
         for series_id, relative in coverage["files"].items():
             if series_id != "common_d1":
                 files[f"{series_id.lower()}.parquet"] = root()/relative
+    denn = read_json("denn_baseline.json", None)
+    if denn:
+        files["denn_baseline.json"] = root()/"reports"/"denn_baseline.json"
+        for label, relative in denn["files"].items():
+            files[f"denn_{label}.parquet"] = root()/relative
     if name not in files or not files[name].exists():
         raise HTTPException(404)
     return FileResponse(files[name], filename=name)

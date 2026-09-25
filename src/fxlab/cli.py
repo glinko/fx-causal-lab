@@ -55,6 +55,7 @@ def main():
     open_data.add_argument("--to", dest="end", type=date.fromisoformat, default=date.today())
     open_data.add_argument("--offline", action="store_true", help="Use preserved source snapshots only")
     open_data.add_argument("--refresh", action="store_true", help="Fetch new snapshots even when cache exists")
+    commands.add_parser("denn-baseline", help="Build deterministic DENN snapshots, features and purged walk-forward baseline")
     replay = commands.add_parser("replay", help="Normalize preserved ECB snapshot offline")
     replay.add_argument("metadata", type=Path)
     replay.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 23))
@@ -123,6 +124,9 @@ def main():
     elif args.command == "open-data-backfill":
         from .open_data import build_open_data_coverage
         result = build_open_data_coverage(args.start, args.end, offline=args.offline, refresh=args.refresh)
+    elif args.command == "denn-baseline":
+        from .denn import build_denn_baseline
+        result = build_denn_baseline()
     else:
         from .providers import ECBReferenceProvider
         from .store import root

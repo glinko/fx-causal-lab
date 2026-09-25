@@ -1,0 +1,57 @@
+version: denn-baseline-1
+warmup_sessions: 60
+horizons: [1, 5, 20, 60]
+ridge_lambdas: [0.01, 0.1, 1.0, 10.0]
+minimum_train_rows: 750
+minimum_validation_rows: 100
+minimum_test_rows: 40
+
+nodes:
+  EURUSD_REF:
+    node_type: continuous_market
+    source: ECB_EXR
+    unit: USD_PER_EUR
+    half_life_sessions: 20
+  US_2Y:
+    node_type: continuous_market
+    source: US_TREASURY
+    unit: PERCENT
+    half_life_sessions: 20
+  EA_2Y:
+    node_type: continuous_market
+    source: ECB_YIELD_CURVE
+    unit: PERCENT
+    half_life_sessions: 20
+  US_10Y:
+    node_type: continuous_market
+    source: US_TREASURY
+    unit: PERCENT
+    half_life_sessions: 60
+  EA_10Y:
+    node_type: continuous_market
+    source: ECB_YIELD_CURVE
+    unit: PERCENT
+    half_life_sessions: 60
+  BRENT:
+    node_type: continuous_market
+    source: EIA
+    unit: USD_PER_BARREL
+    half_life_sessions: 10
+  WTI:
+    node_type: continuous_market
+    source: EIA
+    unit: USD_PER_BARREL
+    half_life_sessions: 10
+  VIX:
+    node_type: continuous_market
+    source: CBOE
+    unit: INDEX_POINTS
+    half_life_sessions: 5
+
+baseline_features:
+  - spread_2y_z60
+  - spread_10y_z60
+  - brent_asinh_change_20d
+  - wti_asinh_change_20d
+  - vix_z60
+  - eurusd_momentum_20d

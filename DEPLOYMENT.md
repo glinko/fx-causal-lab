@@ -165,3 +165,21 @@ sudo docker compose exec web fxlab open-data-backfill --from 2004-09-06 --offlin
 Первый запуск сохраняет Treasury XML по годам, ECB yield-curve CSV, EIA Brent/WTI XLS и Cboe VIX CSV, затем добавляет текущий EUR/USD D1 manifest. Каждая серия публикуется отдельно в `data/silver/open_daily/<dataset_id>/`; inner-overlap без forward fill — в `data/gold/open_daily/<dataset_id>/common_d1.parquet`.
 
 `data/reports/data_coverage.json` является доказательством интеграции: источник, даты, rows, weekday coverage, local file и общий overlap. `--offline` повторяет нормализацию только из сохранённых snapshots и проверяет их hashes. Все current-history series пока non-strict PIT.
+
+## DENN deterministic baseline — версия 0.14
+
+```bash
+sudo docker compose exec web fxlab denn-baseline
+```
+
+Команда не обращается к сети. Она читает закреплённый `data_coverage.json` и common D1 Parquet, строит unified node snapshots, deterministic decay/features и expanding purged walk-forward ridge benchmark для 1d/5d/20d/60d. Артефакты записываются в `data/silver/denn/<dataset_id>/` и `data/gold/denn/<dataset_id>/`; report доступен на `/reports/denn-baseline`.
+
+Для проверки автономности и воспроизводимости:
+
+```bash
+sudo docker run --rm --network none --user 1000:1000 \
+  -e FXLAB_DATA=/app/data -e FXLAB_PROJECT=/app \
+  -v /opt/fx-causal-lab/data:/app/data fx-causal-lab:0.14.0 fxlab denn-baseline
+```
+
+Все входы current-history имеют `strict_pit_eligible=false`; `published_at`, `available_at` и `revision_id` остаются null, пока исторические vintages не доказаны. Для ежедневного observation известна дата, но не точное intraday время. Это exploratory OOS benchmark, а не causal или trading result.

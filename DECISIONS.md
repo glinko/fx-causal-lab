@@ -139,4 +139,15 @@
 - Tier A: EUR/USD D1/H1, US и euro-area 2Y/10Y, производные spreads, Brent, WTI, VIX и US/EU equity proxies. Общая D1 сетка строится inner join без forward fill.
 - Current-history series без доказанных vintages получают `strict_pit_eligible=false`. Это допускает exploratory spectral baseline, но не строгие causal claims.
 - Первая DENN реализация: единая snapshot schema, deterministic features, decay kernels и baseline на 5–6 continuous factors. Dynamic GNN, OpenSPG и AnyJev не опережают воспроизводимый walk-forward baseline.
+
+## 2026-09-25 — DENN deterministic baseline v0.14
+
+- `denn/` сначала проверяет data/temporal contract. Нейросеть и обучаемые графовые веса не добавляются, пока детерминированный pipeline не воспроизводится end-to-end.
+- Unified snapshot хранит observation day, source, unit, acquisition timestamp, source snapshot, nullable publication/availability/revision timestamps и явный quality. Current-history inputs остаются non-strict.
+- Начальные half-life являются конфигурационными priors по типу ряда. Экспоненциальная память и признаки используют только текущие и прошлые наблюдения; priors пока не оптимизируются.
+- Первый benchmark использует шесть continuous features: US–EA 2Y/10Y spread z-scores, 20-session Brent/WTI asinh changes, VIX z-score и EUR/USD momentum. `asinh` для нефти выбран потому, что реальная WTI history содержит отрицательную цену апреля 2020 года.
+- Ridge penalty выбирается на предыдущем календарном году. Перед validation/test training rows purged по `target_end_date`; target начинается со следующей common-grid даты. Overlapping horizons не пересекают границу fold.
+- ECB EUR/USD reference и current-history inputs не являются executable PIT market state. Поэтому результаты описываются как non-strict OOS diagnostics, а не causal effect или торговая стратегия.
+- Dukascopy D1 остаётся отдельным market-price dataset, но его локальное отсутствие больше не блокирует long common grid: обязательный DENN bootstrap использует явно помеченный ECB reference. Отсутствующий optional ряд фиксируется как `MISSING_LOCAL_DATA`, а не подменяется.
+- Следующий исследовательский слой — spectral baseline (FFT/wavelet/coherence/lag) на той же закреплённой сетке. Dynamic GNN остаётся после него.
 - Главный acquisition report переименован в Open Data Coverage. Vendor материалы остаются в optional/history разделе и не формируют статус готовности MVP.

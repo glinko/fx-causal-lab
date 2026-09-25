@@ -156,3 +156,16 @@ Remaining: original macro releases, actual publication times, historical revisio
 - Exact replay passed in Docker with `--network none` and reproduced the dataset ID and normalized hash. The server test suite passed 71 tests; the only warning is the existing upstream TestClient deprecation.
 - The attempted long Dukascopy H1 expansion preserved 33 additional monthly snapshots before the provider rate limit stopped publication of a replacement dataset. The previous validated three-year market manifest remains current; cached progress is retained for a later respectful resume.
 - Consensus procurement is paused and optional. The v0.12 tick/M1 work is retained as the first CPI/NFP event-study prototype.
+
+## Version 0.14 DENN deterministic baseline — 2026-09-25
+
+- Input coverage dataset `1d90dc4ce3e596158090`; DENN dataset `d6368f13122676b3fa55`; normalized SHA-256 `d6368f13122676b3fa55c59894ee3273b85654c5d93dec175b7cf1edac5bf367`.
+- The real 2004-09-07 through 2026-09-22 grid produced 41,736 unified node snapshots, 5,098 feature rows, 68 expanding annual folds and 14,548 out-of-sample predictions.
+- Snapshot Parquet contains typed `event_time`, `published_at`, `available_at`, `ingested_at`, source, unit, revision ID, source snapshot ID, time quality and strict-PIT eligibility. All `available_at` and revision IDs remain null for current-history inputs; strict-PIT rows remain zero.
+- The six frozen features are US–EA 2Y/10Y spread z-scores, 20-session Brent/WTI asinh changes, VIX z-score and EUR/USD momentum. The asinh transform handles the observed negative WTI value without deleting or inventing data.
+- Ridge penalty is selected from the preceding calendar year. Training labels are purged by `target_end_date`; each target begins on the common-grid date after the feature boundary.
+- Aggregate skill versus the expanding historical-mean forecast is −0.01% (1d), −1.47% (5d), −5.80% (20d) and −0.80% (60d). No horizon beats the mean baseline. This is retained as the required null control, not presented as a trading or causal result.
+- Two Docker executions with `--network none` reproduced the same dataset ID, normalized hash and 14,548 prediction rows.
+- Container verification: 71 tests passed and `pip check` found no broken requirements. The existing upstream TestClient deprecation warning remains non-blocking.
+- Deployed image `fx-causal-lab:0.14.0` is healthy on `192.168.88.5:8088`. The report, JSON manifest and four Parquet downloads return HTTP 200.
+- Browser verification confirmed four horizon rows, no JavaScript warnings/errors and no page-level overflow at a 390px viewport (`scrollWidth` 375). Caddy was not changed.

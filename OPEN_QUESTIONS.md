@@ -18,11 +18,12 @@
 14. ECB: FOEDB и страницы релизов подтвердили 14:15 Europe/Berlin для текущего окна. Остаётся найти независимое доказательство historical receipt, архив изменений страниц и проверку исключений при расширении истории.
 15. M7 дал только 31 positioning-regime feature row после as-of и minimum-history фильтров; 114 событий не имеют доступной позиции, ещё 8 имеют недостаточную историю. Решить, расширять ли historical CFTC availability до любых formal contrasts.
 16. Завершить free/public continuous coverage: выбрать и документировать долгую US/EU equity proxy history и расширить EUR/USD до общего периода 2004/2005+.
-17. После common D1 dataset реализовать deterministic DENN snapshots/decay kernels и зафиксировать feature definitions до первого spectral run.
-18. Для futures/OIS policy surprises отдельно проверить доступность контрактной истории и intraday timestamps для FOMC и ECB; фактическое изменение ставки не заменяет surprise factor.
-19. Historical consensus sample и его лицензирование отложены до завершения free/public dataset и spectral MVP; schema и null semantics остаются готовыми.
-20. До расширения любого публичного источника проверить условия локального хранения и derived research use. Доступный HTTP endpoint сам по себе не доказывает эти права.
-21. Для расширения Dukascopy tick history измерить пропуски, дубликаты, spread outliers и rate limits на нескольких event days; отдельно проверить условия использования и архивную неизменность.
+17. [Закрыто в v0.14] Реализованы deterministic DENN snapshots, decay kernels, шесть зафиксированных features и purged walk-forward benchmark. Все current-history строки явно non-strict.
+18. Реализовать spectral baseline: preprocessing contract, FFT/wavelet bands, coherence/phase и lag stability без выбора параметров на будущих данных.
+19. Для futures/OIS policy surprises отдельно проверить доступность контрактной истории и intraday timestamps для FOMC и ECB; фактическое изменение ставки не заменяет surprise factor.
+20. Historical consensus sample и его лицензирование отложены до завершения free/public dataset и spectral MVP; schema и null semantics остаются готовыми.
+21. До расширения любого публичного источника проверить условия локального хранения и derived research use. Доступный HTTP endpoint сам по себе не доказывает эти права.
+22. Для расширения Dukascopy tick history измерить пропуски, дубликаты, spread outliers и rate limits на нескольких event days; отдельно проверить условия использования и архивную неизменность.
 
 ## H1/D1 follow-up
 

@@ -161,9 +161,11 @@ def _clip(rows: list[tuple[date, float]], start: date, end: date) -> list[tuple[
 def _load_eurusd(start: date, end: date) -> tuple[list[tuple[date, float]], dict]:
     report_path = root() / "reports" / "bars.json"
     if not report_path.exists():
-        raise ValueError("EUR/USD bars report is required")
+        raise FileNotFoundError("EUR/USD bars report is not available locally")
     report = json.loads(report_path.read_text(encoding="utf-8"))
     path = root() / report["files"]["d1"]
+    if not path.exists():
+        raise FileNotFoundError(f"EUR/USD D1 Parquet is not available locally: {path}")
     with duckdb.connect() as connection:
         rows = connection.execute(
             "SELECT session_date, close FROM read_parquet(?) WHERE complete ORDER BY session_date", [str(path)]
@@ -298,8 +300,15 @@ def build_open_data_coverage(start: date = date(2004, 9, 6), end: date | None = 
     body, meta = _fetch("vix", vix_url, offline=offline, refresh=refresh)
     values["VIX"] = parse_vix_csv(body)
     source_meta["VIX"] = [meta]
-    values["EURUSD"], bars_report = _load_eurusd(start, end)
-    source_meta["EURUSD"] = bars_report["snapshots"]
+    unavailable_series = []
+    try:
+        values["EURUSD"], bars_report = _load_eurusd(start, end)
+        source_meta["EURUSD"] = bars_report["snapshots"]
+    except FileNotFoundError as exc:
+        unavailable_series.append({
+            "series_id": "EURUSD", "title": SERIES_META["EURUSD"]["title"], "tier": "A",
+            "status": "MISSING_LOCAL_DATA", "reason": str(exc),
+        })
     values["EURUSD_REF"], reference_report = _load_eurusd_reference(start, end)
     source_meta["EURUSD_REF"] = [{"source_url": reference_report["source_url"],
                                   "sha256": reference_report["raw_sha256"],
@@ -348,11 +357,13 @@ def build_open_data_coverage(start: date = date(2004, 9, 6), end: date | None = 
         "dataset_id": dataset_id, "parser": PARSER, "normalized_sha256": normalized_sha256,
         "generated_at": now, "requested_start": str(start), "requested_end": str(end),
         "integrated_series": sorted(coverage, key=lambda row: (row["tier"], row["series_id"])),
-        "existing_event_series": existing, "candidates": INVENTORY_CANDIDATES,
+        "existing_event_series": existing, "unavailable_series": unavailable_series,
+        "candidates": INVENTORY_CANDIDATES,
         "optional_premium": OPTIONAL_PREMIUM, "common_overlap": common,
         "counts": {"integrated": len(coverage) + len(existing), "continuous_d1": len(coverage),
                    "ready": sum(row["status"] == "READY" for row in coverage),
                    "partial": sum(row["status"] == "PARTIAL" for row in coverage),
+                   "missing_optional": len(unavailable_series),
                    "candidates": len(INVENTORY_CANDIDATES), "paid_optional": len(OPTIONAL_PREMIUM)},
         "strict_pit_eligible": False,
         "limitations": [
