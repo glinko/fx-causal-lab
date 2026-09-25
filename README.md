@@ -2,7 +2,7 @@
 
 Исследовательский MVP EUR/USD на Ubuntu: публичные источники, provenance, проверки доступности и веб-отчёты.
 
-Версия 0.11.0: post-M7 review фиксирует, что технический MVP доказан сквозным запуском, а строгое исследование заблокировано отсутствующими point-in-time данными. OpenSPG и GNN/ML отложены; первая очередь проверки — historical consensus и narrow-window FX, затем futures/OIS policy surprises и сопоставимые US/EA 2Y yields.
+Версия 0.12.0: acquisition review проверяет первый data investment. Публичный Dukascopy tick-файл декодирован в bid/ask M1 для узкого окна; historical consensus сравнивается по единому контракту приёмки без покупки или искусственного заполнения.
 
 ```bash
 pip install -c requirements.lock '.[test]'
@@ -33,5 +33,7 @@ pytest -q
 M4 даёт 267 выровненных строк. M5 использует 153 pre-event строки BLS/FOMC/ECB только для описательного zero-mean baseline. M6 описывает переходы event → surprise → expectations → rates → FX. M7 добавляет 150 trend-regime и 31 positioning-regime feature row, но не называет их surprise-interactions. Строгих PIT-строк пока 0; нулевой результат допустим.
 
 `fxlab review-readiness` объединяет manifests M0–M7 в воспроизводимый decision gate. Рейтинг data investments измеряет только покрытие уже описанных гипотез; цена, лицензирование и качество поставщика требуют отдельной проверки.
+
+`fxlab acquisition-audit` сохраняет снимки официальной документации Trading Economics, Econoday и Dukascopy, декодирует контрольный EUR/USD tick-day и публикует M1 sample. `--offline` воспроизводит результат по сохранённым снимкам без сети.
 
 См. DECISIONS.md, OPEN_QUESTIONS.md, DEPLOYMENT.md. docs/SPEC_RU.md — исходная спецификация; решения пользователя имеют приоритет. Существующие сайты Caddy не изменяются.

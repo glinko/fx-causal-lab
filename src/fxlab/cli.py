@@ -48,6 +48,8 @@ def main():
     commands.add_parser("graph-build", help="Validate and export the M6 causal-hypothesis graph")
     commands.add_parser("interaction-experiments", help="Build leakage-aware M7 descriptive regime slices")
     commands.add_parser("review-readiness", help="Build the M0-M7 readiness review and post-MVP decision gate")
+    acquisition = commands.add_parser("acquisition-audit", help="Audit consensus candidates and a Dukascopy tick sample")
+    acquisition.add_argument("--offline", action="store_true", help="Use preserved documentation and tick snapshots only")
     replay = commands.add_parser("replay", help="Normalize preserved ECB snapshot offline")
     replay.add_argument("metadata", type=Path)
     replay.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 23))
@@ -110,6 +112,9 @@ def main():
     elif args.command == "review-readiness":
         from .readiness import build_readiness_review
         result = build_readiness_review()
+    elif args.command == "acquisition-audit":
+        from .acquisition import build_acquisition_review
+        result = build_acquisition_review(offline=args.offline)
     else:
         from .providers import ECBReferenceProvider
         from .store import root

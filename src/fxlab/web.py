@@ -246,6 +246,12 @@ def readiness_review(request: Request):
     return templates.TemplateResponse(request=request, name="readiness.html", context={"review": report})
 
 
+@app.get("/reports/acquisition-review", response_class=HTMLResponse)
+def acquisition_review(request: Request):
+    report = read_json("acquisition_review.json", None)
+    return templates.TemplateResponse(request=request, name="acquisition.html", context={"acquisition": report})
+
+
 @app.get("/reports/{name}", response_class=HTMLResponse)
 def document(request: Request, name: str):
     if name not in DOCS:
@@ -304,6 +310,10 @@ def download(name: str):
     readiness = read_json("readiness_review.json", None)
     if readiness:
         files["readiness_review.json"] = root()/"reports"/"readiness_review.json"
+    acquisition = read_json("acquisition_review.json", None)
+    if acquisition:
+        files["acquisition_review.json"] = root()/"reports"/"acquisition_review.json"
+        files["eurusd_m1_sample.parquet"] = root()/acquisition["files"]["m1_sample"]
     if name not in files or not files[name].exists():
         raise HTTPException(404)
     return FileResponse(files[name], filename=name)

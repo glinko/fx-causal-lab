@@ -13,3 +13,10 @@
 - MT5: это optional Windows connector. Наличие документации не означает наличие терминала или брокерской истории.
 
 Точная глубина истории, quotas, стоимость коммерческих plans, исторические release times и revisions остаются открытыми пунктами M0.
+
+## Дополнение 2026-09-24: consensus и narrow-window FX
+
+- Dukascopy official tick format и реальный файл за 2024-01-11 проверены: 126811 ticks, 1437 M1 bars, 61 минутная свеча в контрольном окне ±30 минут вокруг 13:30 UTC. Это transport validation, а не доказательство immutable market vintage.
+- Trading Economics документирует PIT calendar и поля Forecast/Previous/Revised/LastUpdate. Публичный guest API больше не даёт sample (HTTP 410); нужен trial export и подтверждение entitlement.
+- Econoday публично заявляет архивы с 2001 года, consensus, actual-as-released и revisions. Нужны sample, API contract, лицензия и quote.
+- LSEG/Reuters Polls и Bloomberg подтверждают наличие институционального consensus, но отложены как enterprise alternatives.

@@ -122,3 +122,11 @@
 - Текущий веб-интерфейс достаточен для следующего этапа: он показывает отчёты, граф, ограничения и downloads. Расширение UI не опережает получение данных.
 - Приоритет №1 — проверить historical consensus вместе с narrow-window FX. Далее идут futures/OIS policy surprises, сопоставимые US/EA 2Y yields, oil/inflation-expectation vintages и historical CFTC availability.
 - Research-unlock score — прозрачная метрика покрытия существующего графа, published replications и planned interactions. Она не является cost-benefit оценкой; стоимость, лицензирование и качество источника пока неизвестны.
+
+## 2026-09-24 — consensus and narrow-window FX acquisition audit
+
+- Dukascopy daily tick files выбраны для бесплатного технического пилота узких окон. Контрольный день 2024-01-11 дал 126811 валидных bid/ask ticks, 1437 M1 bars и 61 M1 bar в окне ±30 минут вокруг 13:30 UTC.
+- Tick history остаётся non-strict: доступный сейчас исторический endpoint не доказывает неизменность прошлой версии рынка или право перераспределения. Он разблокирует инженерный пилот, но не строгий causal result.
+- Econoday и Trading Economics проходят следующий одинаковый sample test для CPI/NFP. Econoday публично заявляет historical as-released archive с 2001 года; Trading Economics документирует PIT calendar schema и REST API. Эти claims ещё не являются принятым dataset.
+- LSEG/Reuters Polls и Bloomberg оставлены enterprise alternatives. Они документируют богатое consensus/release-time покрытие, но не соответствуют minimal-budget bootstrap без существующей лицензии.
+- До закупки обязательны: глубина CPI/NFP, финальный pre-release forecast vintage, stable event IDs, first-release Actual, revisions, минимум 95% numeric consensus после объяснённых исключений, права локального хранения и проверка sample против BLS.

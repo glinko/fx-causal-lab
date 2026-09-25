@@ -142,3 +142,12 @@ sudo docker compose exec web fxlab review-readiness
 ```
 
 Команда офлайн читает текущие manifests M0–M7, фиксирует milestone status, research gates, post-MVP platform decision и ранжированную очередь data investments. Report доступен на `/reports/readiness-review`, машиночитаемый manifest — `/download/readiness_review.json`.
+
+## Consensus + narrow-window FX audit — версия 0.12
+
+```bash
+sudo docker compose exec web fxlab acquisition-audit
+sudo docker compose exec web fxlab acquisition-audit --offline
+```
+
+Первый запуск сохраняет официальные documentation snapshots и один дневной EUR/USD tick-файл Dukascopy. Replay с `--offline` проверяет hashes, декодирует ticks, агрегирует bid/ask M1 и публикует `data/silver/dukascopy_tick_sample/<dataset_id>/eurusd_m1.parquet`. Report доступен на `/reports/acquisition-review`; JSON и M1 Parquet имеют отдельные downloads. Команда не покупает подписку и не включает strict experiments.

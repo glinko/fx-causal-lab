@@ -132,3 +132,16 @@ Remaining: original macro releases, actual publication times, historical revisio
 - Browser verification covers all 13 report routes at 1440px and 390px, verifies both decision statements, eight milestones and five priorities, and reports no JavaScript errors or page-level mobile overflow. Screenshots: `data/qa-v011/`.
 - Deployed image `fx-causal-lab:0.11.0` is healthy on `192.168.88.5:8088`; report and JSON manifest return HTTP 200. Caddy remains active and unchanged.
 - Independent Impeccable finish review verdict: `ship`; all five direction-contract sections passed with no material visual, responsive or accessibility finding.
+
+## Version 0.12 consensus + narrow-window FX acquisition audit — 2026-09-24
+
+- Six source snapshots are preserved for Trading Economics PIT/intraday/pricing documentation, Econoday product documentation, Dukascopy tick-format documentation and the EUR/USD tick sample.
+- Dukascopy sample day 2024-01-11 decoded to 126811 ordered bid/ask ticks and 1437 M1 rows. First tick is 00:00:00.148 UTC; last tick is 23:59:57.874 UTC.
+- The control window from 13:00 through 14:00 UTC contains all 61 expected minute starts. Median spread is 0.3 pip and empirical P95 is 0.4 pip.
+- Dataset `5f48f93cf1bb6f7015dd`; normalized SHA-256 `a1f3f2d1f12286fcd6f40adcf3eeffab7291fa204856ef50db1051b20b0286e2`.
+- Online execution and two Docker executions with `--network none` reproduced the same dataset ID and normalized hash.
+- Consensus decision remains `not_ready`: Econoday and Trading Economics require the same CPI/NFP sample, license and price validation; LSEG and Bloomberg are deferred enterprise alternatives.
+- Container verification: 63 tests passed; `pip check` found no broken requirements. The existing upstream TestClient deprecation warning remains non-blocking.
+- Browser verification covers all 14 report routes at 1440px and 390px, verifies both decision statements, four vendor candidates and seven acceptance checks, and reports no JavaScript errors or page-level mobile overflow. Screenshots: `data/qa-v012/`.
+- Deployed image `fx-causal-lab:0.12.0` is healthy on `192.168.88.5:8088`; report, JSON manifest and M1 Parquet return HTTP 200. Strict PIT eligibility remains false and Caddy remains active and unchanged.
+- Independent Impeccable finish review verdict: `ship`; all five contract sections passed with no material visual, responsive or accessibility finding.

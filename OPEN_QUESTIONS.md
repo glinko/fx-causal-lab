@@ -20,6 +20,9 @@
 16. После M7 review выбрать следующий data investment: historical consensus, futures/OIS surprise factors, сопоставимые US/EA yields или восстановление historical CFTC availability. OpenSPG/GNN/web-platform expansion не должны опережать этот выбор.
 17. Post-M7 review выбрал первым кандидатом historical consensus + narrow-window FX по research-unlock coverage. Теперь проверить PIT depth, forecast vintages, точные timestamps, лицензию, стоимость и возможность легального воспроизводимого хранения до закупки.
 18. Для futures/OIS policy surprises отдельно проверить доступность контрактной истории и intraday timestamps для FOMC и ECB; фактическое изменение ставки не заменяет surprise factor.
+19. Запросить у Econoday и Trading Economics одинаковый небольшой CPI/NFP export до оплаты: 2016–2026, event/revision IDs, release timestamps, final pre-release consensus vintage, first-release Actual и revised previous.
+20. Получить письменное подтверждение лицензии на локальное воспроизводимое хранение raw snapshots, derived surprise и исследовательские отчёты. Публичная страница продукта этого не доказывает.
+21. Для расширения Dukascopy tick history измерить пропуски, дубликаты, spread outliers и rate limits на нескольких event days; отдельно проверить условия использования и архивную неизменность.
 
 ## H1/D1 follow-up
 

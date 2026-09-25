@@ -54,9 +54,11 @@ Serif journal headings frame familiar sans-serif controls and tables. The chart 
 
 The post-MVP readiness review extends that journal into a decision ledger. It puts the technical and research verdicts side by side, then moves through gate evidence, the first acquisition action and a ranked data queue. Counts remain audit gates rather than optimistic KPIs, and the queue explains its coverage score instead of implying price or expected return.
 
+The acquisition review carries the same ledger into procurement. Provider claims become an acceptance contract before purchase, while a decoded EUR/USD tick sample proves the free transport path without implying strict point-in-time readiness. The split verdict, measured sample, vendor comparison and acceptance checklist keep what was observed separate from what remains documented or unverified.
+
 **Key Characteristics:**
 - Light reading surface and green ink.
-- Evidence ledgers, a working measured series and a ranked data queue.
+- Evidence ledgers, a working measured series, a ranked data queue and an acquisition acceptance contract.
 - Adjacent caveats and explicit provenance.
 - Stacked mobile headings and contained table scrolling.
 
@@ -95,6 +97,8 @@ The journal uses a centered reading column, with a main maximum width of 1240px 
 
 Decision reviews lead with a two-column verdict divided by one rule, followed by four equal gate cells and one bordered first-action block. Milestone evidence uses ruled three-column rows; platform decisions and the ranked data queue follow beneath in reading order. This sequence makes the next research investment visible in the first viewport without detaching it from its evidence.
 
+Acquisition reviews keep the dual procurement decision and four measured sample counters in the first viewport. A two-column sample ledger follows, then vendor rows, the numbered acceptance contract, documented constraints and reproducibility evidence. The order lets the researcher decide whether transport works before reading provider claims, while the final hashes and downloads keep the result reproducible.
+
 At 700px and below, page padding becomes 20px, headings and controls stack, the edition label disappears and report links stack their descriptive text. The dual verdict becomes one column, the four gates become a two-by-two grid, and milestone and platform-decision rows collapse into a single reading flow. Source and ranked-queue tables retain a readable minimum width inside horizontally scrollable, keyboard-focusable containers. The page itself should fit the viewport. The plot switches to a shorter drawing and fewer axis labels below a measured width of 600px.
 
 ## Elevation & Depth
@@ -105,7 +109,7 @@ Surfaces are flat. Thin rules and restrained paper, inset and white backgrounds 
 
 Reading surfaces and evidence tables remain rectangular. Native selects have a small corner radius (4px) and a thin green-gray border. Tables use horizontal rules, without separate rounded cells or card wrappers.
 
-Decision ledgers and gate grids use shared outer rules and square cells. The first-action block is the one bordered white callout in the readiness sequence; its restraint preserves the journal form instead of introducing a dashboard card language.
+Decision ledgers and metric grids use shared outer rules and square cells. The first-action block is the one bordered white callout in the readiness sequence; its restraint preserves the journal form instead of introducing a dashboard card language. Sample facts, provider comparisons, numbered acceptance checks and documented constraints remain ruled rows rather than detached cards.
 
 ## Components
 
@@ -122,6 +126,12 @@ Tables align text left, use restrained uppercase column headings, and separate r
 The readiness surface pairs a plain-ink technical verdict with an ochre research blocker. Four compact research gates sit below as equal ruled cells; they are evidence checks, not celebratory KPI tiles. A bordered white action block then names the first concrete data-acquisition check. Milestone evidence, platform deferrals and the ranked data queue continue as ruled rows and tables, with muted explanatory copy adjacent to every status and score.
 
 **The Decision-Ledger Rule.** Every readiness verdict must expose the evidence, limitation and next action that make the decision auditable.
+
+### Acquisition acceptance ledger
+
+The acquisition surface pairs a positive narrow-window FX transport verdict with an ochre blocked procurement verdict. Four compact counters report only decoded ticks, normalized M1 rows, event-window minutes and strict PIT experiments. A sample ledger then exposes timestamps and spread statistics before any vendor comparison. Provider rows distinguish documented capability, access, research fit and unverified claims; the numbered acceptance list applies one small export to every check before payment or integration. Documented constraints, source snapshots, hashes and downloadable artifacts complete the chain of evidence.
+
+**The Acceptance-Before-Purchase Rule.** Provider claims remain provisional until the same representative export passes vintage semantics, coverage, licensing, price and reproducibility checks.
 
 ### Report links and disclosures
 
@@ -141,9 +151,13 @@ Smooth document scrolling is disabled when reduced motion is requested. Chart ch
 - **Do** preserve keyboard focus and a table representation of recent values.
 - **Do** stack mobile controls and contain dense table scrolling.
 - **Do** pair readiness verdicts and ranked scores with their evidence, limitation and first concrete follow-up.
+- **Do** show the decoded sample and its limitation before provider comparisons or purchase criteria.
+- **Do** apply one acceptance checklist to every provider under consideration.
 
 ### Don't:
 - **Don't** invent experiment results or turn the working plot into decoration.
 - **Don't** imply that an available endpoint is validated research data.
 - **Don't** bridge missing observations or conceal incomplete sessions as complete evidence.
 - **Don't** present gate counts as optimistic KPIs or let a coverage score imply cost, value or expected return.
+- **Don't** treat successful free tick transport as proof of strict PIT research readiness.
+- **Don't** present documented provider capabilities or marketing claims as accepted coverage.
