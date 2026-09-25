@@ -190,3 +190,11 @@ Remaining: original macro releases, actual publication times, historical revisio
 - Registered lag +1 correlations for spread changes remain negative in all 18 overlapping rolling windows: median −0.203 with Q10/Q90 −0.290/−0.137 for 2Y, and median −0.163 with Q10/Q90 −0.240/−0.067 for 10Y.
 - Rolling windows overlap by 75%; expanding windows are nested; band widths contain different frequency-bin counts. The result remains `descriptive_non_strict` with no significance, causality, prediction or trading claim.
 - Local verification: 74 tests passed with one upstream TestClient deprecation warning. Browser structure exposes 10 band leaders, 10 lag-one summaries, seven explicit limitations and all five artifact downloads.
+
+## Version 0.16.1 research roadmap — 2026-09-25
+
+- `ROADMAP_RU.md` records the implemented v0.1–v0.16 work, current data coverage, observed null/stability results, a 12-point source Definition of Done, five acquisition tracks and experiment stages E0–E9.
+- The dependency-ordered release plan covers v0.17 rates confirmation, v0.18 continuous coverage, v0.19 probabilistic baselines, v0.20 macro archives, v0.21 policy expectations, v0.22 published effects, v0.23 mediation/interactions, v0.24 static graph and the gated dynamic DENN candidate.
+- The roadmap preserves consensus as optional, requires an independent long tradable EUR/USD series, and keeps strict/non-strict experiments, three prediction modes and null results separate.
+- Local verification: 74 tests passed. The rendered report contains 11 level-two sections, 24 level-three sections, eight tables and 81 table rows with no browser console errors or page-level overflow at the inspected 652px viewport.
+- This documentation release creates no new dataset and changes no prior research result or strict-PIT status.

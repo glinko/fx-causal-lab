@@ -20,7 +20,7 @@ app = FastAPI(title="FX Causal Lab", docs_url=None, redoc_url=None)
 app.mount("/static", StaticFiles(directory=PACKAGE / "static"), name="static")
 templates = Jinja2Templates(directory=PACKAGE / "templates")
 DOCS = {"decisions": "DECISIONS.md", "questions": "OPEN_QUESTIONS.md", "sources": "SOURCE_MATRIX.md",
-        "deployment": "DEPLOYMENT.md", "denn": "docs/DENN_SPEC_RU.md"}
+        "deployment": "DEPLOYMENT.md", "denn": "docs/DENN_SPEC_RU.md", "roadmap": "ROADMAP_RU.md"}
 
 
 def read_json(name, default):

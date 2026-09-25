@@ -2,7 +2,7 @@
 
 Исследовательский MVP EUR/USD на Ubuntu: публичные источники, provenance, проверки доступности и веб-отчёты.
 
-Версия 0.15.0: к deterministic DENN и purged walk-forward control добавлен воспроизводимый spectral baseline. Он строит стандартизированные one-session changes, FFT/Welch coherence и phase, Haar wavelet energy и полный lead-lag scan от −60 до +60 common-grid sessions. Dynamic GNN пока не используется.
+Версия 0.16.1: deterministic DENN, purged walk-forward control, spectral baseline и fixed-window stability опубликованы вместе с подробным roadmap сбора данных и следующих экспериментов. Dynamic GNN пока не используется.
 
 ```bash
 pip install -c requirements.lock '.[test]'
@@ -31,7 +31,7 @@ uvicorn fxlab.web:app --host 127.0.0.1 --port 8088
 pytest -q
 ```
 
-[Веб-журнал](http://192.168.88.5:8088) · [Spectral stability](http://192.168.88.5:8088/reports/denn-spectral-stability) · [Spectral baseline](http://192.168.88.5:8088/reports/denn-spectral) · [DENN baseline](http://192.168.88.5:8088/reports/denn-baseline) · [Data Coverage Matrix](http://192.168.88.5:8088/reports/data-coverage) · [Interaction experiments](http://192.168.88.5:8088/reports/interaction-experiments) · [Карта гипотез](http://192.168.88.5:8088/reports/causal-graph) · [Baseline experiments](http://192.168.88.5:8088/reports/baseline-experiments) · [События и targets](http://192.168.88.5:8088/reports/event-alignment) · [Качество истории](http://192.168.88.5:8088/reports/market-quality) · [Архив BLS](http://192.168.88.5:8088/reports/macro-data) · [Решения FOMC и ECB](http://192.168.88.5:8088/reports/policy-events) · [Позиционирование CFTC](http://192.168.88.5:8088/reports/positioning)
+[Веб-журнал](http://192.168.88.5:8088) · [Подробный roadmap](http://192.168.88.5:8088/reports/roadmap) · [Spectral stability](http://192.168.88.5:8088/reports/denn-spectral-stability) · [Spectral baseline](http://192.168.88.5:8088/reports/denn-spectral) · [DENN baseline](http://192.168.88.5:8088/reports/denn-baseline) · [Data Coverage Matrix](http://192.168.88.5:8088/reports/data-coverage) · [Interaction experiments](http://192.168.88.5:8088/reports/interaction-experiments) · [Карта гипотез](http://192.168.88.5:8088/reports/causal-graph) · [Baseline experiments](http://192.168.88.5:8088/reports/baseline-experiments) · [События и targets](http://192.168.88.5:8088/reports/event-alignment) · [Качество истории](http://192.168.88.5:8088/reports/market-quality) · [Архив BLS](http://192.168.88.5:8088/reports/macro-data) · [Решения FOMC и ECB](http://192.168.88.5:8088/reports/policy-events) · [Позиционирование CFTC](http://192.168.88.5:8088/reports/positioning)
 
 18 667 валидных H1; 780 дневных сессий, из них 772 полные. 13 некорректных OHLC исключены. Пропуски не заполняются. H1 и D1 доступны в Parquet вместе с манифестом исходных снимков. Модель хранит отдельные timestamps, provenance и nullable consensus/vintages; неизвестная историческая доступность не допускается в строгие эксперименты.
 

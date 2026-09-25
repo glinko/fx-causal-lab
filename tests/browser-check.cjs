@@ -26,7 +26,7 @@ const baseUrl = process.env.FXLAB_BASE_URL || 'http://192.168.88.5:8088';
     if(await page.locator('#chart title').textContent()!==description) throw Error('Wrong SVG title for '+kind);
     if(await page.locator('#values tr').count()!==10) throw Error('Missing table for '+kind);
   }
-  for(const report of ['decisions','questions','sources','deployment','denn','market-quality','macro-data','positioning','policy-events','event-alignment','baseline-experiments','causal-graph','interaction-experiments','readiness-review','acquisition-review','data-coverage','denn-baseline','denn-spectral','denn-spectral-stability']) {
+  for(const report of ['decisions','questions','sources','deployment','denn','roadmap','market-quality','macro-data','positioning','policy-events','event-alignment','baseline-experiments','causal-graph','interaction-experiments','readiness-review','acquisition-review','data-coverage','denn-baseline','denn-spectral','denn-spectral-stability']) {
     const response=await page.request.get(baseUrl+'/reports/'+report);
     if(response.status()!==200) throw Error('Report '+report+' failed');
   }
