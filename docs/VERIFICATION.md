@@ -180,3 +180,13 @@ Remaining: original macro releases, actual publication times, historical revisio
 - Highest full-sample mean coherence is 0.245 for 2Y spread changes in the 30–90-session band, with peak coherence 0.358 near 85.3 sessions. Its phase implies EUR/USD leads the spread by about 41 sessions, so it does not confirm the hypothesized rates → FX direction.
 - The strongest absolute direct lag correlation is −0.198 for 2Y spread changes at factor lead +1 common session. Other maxima are −0.156 for 10Y spread at +1, 0.100 for Brent at 0, −0.064 for VIX at 0 and 0.046 for WTI at 0.
 - Two server executions with `--network none` reproduced the same dataset ID and normalized hash. All results remain `descriptive_non_strict`; no significance, causality or trading claim is made.
+
+## Version 0.16 DENN spectral stability — 2026-09-25
+
+- Input spectral dataset `2774a65ea59eb03600da`; stability dataset `5669af128af9a5fd789f`; normalized SHA-256 `5669af128af9a5fd789f615dae5ab1f3453639b22005b053f0e13b800ba93296`.
+- The frozen contract creates 18 rolling windows of 1,024 common sessions with step 256 and 18 expanding windows from 1,024 sessions with step 256. Output contains 900 window×factor×band rows and 720 registered-lag rows for lags 0/1/5/20.
+- Two Ubuntu executions with `--network none` reproduced the same dataset ID and normalized hash. The report manifest timestamp is intentionally excluded from content identity.
+- No rolling factor has a modal-band share above 44.4%. For 2Y and 10Y spread changes, slow is the most frequent rolling band with 44.4%, while expanding windows favor monthly with 100% and 94.4%; nested expanding windows are not independent observations.
+- Registered lag +1 correlations for spread changes remain negative in all 18 overlapping rolling windows: median −0.203 with Q10/Q90 −0.290/−0.137 for 2Y, and median −0.163 with Q10/Q90 −0.240/−0.067 for 10Y.
+- Rolling windows overlap by 75%; expanding windows are nested; band widths contain different frequency-bin counts. The result remains `descriptive_non_strict` with no significance, causality, prediction or trading claim.
+- Local verification: 74 tests passed with one upstream TestClient deprecation warning. Browser structure exposes 10 band leaders, 10 lag-one summaries, seven explicit limitations and all five artifact downloads.

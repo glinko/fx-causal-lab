@@ -37,6 +37,8 @@ pytest -q
 
 Open-data matrix содержит 11 continuous D1 series и два event datasets. Для spectral bootstrap общий inner-overlap по ECB EUR/USD reference, US/EA 2Y/10Y, Brent, WTI и VIX составляет 5 217 дат с 2004-09-07 по 2026-09-22. Dukascopy H1/NY17 D1 остаётся отдельным tradable-price рядом и пока покрывает три года; reference rate не выдаётся за OHLC.
 
+Spectral stability использует 18 fixed rolling и 18 expanding окон. Full-sample monthly coherence для 2Y spread не является устойчиво доминирующей в rolling slices: максимальная modal-band share равна 44.4%. Зарегистрированная lag +1 корреляция spread changes с будущим EUR/USD сохраняет отрицательный знак во всех rolling windows, но окна перекрываются на 75%, inputs non-strict, а корреляция не является причинным эффектом.
+
 M4 даёт 267 выровненных строк. M5 использует 153 pre-event строки BLS/FOMC/ECB только для описательного zero-mean baseline. M6 описывает переходы event → surprise → expectations → rates → FX. M7 добавляет 150 trend-regime и 31 positioning-regime feature row, но не называет их surprise-interactions. Строгих PIT-строк пока 0; нулевой результат допустим.
 
 `fxlab open-data-backfill` считает источник интегрированным только после фактической загрузки raw snapshot, нормализации и сохранения локального Parquet. Отчёт показывает календарное покрытие и фактический inner-overlap обязательных рядов.
