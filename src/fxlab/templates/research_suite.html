@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FX Causal Lab — исследовательский сьют</title><link rel="stylesheet" href="/static/style.css"></head>
+<body><a class="skip" href="#main">К содержимому</a><header><a class="brand" href="/">FX Causal Lab</a><nav><a href="/">Обзор</a><a href="/reports/roadmap">Roadmap</a></nav><span class="edition">Research / v0.19.0</span></header>
+<main id="main" class="document">
+{% if report %}
+{% if kind == "timing" %}
+<div class="intro"><h1>Publication timing audit</h1><p>naive vs point-in-time cutoffs</p></div>
+<div class="notice"><strong>Вердикт 2Y не изменился:</strong> evening-curve lag +1 является timing artifact. P-values рассчитаны circular moving-block bootstrap.</div>
+<div class="table-wrap"><table><thead><tr><th>Кандидат</th><th>Naive best</th><th>Strict 07:00 best</th><th>Вердикт</th></tr></thead><tbody>{% for row in rows %}<tr><td>{{ row.name }}</td><td>lag {{ row.naive.lag }} · r {{ '%+.3f'|format(row.naive.corr) }} · p {{ '%.3f'|format(row.naive.p_bootstrap) }}</td><td>lag {{ row.strict.lag }} · r {{ '%+.3f'|format(row.strict.corr) }} · p {{ '%.3f'|format(row.strict.p_bootstrap) }}</td><td><span class="status">{{ row.verdict }}</span></td></tr>{% endfor %}</tbody></table></div>
+{% elif kind == "state" %}
+<div class="intro"><h1>DENN state-vector suite</h1><p>walk-forward · interactions · LOO</p></div>
+<div class="notice"><strong>Формальный результат: NULL после Bonferroni 0.00417.</strong> Исправлены off-by-one в подписях и перестановки между fold'ами. Формальная семья тестов не изменилась.</div>
+<div class="table-wrap"><table><thead><tr><th>Горизонт</th><th>Baseline skill</th><th>2Y permutation</th><th>10Y permutation</th></tr></thead><tbody>{% for row in rows %}<tr><td>{{ row.horizon }}d</td><td>{{ '%+.2f'|format((row.baseline.skill_vs_mean or 0) * 100) }}%</td><td>{{ '%+.2f'|format(row.spread_2y.mean_delta_mse_pct or 0) }}%</td><td>{{ '%+.2f'|format(row.spread_10y.mean_delta_mse_pct or 0) }}%</td></tr>{% endfor %}</tbody></table></div>
+{% else %}
+<div class="intro"><h1>DENN economic-block suite</h1><p>group ablation · fold-local permutation</p></div>
+<div class="notice"><strong>Формальный результат: NULL.</strong> Ни один из четырёх блоков не проходит Bonferroni 0.0125; диагностические перестановки выполняются внутри walk-forward fold.</div>
+<div class="table-wrap"><table><thead><tr><th>Горизонт</th><th>Блок</th><th>Ablation ΔMSE</th><th>Sign p</th><th>Permutation ΔMSE</th></tr></thead><tbody>{% for row in rows %}<tr><td>{{ row.horizon }}d</td><td>{{ row.block }}</td><td>{{ '%+.3g'|format(row.ablation.delta_mse_mean) }}</td><td>{{ '%.3f'|format(row.ablation.sign_test_p) }}</td><td>{{ '%+.2f'|format(row.permutation.mean_delta_mse_pct) }}%</td></tr>{% endfor %}</tbody></table></div>
+{% endif %}
+<section><h2>Ограничения</h2><ul>{% for item in report.limitations %}<li>{{ item }}</li>{% endfor %}</ul></section>
+<section class="hash"><p>Dataset: {{ report.dataset_id }}<br>Parser: {{ report.parser }}<br>Strict PIT eligible: {{ report.strict_pit_eligible }}</p>{% if kind == "timing" %}<a href="/download/denn_timing_audit.json">Manifest JSON</a>{% elif kind == "state" %}<a href="/download/denn_state_vector.json">Manifest JSON</a>{% else %}<a href="/download/denn_grouped.json">Manifest JSON</a>{% endif %}</section>
+{% else %}<div class="notice"><strong>Данных пока нет.</strong> Выполните соответствующую CLI-команду.</div>{% endif %}
+</main><footer><span>FX Causal Lab · reproducible research</span><span>Диагностика не называется причинностью.</span></footer></body></html>

@@ -160,12 +160,13 @@ def _sign_stable(pairs: list[tuple[float, float]]) -> bool:
 
 
 def _bootstrap_p(pairs: list[tuple[float, float]], observed_r: float | None,
-                 replicates: int, seed: int) -> float | None:
-    """Pair-residual bootstrap p-value for H0: slope = 0 (two-sided on |r|).
+                 replicates: int, seed: int, block_length: int = 20) -> float | None:
+    """Moving-block residual bootstrap p-value for H0: slope = 0.
 
     OLS (intercept + slope) is fitted once to estimate the residual scale;
-    each replicate draws y* = ȳ + resampled residual under the NULL model
-    (slope 0) and recomputes r*.  p = P(|r*| >= |r_obs|).  Resampling
+    each replicate draws y* = ȳ + block-resampled residual under the NULL
+    model (slope 0) and recomputes r*. Circular moving blocks preserve local
+    serial dependence. p = P(|r*| >= |r_obs|). Resampling
     residuals around the fitted alternative would centre the distribution at
     the observed statistic (p ~= 0.5 always) and test nothing.
     """
@@ -183,6 +184,9 @@ def _bootstrap_p(pairs: list[tuple[float, float]], observed_r: float | None,
     slope = sum(c * (y - ym) for c, y in zip(xc, ys)) / ssx
     intercept = ym - slope * xm
     resid = [y - (intercept + slope * x) for x, y in zip(xs, ys)]
+    residual_mean = sum(resid) / n
+    resid = [value - residual_mean for value in resid]
+    block_length = max(1, min(int(block_length), n))
     abs_obs = abs(observed_r)
     rng = random.Random(seed)
     randrange = rng.randrange
@@ -191,8 +195,12 @@ def _bootstrap_p(pairs: list[tuple[float, float]], observed_r: float | None,
         ysum = 0.0
         sy2 = 0.0
         scy = 0.0
-        for i in range(n):
-            y = ym + resid[randrange(n)]
+        sampled: list[float] = []
+        while len(sampled) < n:
+            start = randrange(n)
+            sampled.extend(resid[(start + offset) % n] for offset in range(block_length))
+        for i, residual in enumerate(sampled[:n]):
+            y = ym + residual
             ysum += y
             sy2 += y * y
             scy += xc[i] * y
@@ -212,6 +220,7 @@ def _evaluate(
     alpha: float,
     replicates: int,
     seed: int,
+    block_length: int = 20,
     do_bootstrap: bool = True,
 ) -> tuple[list[dict], dict | None]:
     """Point corr for every registered lag; bootstrap p-value ONLY for the lag
@@ -235,7 +244,7 @@ def _evaluate(
             best = entry
             best_pairs = pairs
     if best is not None and do_bootstrap:
-        pval = _bootstrap_p(best_pairs, best["corr"], replicates, seed + best["lag"])
+        pval = _bootstrap_p(best_pairs, best["corr"], replicates, seed + best["lag"], block_length)
         best["p_bootstrap"] = pval
         best["passes_bonferroni"] = pval is not None and pval < threshold
     return per_lag, best
@@ -243,7 +252,7 @@ def _evaluate(
 
 def _placebo(
     factor: list[float], target: list[float], lag: int, shift: int,
-    replicates: int, seed: int, threshold: float,
+    replicates: int, seed: int, threshold: float, block_length: int = 20,
 ) -> dict | None:
     """Correlation of a circularly shifted factor at ``lag`` (red flag only)."""
     if lag < 0 or len(factor) <= shift + lag + 2:
@@ -253,7 +262,7 @@ def _placebo(
     m = min(len(left), len(right))
     pairs = list(zip(left[:m], right[:m]))
     r = correlation([p[0] for p in pairs], [p[1] for p in pairs])
-    pval = _bootstrap_p(pairs, r, replicates, seed + shift)
+    pval = _bootstrap_p(pairs, r, replicates, seed + shift, block_length)
     return {
         "shift_sessions": shift, "lag": lag, "n": len(pairs), "corr": r,
         "p_bootstrap": pval,
@@ -384,6 +393,7 @@ def build_timing_audit(config_path: Path = CONFIG_PATH) -> dict:
     alpha = float(config["bootstrap"]["alpha"])
     replicates = int(config["bootstrap"]["replicates"])
     seed = int(config["bootstrap"]["seed"])
+    block_length = int(config["bootstrap"].get("block_length", 20))
     placebo_shifts = list(config.get("placebo", {}).get("shifts_sessions", []))
     classification = config["classification"]
     candidate_nodes = config["candidate_nodes"]
@@ -403,7 +413,7 @@ def build_timing_audit(config_path: Path = CONFIG_PATH) -> dict:
         # --- naive arm (v0.16 grid statistic) ---
         naive_pairs = _naive_pairs(factor, target, registered_lags)
         naive_per_lag, naive_best = _evaluate(
-            naive_pairs, registered_lags, alpha, replicates, seed
+            naive_pairs, registered_lags, alpha, replicates, seed, block_length
         )
         naive: dict = {
             "per_lag": naive_per_lag,
@@ -414,7 +424,7 @@ def build_timing_audit(config_path: Path = CONFIG_PATH) -> dict:
             for shift in placebo_shifts:
                 row = _placebo(
                     factor, target, naive_best["lag"], shift,
-                    replicates, seed, threshold,
+                    replicates, seed, threshold, block_length,
                 )
                 if row is not None:
                     naive["placebo"][f"shift_{shift}"] = row
@@ -427,7 +437,7 @@ def build_timing_audit(config_path: Path = CONFIG_PATH) -> dict:
             latest = _latest_usable(dates, eff_base, cutoff["ny_time"])
             pairs = _corrected_pairs(factor, latest, target, registered_lags)
             per_lag, best = _evaluate(
-                pairs, registered_lags, alpha, replicates, seed
+                pairs, registered_lags, alpha, replicates, seed, block_length
             )
             corrected[cutoff["name"]] = {"per_lag": per_lag, "best": best}
             for row in per_lag:
@@ -459,7 +469,7 @@ def build_timing_audit(config_path: Path = CONFIG_PATH) -> dict:
                     latest = _latest_usable(dates, eff, cutoff["ny_time"])
                     pairs = _corrected_pairs(factor, latest, target, registered_lags)
                     per_lag, best = _evaluate(
-                        pairs, registered_lags, alpha, replicates, seed,
+                        pairs, registered_lags, alpha, replicates, seed, block_length,
                         do_bootstrap=False,
                     )
                     ea_sensitivity[f"{ea_time}/{cutoff_name}"] = {

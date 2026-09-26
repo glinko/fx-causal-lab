@@ -221,7 +221,8 @@ def score_state_vector(rows: list[dict], feature_names: list[str], horizons: lis
         pooled: dict[str, list] = {name: [] for name in variants}
         pooled_actual: dict[str, list] = {name: [] for name in variants}
         pooled_baseline_mean: list[float] = []
-        joint_pooled: list[tuple[list[float], float]] = []  # (design vector, actual) for permutation
+        joint_pooled: list[tuple[str, list[float], float, list[float]]] = []
+        # (fold id, design vector including intercept, actual, coefficients)
         marginal_rows: list[dict] = []
         regime_acc: dict[str, dict[str, dict]] = {
             regime["name"]: {level: {"deltas": [], "mse": [], "mean_mse": [], "n_test": 0,
@@ -258,8 +259,8 @@ def score_state_vector(rows: list[dict], feature_names: list[str], horizons: lis
                 if name == "baseline":
                     pooled_baseline_mean.extend([historical_mean] * len(split["test_rows"]))
                 if name == "joint":
-                    joint_pooled.extend((_standardized_vector(model, row, joint_columns), float(row[target]),
-                                        list(model["coefficients"]))
+                    joint_pooled.extend((fold_id, _standardized_vector(model, row, joint_columns),
+                                         float(row[target]), list(model["coefficients"]))
                                         for row in split["test_rows"])
                 if name.startswith("loo__"):
                     pass
@@ -353,7 +354,7 @@ def score_state_vector(rows: list[dict], feature_names: list[str], horizons: lis
         joint_out = _variant_stats("joint", "improve")
         ablation_out = {feature: _variant_stats(f"loo__{feature}", "worsens") for feature in feature_names}
 
-        # ---- permutation importance (pooled OOS, diagnostic only) ----
+        # ---- permutation importance (fold-local OOS, diagnostic only) ----
         # Linear-model exact form: prediction = sum_j c_j * z_j, so shuffling
         # column j's z-values changes each prediction by c_j * (z'_j - z_j).
         # Per-row coefficients are the fold model's (standardized units).
@@ -362,19 +363,37 @@ def score_state_vector(rows: list[dict], feature_names: list[str], horizons: lis
             rng = random.Random(int(permutation["seed"]))
             reps = int(permutation["reps"])
             count = len(joint_pooled)
-            vectors = [entry[0] for entry in joint_pooled]
-            actuals = [entry[1] for entry in joint_pooled]
-            coefficient_sets = [entry[2] for entry in joint_pooled]
+            fold_ids = [entry[0] for entry in joint_pooled]
+            vectors = [entry[1] for entry in joint_pooled]
+            actuals = [entry[2] for entry in joint_pooled]
+            coefficient_sets = [entry[3] for entry in joint_pooled]
+            fold_members: dict[str, list[int]] = {}
+            for index, fold_id in enumerate(fold_ids):
+                fold_members.setdefault(fold_id, []).append(index)
             base_prediction = [sum(c * v for c, v in zip(coeffs, vector))
                                for coeffs, vector in zip(coefficient_sets, vectors)]
             base_mse = _mse(actuals, base_prediction)
             importance = {}
-            for position, column in enumerate(joint_columns):
+            for feature_position, column in enumerate(joint_columns):
+                # Design vectors and coefficient arrays include the intercept
+                # at position zero. Feature column zero therefore lives at
+                # position one. The old code omitted this offset, assigning
+                # the intercept's zero importance to the first feature and
+                # shifting every remaining label by one column.
+                position = feature_position + 1
                 values_j = [vector[position] for vector in vectors]
                 deltas = []
                 for _ in range(reps):
+                    # Standardized values from different walk-forward folds
+                    # use different training means/scales. Shuffle only inside
+                    # each test fold so values remain in the fitted model's
+                    # coordinate system and chronological evaluation boundary.
                     permuted = values_j[:]
-                    rng.shuffle(permuted)
+                    for members in fold_members.values():
+                        sources = members[:]
+                        rng.shuffle(sources)
+                        for destination, source in zip(members, sources):
+                            permuted[destination] = values_j[source]
                     perturbed = [base_prediction[i] + coefficient_sets[i][position] * (permuted[i] - values_j[i])
                                  for i in range(count)]
                     deltas.append(_mse(actuals, perturbed) - base_mse)
@@ -382,6 +401,7 @@ def score_state_vector(rows: list[dict], feature_names: list[str], horizons: lis
                     "mean_delta_mse": fmean(deltas),
                     "mean_delta_mse_pct": 100.0 * fmean(deltas) / base_mse if base_mse else None,
                     "reps": reps,
+                    "shuffle_scope": "within_walk_forward_fold",
                 }
 
         # ---- regime summary ----

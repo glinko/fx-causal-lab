@@ -91,11 +91,15 @@ cutoffs:
   - {name: end_of_day_21, ny_time: "21:00", description: "end of day; equals after_ea_1930 unless a sensitivity case places the EA publication later"}
 
 bootstrap:
-  method: pair_residual_bootstrap   # OLS (intercept + slope) residual pairs resampled with replacement
+  method: moving_block_residual_bootstrap
+  block_length: 20                  # sessions; circular blocks preserve local serial dependence
   replicates: 1000
   seed: 20260925
   alpha: 0.05
   multiple_comparison: bonferroni_over_registered_lags   # threshold = 0.05/4 = 0.0125
+  # Review correction: the original pair-residual implementation ignored
+  # serial dependence and did not satisfy ROADMAP E1. The null residual model
+  # is retained, but residuals are now sampled in circular moving blocks.
   # Protocol: point correlations for ALL registered lags; the bootstrap p-value
   # is computed ONLY for the registered lag with the maximum |r| (ties -> the
   # smaller lag); that p is compared with alpha/len(registered_lags).

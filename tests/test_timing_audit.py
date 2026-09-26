@@ -75,7 +75,8 @@ cutoffs:
   - {{name: after_ea_1930, ny_time: "19:30", description: test}}
   - {{name: end_of_day_21, ny_time: "21:00", description: test}}
 bootstrap:
-  method: pair_residual_bootstrap
+  method: moving_block_residual_bootstrap
+  block_length: 20
   replicates: 100
   seed: 20260925
   alpha: 0.05

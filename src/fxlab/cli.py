@@ -55,6 +55,10 @@ def main():
     open_data.add_argument("--to", dest="end", type=date.fromisoformat, default=date.today())
     open_data.add_argument("--offline", action="store_true", help="Use preserved source snapshots only")
     open_data.add_argument("--refresh", action="store_true", help="Fetch new snapshots even when cache exists")
+    tier_a = commands.add_parser("tier-a-fetch", help="Download and normalize Tier A world-state sources")
+    tier_a.add_argument("--offline", action="store_true", help="Use preserved Tier A snapshots only")
+    tier_a.add_argument("--refresh", action="store_true", help="Fetch new Tier A snapshots even when cache exists")
+    commands.add_parser("tier-a-features", help="Build nullable as-of Tier A features on the frozen D1 grid")
     commands.add_parser("denn-baseline", help="Build deterministic DENN snapshots, features and purged walk-forward baseline")
     commands.add_parser("denn-spectral", help="Build FFT, wavelet, coherence, phase and lead-lag diagnostics")
     commands.add_parser("denn-spectral-stability", help="Build fixed rolling/expanding spectral stability diagnostics")
@@ -129,6 +133,12 @@ def main():
     elif args.command == "open-data-backfill":
         from .open_data import build_open_data_coverage
         result = build_open_data_coverage(args.start, args.end, offline=args.offline, refresh=args.refresh)
+    elif args.command == "tier-a-fetch":
+        from .tier_a import fetch_tier_a
+        result = fetch_tier_a(offline=args.offline, refresh=args.refresh)
+    elif args.command == "tier-a-features":
+        from .tier_a import build_tier_a_features
+        result = build_tier_a_features()
     elif args.command == "denn-baseline":
         from .denn import build_denn_baseline
         result = build_denn_baseline()

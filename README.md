@@ -2,7 +2,7 @@
 
 Исследовательский MVP EUR/USD на Ubuntu: публичные источники, provenance, проверки доступности и веб-отчёты.
 
-Версия 0.16.1: deterministic DENN, purged walk-forward control, spectral baseline и fixed-window stability опубликованы вместе с подробным roadmap сбора данных и следующих экспериментов. Dynamic GNN пока не используется.
+Версия 0.19.0: publication-time audit, multivariate/grouped DENN suites и Tier A world-state acquisition дополняют deterministic baseline, spectral diagnostics и purged walk-forward control. Dynamic GNN остаётся за следующим data/validation gate.
 
 ```bash
 pip install -c requirements.lock '.[test]'
@@ -27,11 +27,16 @@ fxlab open-data-backfill --from 2004-09-06 --offline
 fxlab denn-baseline
 fxlab denn-spectral
 fxlab denn-spectral-stability
+fxlab denn-timing-audit
+fxlab denn-state-vector
+fxlab denn-grouped
+fxlab tier-a-fetch
+fxlab tier-a-features
 uvicorn fxlab.web:app --host 127.0.0.1 --port 8088
 pytest -q
 ```
 
-[Веб-журнал](http://192.168.88.5:8088) · [Подробный roadmap](http://192.168.88.5:8088/reports/roadmap) · [Spectral stability](http://192.168.88.5:8088/reports/denn-spectral-stability) · [Spectral baseline](http://192.168.88.5:8088/reports/denn-spectral) · [DENN baseline](http://192.168.88.5:8088/reports/denn-baseline) · [Data Coverage Matrix](http://192.168.88.5:8088/reports/data-coverage) · [Interaction experiments](http://192.168.88.5:8088/reports/interaction-experiments) · [Карта гипотез](http://192.168.88.5:8088/reports/causal-graph) · [Baseline experiments](http://192.168.88.5:8088/reports/baseline-experiments) · [События и targets](http://192.168.88.5:8088/reports/event-alignment) · [Качество истории](http://192.168.88.5:8088/reports/market-quality) · [Архив BLS](http://192.168.88.5:8088/reports/macro-data) · [Решения FOMC и ECB](http://192.168.88.5:8088/reports/policy-events) · [Позиционирование CFTC](http://192.168.88.5:8088/reports/positioning)
+[Веб-журнал](http://192.168.88.15:8088) · [Tier A world-state](http://192.168.88.15:8088/reports/tier-a) · [Timing audit](http://192.168.88.15:8088/reports/denn-timing-audit) · [State-vector suite](http://192.168.88.15:8088/reports/denn-state-vector) · [Grouped suite](http://192.168.88.15:8088/reports/denn-grouped) · [Подробный roadmap](http://192.168.88.15:8088/reports/roadmap) · [Spectral stability](http://192.168.88.15:8088/reports/denn-spectral-stability) · [Data Coverage Matrix](http://192.168.88.15:8088/reports/data-coverage)
 
 18 667 валидных H1; 780 дневных сессий, из них 772 полные. 13 некорректных OHLC исключены. Пропуски не заполняются. H1 и D1 доступны в Parquet вместе с манифестом исходных снимков. Модель хранит отдельные timestamps, provenance и nullable consensus/vintages; неизвестная историческая доступность не допускается в строгие эксперименты.
 
@@ -42,6 +47,8 @@ Spectral stability использует 18 fixed rolling и 18 expanding око�
 M4 даёт 267 выровненных строк. M5 использует 153 pre-event строки BLS/FOMC/ECB только для описательного zero-mean baseline. M6 описывает переходы event → surprise → expectations → rates → FX. M7 добавляет 150 trend-regime и 31 positioning-regime feature row, но не называет их surprise-interactions. Строгих PIT-строк пока 0; нулевой результат допустим.
 
 `fxlab open-data-backfill` считает источник интегрированным только после фактической загрузки raw snapshot, нормализации и сохранения локального Parquet. Отчёт показывает календарное покрытие и фактический inner-overlap обязательных рядов.
+
+`fxlab tier-a-fetch` независимо загружает и нормализует 14 world-state рядов. `fxlab tier-a-features` строит nullable as-of матрицу с отдельным common interval для каждого economic block; pre-release и unavailable значения не имитируются.
 
 `fxlab denn-baseline` работает офлайн. Snapshot schema хранит `event_time`, nullable `published_at`/`available_at`/`revision_id`, фактический `ingested_at`, source, unit, source snapshot и quality. Пока исторические vintages не доказаны, все строки имеют `strict_pit_eligible=false`, а отчёт является честным non-strict benchmark, не торговой стратегией.
 

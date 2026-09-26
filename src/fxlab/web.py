@@ -285,6 +285,58 @@ def denn_spectral_stability(request: Request):
     return templates.TemplateResponse(request=request, name="spectral_stability.html", context={"stability": report})
 
 
+@app.get("/reports/denn-timing-audit", response_class=HTMLResponse)
+def denn_timing_audit(request: Request):
+    report = read_json("denn_timing_audit.json", None)
+    rows = []
+    if report:
+        for name, candidate in report.get("candidates", {}).items():
+            naive = candidate.get("naive", {}).get("best", {})
+            strict = candidate.get("corrected", {}).get("strict_07", {}).get("best", {})
+            rows.append({"name": name, "naive": naive, "strict": strict,
+                         "verdict": candidate.get("verdict", "unknown")})
+    return templates.TemplateResponse(request=request, name="research_suite.html",
+                                      context={"kind": "timing", "report": report, "rows": rows})
+
+
+@app.get("/reports/denn-state-vector", response_class=HTMLResponse)
+def denn_state_vector(request: Request):
+    report = read_json("denn_state_vector.json", None)
+    rows = []
+    if report:
+        for horizon in report.get("horizons", []):
+            result = report.get("result", {}).get(str(horizon), {})
+            importance = result.get("permutation_importance", {})
+            rows.append({"horizon": horizon, "baseline": result.get("baseline", {}),
+                         "spread_2y": importance.get("spread_2y_z60", {}),
+                         "spread_10y": importance.get("spread_10y_z60", {})})
+    return templates.TemplateResponse(request=request, name="research_suite.html",
+                                      context={"kind": "state", "report": report, "rows": rows})
+
+
+@app.get("/reports/denn-grouped", response_class=HTMLResponse)
+def denn_grouped(request: Request):
+    report = read_json("denn_grouped.json", None)
+    rows = []
+    if report:
+        for horizon in report.get("horizons", []):
+            result = report.get("result", {}).get(str(horizon), {})
+            for block, ablation in result.get("block_ablation", {}).items():
+                permutation = result.get("block_permutation_importance", {}).get(block, {})
+                rows.append({"horizon": horizon, "block": block, "ablation": ablation,
+                             "permutation": permutation})
+    return templates.TemplateResponse(request=request, name="research_suite.html",
+                                      context={"kind": "grouped", "report": report, "rows": rows})
+
+
+@app.get("/reports/tier-a", response_class=HTMLResponse)
+def tier_a_report(request: Request):
+    coverage = read_json("tier_a_coverage.json", None)
+    features = read_json("tier_a_features.json", None)
+    return templates.TemplateResponse(request=request, name="tier_a.html",
+                                      context={"coverage": coverage, "features": features})
+
+
 @app.get("/reports/{name}", response_class=HTMLResponse)
 def document(request: Request, name: str):
     if name not in DOCS:
@@ -369,6 +421,14 @@ def download(name: str):
         files["denn_spectral_stability.json"] = root()/"reports"/"denn_spectral_stability.json"
         for label, relative in stability["files"].items():
             files[f"spectral_stability_{label}.parquet"] = root()/relative
+    for report_name in ("denn_timing_audit", "denn_state_vector", "denn_grouped",
+                        "tier_a_coverage", "tier_a_features"):
+        report = read_json(f"{report_name}.json", None)
+        if report:
+            files[f"{report_name}.json"] = root()/"reports"/f"{report_name}.json"
+            for label, relative in report.get("files", {}).items():
+                suffix = Path(relative).suffix or ".parquet"
+                files[f"{report_name}_{str(label).lower()}{suffix}"] = root()/relative
     if name not in files or not files[name].exists():
         raise HTTPException(404)
     return FileResponse(files[name], filename=name)

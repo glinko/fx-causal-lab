@@ -181,6 +181,7 @@ def test_permutation_importance_dead_block_is_near_zero():
     # diagnostic note present, members listed
     assert perm["SIGNAL"]["members"] == ["s1"]
     assert "diagnostic" in perm["SIGNAL"]["note"]
+    assert perm["SIGNAL"]["shuffle_scope"] == "within_walk_forward_fold"
 
 
 def test_permutation_importance_deterministic():

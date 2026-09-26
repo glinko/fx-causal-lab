@@ -185,6 +185,16 @@ def test_xor_joint_model_not_worse_than_single_term():
     assert horizon["joint"]["delta_mse_mean"] <= horizon["interactions"]["a_x_b"]["delta_mse_mean"] + 1e-12
 
 
+def test_permutation_importance_uses_feature_positions_after_intercept():
+    horizon = _xor_result()["horizons"]["1d"]
+    importance = horizon["permutation_importance"]
+    # The interaction is the actual XOR signal. This regression assertion
+    # catches an off-by-one where column zero was mapped to the intercept and
+    # every reported feature importance received the previous column's value.
+    assert importance["term__a_x_b"]["mean_delta_mse"] > 0.5 * horizon["baseline"]["mse"]
+    assert importance["term__a_x_b"]["shuffle_scope"] == "within_walk_forward_fold"
+
+
 def test_noise_case_yields_no_significant_improvement():
     horizon = _noise_result()["horizons"]["1d"]
     assert horizon["interactions"]["a_x_b"]["significant"] is False

@@ -87,7 +87,8 @@ def score_grouped(rows: list[dict], feature_names: list[str], blocks: list[dict]
         pooled_baseline_mean: list[float] = []
         pooled_prediction: list[float] = []
         pooled_rows: list[dict] = []
-        full_pooled: list[tuple[list[float], float, list[float]]] = []  # (design vector, actual, coefficients)
+        full_pooled: list[tuple[str, list[float], float, list[float]]] = []
+        # (fold id, design vector including intercept, actual, coefficients)
 
         for test_year in years:
             split = _fold_splits(rows, horizon, test_year, minimums)
@@ -111,8 +112,8 @@ def score_grouped(rows: list[dict], feature_names: list[str], blocks: list[dict]
                     pooled_baseline_mean.extend([historical_mean] * len(split["test_rows"]))
                     pooled_rows.extend(split["test_rows"])
                     for row in split["test_rows"]:
-                        full_pooled.append((_standardized_vector(model, row, columns), float(row[target]),
-                                            list(model["coefficients"])))
+                        full_pooled.append((fold_id, _standardized_vector(model, row, columns),
+                                            float(row[target]), list(model["coefficients"])))
                 record[f"{name}_lambda"] = best_lambda
                 record[f"{name}_mse"] = mse
             for name in variants:
@@ -173,9 +174,13 @@ def score_grouped(rows: list[dict], feature_names: list[str], blocks: list[dict]
             rng = random.Random(int(permutation["seed"]))
             reps = int(permutation["reps"])
             count = len(full_pooled)
-            vectors = [entry[0] for entry in full_pooled]
-            actuals = [entry[1] for entry in full_pooled]
-            coefficient_sets = [entry[2] for entry in full_pooled]
+            fold_ids = [entry[0] for entry in full_pooled]
+            vectors = [entry[1] for entry in full_pooled]
+            actuals = [entry[2] for entry in full_pooled]
+            coefficient_sets = [entry[3] for entry in full_pooled]
+            fold_members: dict[str, list[int]] = {}
+            for index, fold_id in enumerate(fold_ids):
+                fold_members.setdefault(fold_id, []).append(index)
             base_prediction = [sum(c * v for c, v in zip(coeffs, vector))
                                for coeffs, vector in zip(coefficient_sets, vectors)]
             base_mse = _mse(actuals, base_prediction)
@@ -185,8 +190,16 @@ def score_grouped(rows: list[dict], feature_names: list[str], blocks: list[dict]
                 columns = {position: [vector[position] for vector in vectors] for position in positions}
                 deltas = []
                 for _ in range(reps):
+                    # Apply one common permutation to all columns in a block,
+                    # but keep it inside each walk-forward test fold. Cross-fold
+                    # standardized values are not comparable because every
+                    # model has its own training mean and scale.
                     order = list(range(count))
-                    rng.shuffle(order)  # one common row permutation for the whole block
+                    for members in fold_members.values():
+                        sources = members[:]
+                        rng.shuffle(sources)
+                        for destination, source in zip(members, sources):
+                            order[destination] = source
                     perturbed = []
                     for i in range(count):
                         source = order[i]
@@ -200,8 +213,9 @@ def score_grouped(rows: list[dict], feature_names: list[str], blocks: list[dict]
                     "mean_delta_mse": fmean(deltas),
                     "mean_delta_mse_pct": 100.0 * fmean(deltas) / base_mse if base_mse else None,
                     "reps": reps,
+                    "shuffle_scope": "within_walk_forward_fold",
                     "note": ("diagnostic only — outside the Bonferroni family; one common row permutation is "
-                             "applied to all member columns, preserving the block's joint state "
+                             "applied within each test fold to all member columns, preserving the block's joint state "
                              "(reduces to the v0.17 column permutation for a single-member block)"),
                 }
 
