@@ -1,0 +1,133 @@
+# DENN state-vector suite — pre-registered protocol (v0.17)
+#
+# Methodological premise (DECISIONS.md, 2026-09-25/26): EUR/USD is an
+# emergent multivariate outcome. The unit of analysis is the economic state
+# vector, NOT an isolated factor. A factor with weak or zero marginal
+# correlation can still carry conditional, interaction, mediated,
+# regime-dependent or lagged predictive information. Univariate diagnostics
+# are diagnostics only and must never be used as a feature-selection gate.
+#
+# This suite re-scores the EXISTING v0.14 feature set (denn-baseline gold
+# matrix) under a joint-state protocol. No new data is ingested, no lags or
+# transforms are added. Everything below is frozen BEFORE any run on the
+# real grid; deviations require a new protocol version.
+
+version: denn-state-vector-1
+
+parent_report: denn_baseline
+features:
+  - spread_2y_z60
+  - spread_10y_z60
+  - brent_asinh_change_20d
+  - wti_asinh_change_20d
+  - vix_z60
+  - eurusd_momentum_20d
+
+horizons: [1, 5, 20, 60]
+ridge_lambdas: [0.01, 0.1, 1.0, 10.0]   # identical grid to denn-baseline
+minimum_train_rows: 750
+minimum_validation_rows: 100
+minimum_test_rows: 40
+warmup_sessions: 60                      # inherited from denn-baseline feature build
+
+# ---------------------------------------------------------------------------
+# Interaction layer — theory-motivated terms only (no combinatorial search).
+# Each term is the product of two standardized baseline features and encodes
+# a named channel. Higher-order (3-way) interactions are OUT OF SCOPE here.
+# ---------------------------------------------------------------------------
+interactions:
+  - name: oil_x_vix
+    factors: [brent_asinh_change_20d, vix_z60]
+    channel: >-
+      Oil move x risk regime. The same oil shock has opposite EUR/USD
+      implications in risk-on (inflation channel) vs risk-off
+      (growth/recession channel).
+  - name: oil_x_rate_spread
+    factors: [brent_asinh_change_20d, spread_2y_z60]
+    channel: >-
+      Oil x rate differential. Inflationary pressure from oil interacts with
+      the existing US-EA gap: a wide spread may already price the channel,
+      a narrow spread may not.
+  - name: vix_x_rate_spread
+    factors: [vix_z60, spread_2y_z60]
+    channel: >-
+      Risk x rates. In risk-off the carry/spread channel is displaced by
+      flight-to-USD; in calm regimes the rate gap should dominate.
+  - name: momentum_x_vix
+    factors: [eurusd_momentum_20d, vix_z60]
+    channel: >-
+      Trend x risk regime. Trend continuation vs mean reversion should
+      differ between calm and stressed volatility regimes.
+  - name: spread_level_x_slope
+    factors: [spread_2y_z60, spread_10y_z60]
+    channel: >-
+      Level x slope of the rate complex (term-structure interaction within
+      the rates family).
+
+# ---------------------------------------------------------------------------
+# Regime layer — pre-registered splits at 0 of the z-scored conditioners
+# (z60 > 0 = above its own 60-day mean). Thresholds are data-free by
+# construction; no fitting is involved.
+# ---------------------------------------------------------------------------
+regimes:
+  - name: vix_regime
+    factor: vix_z60
+    threshold: 0.0
+    levels:
+      - {above: elevated_vol, at_or_below: calm_vol}
+  - name: spread_regime
+    factor: spread_2y_z60
+    threshold: 0.0
+    levels:
+      - {above: spread_wide, at_or_below: spread_narrow}
+regime_model: baseline_features   # full 6-feature baseline fit inside each regime subset
+# Pre-registered reduced minimums for regime subsets (a regime covers roughly
+# half the rows of the full grid; below these counts the fold is skipped and
+# the skip is counted, never silently merged with the other level).
+regime_minimum_rows: {train: 375, validation: 50, test: 20}
+
+# ---------------------------------------------------------------------------
+# Ablation layer — leave-one-factor-out (LOO) of the 6-factor baseline.
+# Measures NON-REDUNDANT conditional contribution: a useful-but-redundant
+# factor will show little delta-MSE; that is a property of the family, not
+# of the factor being "useless". Reported per factor, per horizon.
+# ---------------------------------------------------------------------------
+ablation:
+  method: leave_one_out
+
+# ---------------------------------------------------------------------------
+# Inference
+# ---------------------------------------------------------------------------
+multiplicity:
+  alpha: 0.05
+  method: bonferroni
+  # family = 6 LOO ablations + 5 single interaction terms + 1 joint model = 12
+  family_size: 12
+sign_test: paired_sign_test_over_folds   # H0: no systematic OOS delta-MSE difference
+bootstrap:
+  reps: 1000
+  seed: 42
+  statistic: mean_paired_fold_delta_mse  # CI for the mean delta-MSE
+permutation_importance:
+  reps: 200
+  seed: 42
+  model: full_interaction
+  note: >-
+    Diagnostic only (not part of the Bonferroni family): the fitted full
+    interaction model is re-predicted on test rows with each feature column
+    shuffled within the fold.
+
+# ---------------------------------------------------------------------------
+# Reporting — the five mandatory strata (marginal / conditional / interaction
+# / regime / temporal). Temporal dependence is carried by the spectral and
+# timing-audit suites and is referenced, not recomputed here.
+# ---------------------------------------------------------------------------
+reporting:
+  strata:
+    marginal_association: diagnostic_only_univariate_oos_correlation
+    conditional_predictive_contribution: loo_ablation_sign_test_and_bootstrap_ci
+    interaction_contribution: single_term_and_joint_delta_mse
+    regime_dependence: regime_conditional_skill
+    temporal_dependence: reference_spectral_and_timing_suites
+strict_pit_eligible: false
+inference_status: non_strict_state_vector_suite_current_history_without_vintages

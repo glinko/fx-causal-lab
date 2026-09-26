@@ -73,7 +73,7 @@
 | Spectral baseline | v0.15 | DONE non-strict | FFT, Welch coherence/phase, Haar energy и lag scan на 5 216 aligned changes. |
 | Spectral stability | v0.16 | DONE non-strict | 18 rolling и 18 expanding окон; fixed bands и registered lags 0/1/5/20. |
 | Timing/cutoff audit | v0.17 | DONE non-strict | Пререгистрированный world-snapshot audit 5 publication cutoff'ов: lag +1 по 2Y spread — timing artifact (не выживает строгие cutoff'ы, Bonferroni 0.0125). |
-| State-vector suite | v0.17 | PLANNED | Interactions + leave-one-out ablation + conditional (regime) effects поверх multivariate baseline; unit of analysis = economic state vector, pairwise correlation = diagnostics only (см. DECISIONS.md 2026-09-25). |
+| State-vector suite | v0.17 | DONE non-strict | Interactions + leave-one-out ablation + conditional (regime) effects поверх multivariate baseline; unit of analysis = economic state vector, pairwise correlation = diagnostics only. Пререгистрированная семья 12, Bonferroni 0.00417: **null сохранён** — ни один вариант не проходит; near-miss (нескорр. α=0.05): joint и oil_x_rate_spread на 1d (p=0.049, ухудшение). Ablation: spread_2y_z60 — единственный directionally-consistent кандидат (dMSE > 0 на всех 4 горизонтах, p ≥ 0.143). Отчёт: `data/reports/denn_state_vector.json`. |
 | DENN memory ablation | v0.17 | PLANNED | Baseline vs baseline+memory features (после state-vector suite). |
 | Wavelet coherence | v0.17 | PLANNED | Morlet time×frequency, trailing-only (после ablation). |
 
@@ -104,6 +104,7 @@
 4. Full-sample spectral band не оказался устойчиво доминирующим: ни одна rolling modal-band share не превышает 44.4%.
 5. Эти наблюдения пока не являются causal или trading results: rolling-окна перекрываются на 75%, expanding-окна вложены, yields и ECB reference имеют неполные timing semantics, а inputs не являются historical vintages.
 6. Timing audit v0.17 (2026-09-25): связь 2Y spread lag +1 (r = −0.198) появляется только, если EA AAA кривая доступна вечером того же grid-дня (после 19:30 NY). При строгих cutoff'ах (до 16:30 NY) best registered lag = 5, r = −0.031, p = 0.021 — не проходит Bonferroni 0.0125. Формальный вердикт: timing artifact; confirmed = false. Отчёт: `data/reports/denn_timing_audit.json`.
+7. State-vector suite v0.17 (2026-09-26): пререгистрированная семья 12 (6 LOO-ablation, 5 interactions, 1 joint) поверх multivariate baseline, Bonferroni 0.00417 — **null сохранён**: ни один вариант не даёт значимого OOS-улучшения (ни положительного, ни отрицательного). Near-miss на нескорр. α=0.05: joint 1d и oil_x_rate_spread 1d (p = 0.049) — оба в направлении ухудшения. Ablation: spread_2y_z60 — единственный фактор с dMSE > 0 на всех 4 горизонтах (1d +1.4e-7 … 60d +3.1e-5; p от 0.143 до 0.629) — «неотклонённый кандидат», не сигнал. Regime-срез: ни один из 4 pre-registered режимов не даёт положительного skill (худший: elevated_vol 20d, −22.5%). Permutation importance: все ≤ 11.7%; spread_2y_z60 = 0.0% на всех горизонтах (ridge обнуляет 2Y как коллинеарный к 10Y). Отчёт: `data/reports/denn_state_vector.json`; детали — DECISIONS.md, секция 2026-09-26.
 
 ## 4. Definition of Done для нового источника
 
