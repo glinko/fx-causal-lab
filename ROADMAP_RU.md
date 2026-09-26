@@ -72,6 +72,10 @@
 | DENN deterministic baseline | v0.14 | DONE non-strict | 41 736 snapshots, 5 098 feature rows, 68 purged annual folds, 14 548 OOS predictions. |
 | Spectral baseline | v0.15 | DONE non-strict | FFT, Welch coherence/phase, Haar energy и lag scan на 5 216 aligned changes. |
 | Spectral stability | v0.16 | DONE non-strict | 18 rolling и 18 expanding окон; fixed bands и registered lags 0/1/5/20. |
+| Timing/cutoff audit | v0.17 | DONE non-strict | Пререгистрированный world-snapshot audit 5 publication cutoff'ов: lag +1 по 2Y spread — timing artifact (не выживает строгие cutoff'ы, Bonferroni 0.0125). |
+| State-vector suite | v0.17 | PLANNED | Interactions + leave-one-out ablation + conditional (regime) effects поверх multivariate baseline; unit of analysis = economic state vector, pairwise correlation = diagnostics only (см. DECISIONS.md 2026-09-25). |
+| DENN memory ablation | v0.17 | PLANNED | Baseline vs baseline+memory features (после state-vector suite). |
+| Wavelet coherence | v0.17 | PLANNED | Morlet time×frequency, trailing-only (после ablation). |
 
 ### 3.3 Текущее покрытие данных
 
@@ -99,6 +103,7 @@
 3. Full-sample lag scan дал −0.198 для 2Y spread changes при lag +1. В 18 rolling windows знак остался отрицательным; median −0.203, Q10/Q90 −0.290/−0.137.
 4. Full-sample spectral band не оказался устойчиво доминирующим: ни одна rolling modal-band share не превышает 44.4%.
 5. Эти наблюдения пока не являются causal или trading results: rolling-окна перекрываются на 75%, expanding-окна вложены, yields и ECB reference имеют неполные timing semantics, а inputs не являются historical vintages.
+6. Timing audit v0.17 (2026-09-25): связь 2Y spread lag +1 (r = −0.198) появляется только, если EA AAA кривая доступна вечером того же grid-дня (после 19:30 NY). При строгих cutoff'ах (до 16:30 NY) best registered lag = 5, r = −0.031, p = 0.021 — не проходит Bonferroni 0.0125. Формальный вердикт: timing artifact; confirmed = false. Отчёт: `data/reports/denn_timing_audit.json`.
 
 ## 4. Definition of Done для нового источника
 
@@ -352,7 +357,7 @@ AnyJev допускается после появления structured world sta
 
 | Релиз | Основной результат | Data work | Experiment work | Gate выхода |
 |---|---|---|---|---|
-| v0.17 | Research registry и rates confirmation protocol | Dataset/experiment catalog, backup design, yield cutoff audit | Non-overlap, block bootstrap, discovery/confirmation и timing placebo для registered lags | Понятно, является ли lag +1 устойчивым или timing artifact. |
+| v0.17 | Research registry и rates confirmation protocol | Dataset/experiment catalog, backup design, yield cutoff audit | Non-overlap, block bootstrap, discovery/confirmation и timing placebo для registered lags | Понятно, является ли lag +1 устойчивым или timing artifact. **ГATE ПРОЙДЕН (2026-09-25): lag +1 — timing artifact, confirmed = false; см. п. 6 раздела 3.4 и DECISIONS.md.** |
 | v0.18 | Continuous Coverage II | Long tradable EUR/USD, US/EU equities, gold | Повтор v0.14–v0.17 на расширенной matrix | 10+ лет общего overlap либо документированный narrower interval. |
 | v0.19 | Probabilistic temporal baselines | Frozen feature catalog | Linear/ElasticNet и calibrated return buckets, purged walk-forward | Честное сравнение против mean/AR baselines. |
 | v0.20 | Macro Archive II | BLS/BEA/Eurostat releases и revisions 8–10+ лет | First-release quality/revision diagnostics | Достаточная event sample и понятные vintages. |
@@ -366,7 +371,7 @@ AnyJev допускается после появления structured world sta
 
 ### После v0.17
 
-- Если lag +1 исчезает после cutoff correction или на non-overlap/confirmation sample, пометить его timing artifact/unstable и не превращать в feature prior.
+- Если lag +1 исчезает после cutoff correction или на non-overlap/confirmation sample, пометить его timing artifact/unstable и не превращать в feature prior. **Исход (2026-09-25): lag +1 исчезает при строгих cutoff'ах — помечен timing artifact; в feature prior не регистрируется.** Сохранённый вывод: при вечернем окне доступности EA AAA кривой связь сохраняется (r = −0.198) — допустимый diagnostic, но не strict-PIT заявка.
 - Если сохраняется, зарегистрировать знак и lag как candidate prior для v0.19, без causal label.
 
 ### После v0.19

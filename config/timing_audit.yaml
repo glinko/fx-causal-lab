@@ -1,0 +1,134 @@
+# v0.17 PRE-REGISTRATION: timing/cutoff audit for the v0.16 rates-spectral candidate.
+#
+# Frozen BEFORE execution. The candidate, timing model, cutoffs, inference protocol
+# and verdict rules are fixed here; changing any of them after execution requires a
+# new version string and a DECISIONS.md entry.
+#
+# What this audit answers
+# -----------------------
+# v0.16 found corr(Δ(US2Y-EA2Y)_t, ΔEURUSD_{t+1}) = -0.198 on the common D1 grid
+# (naive grid index, "factor known on day t"). That claim implicitly assumes every
+# series is known at a common moment. This audit re-derives the same statistic
+# under an explicit world-snapshot publication model:
+#
+#   * a factor value with grid date t is only usable to predict a target that
+#     STARTS after the factor's effective publication datetime
+#     (effective publication = the LATEST publication among the factor's nodes);
+#   * the target return R_i = r_{i+1} - r_i becomes observable only at the
+#     publication of reference r_{i+1};
+#   * "the factor known for target i" = the LAST factor value whose effective
+#     publication is strictly before the target's observation time.
+#
+# Under the model below, the EA AAA curve (published in the evening, after the NY
+# session) pushes every US-EA spread value one grid day forward: the naive lag +1
+# claim is re-expressed as a lag +2 claim on strictly available information. The
+# audit tests whether the signal survives that correction, with an explicit
+# multiplicity-controlled inference and a sign-consistency rule.
+version: denn-timing-audit-1
+
+# --- Pre-registered candidates -----------------------------------------------
+# The ONLY factors eligible for a verdict. SPREAD_2Y_CHANGE is the v0.16
+# candidate; the rest are controls. A control that also becomes "significant"
+# after 21-lag scanning is itself a red flag for the protocol.
+candidates:
+  - SPREAD_2Y_CHANGE
+  - SPREAD_10Y_CHANGE
+  - BRENT_CHANGE
+  - WTI_CHANGE
+  - VIX_RETURN
+
+# --- World-snapshot publication model (DST-aware via IANA zones) -------------
+# published: local wall-clock time the node value for grid date t is publicly
+# available. calendar_offset_days: added to grid date t (EIA dailies are the
+# canonical next-business-day example). All assumptions are documented and must
+# be re-verified against primary sources; unknowns are listed in the report
+# limitation block and the EA publication time is additionally varied in the
+# sensitivity section (ea_sensitivity_ny_times).
+timing_model:
+  US_2Y:      {published: "15:30", tz: "America/New_York", calendar_offset_days: 0, source: "assumption: U.S. Treasury daily par curve posted mid-afternoon ET"}
+  US_10Y:     {published: "15:30", tz: "America/New_York", calendar_offset_days: 0, source: "assumption: U.S. Treasury daily par curve posted mid-afternoon ET"}
+  EA_2Y:      {published: "18:50", tz: "America/New_York", calendar_offset_days: 0, source: "assumption: ECB euro-area AAA curve published in the evening, after the NY session (base case)"}
+  EA_10Y:     {published: "18:50", tz: "America/New_York", calendar_offset_days: 0, source: "assumption: ECB euro-area AAA curve published in the evening, after the NY session (base case)"}
+  EURUSD_REF: {published: "16:00", tz: "Europe/Berlin",   calendar_offset_days: 0, source: "assumption: ECB euro reference rate published ~16:00 CET (10:00/11:00 NY)"}
+  BRENT:      {published: "10:30", tz: "America/New_York", calendar_offset_days: 1, source: "assumption: EIA Daily Petroleum Monitor, next business day"}
+  WTI:        {published: "10:30", tz: "America/New_York", calendar_offset_days: 1, source: "assumption: EIA Daily Petroleum Monitor, next business day"}
+  VIX:        {published: "15:15", tz: "America/New_York", calendar_offset_days: 0, source: "CBOE VIX close 15:15 ET (well documented)"}
+
+# Factor -> DENN nodes the factor value with grid date t is derived from.
+# Effective publication of the factor = max over its nodes.
+candidate_nodes:
+  SPREAD_2Y_CHANGE: [US_2Y, EA_2Y]
+  SPREAD_10Y_CHANGE: [US_10Y, EA_10Y]
+  BRENT_CHANGE: [BRENT]
+  WTI_CHANGE: [WTI]
+  VIX_RETURN: [VIX]
+
+# --- Pre-registered lags and inference protocol ------------------------------
+# Only these lags are tested for the VERDICT (roadmap E1: registered lags, no
+# re-search of the maximum). Bonferroni threshold = alpha / len(registered_lags).
+# Rationale:
+#   lag 1  = the v0.16 claim;
+#   lag 2  = the timing hypothesis: under the world-snapshot model the EA AAA
+#            curve (published the evening) shifts every US-EA spread value one
+#            grid day forward, so "naive lag +1" becomes "lag +2 on strictly
+#            available information";
+#   lag 5/20 = weekly/monthly persistence of the association.
+# Lag 0 is EXCLUDED by construction: a factor's effective publication is always
+# on or after its own grid date, so at any cutoff on the target date no same-day
+# factor is available (zero valid pairs for every factor).
+registered_lags: [1, 2, 5, 20]
+# Exploratory lag scan (reported, never used for the verdict):
+exploratory_lags: [-10, 10]
+
+# Decision-time cutoffs (wall-clock in America/New_York, applied on the target's
+# grid date). A factor with effective publication P is usable for a target whose
+# decision date is D iff P < C(D) (strict).
+cutoffs:
+  - {name: strict_07,   ny_time: "07:00", description: "pre-market: only information published on earlier days; the cleanest PIT boundary, zero overlap with the target window"}
+  - {name: before_treasury_15, ny_time: "15:00", description: "just before the U.S. Treasury curve; for all pre-registered factors the availability equals strict_07"}
+  - {name: after_us_1630, ny_time: "16:30", description: "after U.S. Treasury (15:30) and VIX (15:15), before the EA evening curve"}
+  - {name: after_ea_1930, ny_time: "19:30", description: "after the EA AAA curve base case (18:50); the full same-day factor set is available"}
+  - {name: end_of_day_21, ny_time: "21:00", description: "end of day; equals after_ea_1930 unless a sensitivity case places the EA publication later"}
+
+bootstrap:
+  method: pair_residual_bootstrap   # OLS (intercept + slope) residual pairs resampled with replacement
+  replicates: 1000
+  seed: 20260925
+  alpha: 0.05
+  multiple_comparison: bonferroni_over_registered_lags   # threshold = 0.05/4 = 0.0125
+  # Protocol: point correlations for ALL registered lags; the bootstrap p-value
+  # is computed ONLY for the registered lag with the maximum |r| (ties -> the
+  # smaller lag); that p is compared with alpha/len(registered_lags).
+
+stability:
+  rule: sign_consistent_in_both_chronological_halves
+
+placebo:
+  method: circular_factor_shift
+  shifts_sessions: [20]             # far outside the registered lag range
+
+# --- EA publication sensitivity ----------------------------------------------
+# The single most important assumption in the model is the EA AAA curve
+# publication time (base: 18:50 NY). The audit re-runs the SPREAD_2Y_CHANGE
+# verdict with alternative EA publication times; everything else is frozen.
+# Only the two cutoffs that interact with the EA publication are re-run
+# (strict_07 is provably invariant to the EA time: any EA publication on the
+# previous grid day precedes 07:00 on the target date).
+ea_sensitivity_ny_times: ["16:30", "17:30", "18:50", "19:30", "21:00"]
+ea_sensitivity_cutoffs: [after_us_1630, after_ea_1930]
+
+# --- Verdict rules (per candidate, per audit setting) ------------------------
+# confirmed:  corr at its registered best lag passes Bonferroni, sign is stable
+#             in both chronological halves, and the placebo is NOT significant.
+# timing_artifact: the signal is strong in the naive (v0.16) grid statistic but
+#             fails at the earliest cutoff of the availability-corrected run.
+# not_reproducible / not_significant: does not survive the availability-corrected
+#             run under any cutoff.
+# A confirmed verdict is still a PREDICTIVE ASSOCIATION, never a causal claim.
+classification:
+  strict_cutoff: strict_07
+  robust_cutoffs: [strict_07]                       # a confirmed verdict here => "robust"
+  evening_cutoffs: [after_ea_1930, end_of_day_21]   # significance only here => "timing_artifact"
+  robust: confirmed at a robust cutoff
+  timing_artifact: not confirmed at the strict cutoff, but Bonferroni-significant at an evening cutoff
+  not_reproducible: not Bonferroni-significant at any availability-corrected cutoff

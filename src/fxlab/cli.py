@@ -58,6 +58,7 @@ def main():
     commands.add_parser("denn-baseline", help="Build deterministic DENN snapshots, features and purged walk-forward baseline")
     commands.add_parser("denn-spectral", help="Build FFT, wavelet, coherence, phase and lead-lag diagnostics")
     commands.add_parser("denn-spectral-stability", help="Build fixed rolling/expanding spectral stability diagnostics")
+    commands.add_parser("denn-timing-audit", help="Re-derive the v0.16 lag statistic under the world-snapshot publication model")
     replay = commands.add_parser("replay", help="Normalize preserved ECB snapshot offline")
     replay.add_argument("metadata", type=Path)
     replay.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 23))
@@ -135,6 +136,9 @@ def main():
     elif args.command == "denn-spectral-stability":
         from .denn import build_spectral_stability
         result = build_spectral_stability()
+    elif args.command == "denn-timing-audit":
+        from .denn import build_timing_audit
+        result = build_timing_audit()
     else:
         from .providers import ECBReferenceProvider
         from .store import root
