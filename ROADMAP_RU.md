@@ -74,6 +74,7 @@
 | Spectral stability | v0.16 | DONE non-strict | 18 rolling и 18 expanding окон; fixed bands и registered lags 0/1/5/20. |
 | Timing/cutoff audit | v0.17 | DONE non-strict | Пререгистрированный world-snapshot audit 5 publication cutoff'ов: lag +1 по 2Y spread — timing artifact (не выживает строгие cutoff'ы, Bonferroni 0.0125). |
 | State-vector suite | v0.17 | DONE non-strict | Interactions + leave-one-out ablation + conditional (regime) effects поверх multivariate baseline; unit of analysis = economic state vector, pairwise correlation = diagnostics only. Пререгистрированная семья 12, Bonferroni 0.00417: **null сохранён** — ни один вариант не проходит; near-miss (нескорр. α=0.05): joint и oil_x_rate_spread на 1d (p=0.049, ухудшение). Ablation: spread_2y_z60 — единственный directionally-consistent кандидат (dMSE > 0 на всех 4 горизонтах, p ≥ 0.143). Отчёт: `data/reports/denn_state_vector.json`. |
+| Grouped (block) suite | v0.18 | IN PROGRESS | Единица анализа = экономический блок: leave-one-block-out ablation (семья 4, Bonferroni 0.0125) + block permutation importance + within-block correlations + cross-reference с суммой single-LOO дельт v0.17. Блоки на текущей матрице: rates [2Y,10Y], energy [Brent,WTI], risk [VIX], fx_state [momentum]. Протокол: `config/grouped.yaml` (denn-grouped-1), CLI `denn-grouped`. World-state Tier A-план (TIPS, NFCI/ANFCI, TIC, H.4.1/ECB BS, relative equities, USD-ex-EUR, EA energy) — в DECISIONS.md. |
 | DENN memory ablation | v0.17 | PLANNED | Baseline vs baseline+memory features (после state-vector suite). |
 | Wavelet coherence | v0.17 | PLANNED | Morlet time×frequency, trailing-only (после ablation). |
 
@@ -359,7 +360,7 @@ AnyJev допускается после появления structured world sta
 | Релиз | Основной результат | Data work | Experiment work | Gate выхода |
 |---|---|---|---|---|
 | v0.17 | Research registry и rates confirmation protocol | Dataset/experiment catalog, backup design, yield cutoff audit | Non-overlap, block bootstrap, discovery/confirmation и timing placebo для registered lags | Понятно, является ли lag +1 устойчивым или timing artifact. **ГATE ПРОЙДЕН (2026-09-25): lag +1 — timing artifact, confirmed = false; см. п. 6 раздела 3.4 и DECISIONS.md.** |
-| v0.18 | Continuous Coverage II | Long tradable EUR/USD, US/EU equities, gold | Повтор v0.14–v0.17 на расширенной matrix | 10+ лет общего overlap либо документированный narrower interval. |
+| v0.18 | Continuous Coverage II | Long tradable EUR/USD, US/EU equities, gold + Tier A world-state (TIPS, NFCI/ANFCI, TIC, H.4.1/ECB, USD-ex-EUR, EA energy) | Grouped (block) suite на текущей матрице (первый прогон), затем повтор v0.14–v0.17 + group ablation на расширенной matrix | 10+ лет общего overlap либо документированный narrower interval. |
 | v0.19 | Probabilistic temporal baselines | Frozen feature catalog | Linear/ElasticNet и calibrated return buckets, purged walk-forward | Честное сравнение против mean/AR baselines. |
 | v0.20 | Macro Archive II | BLS/BEA/Eurostat releases и revisions 8–10+ лет | First-release quality/revision diagnostics | Достаточная event sample и понятные vintages. |
 | v0.21 | Policy expectations | Futures/OIS/rates reaction data, если легально доступны | FOMC/ECB surprise construction | Surprise существует до измеряемой реакции и воспроизводится offline. |

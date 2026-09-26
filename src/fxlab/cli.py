@@ -60,6 +60,7 @@ def main():
     commands.add_parser("denn-spectral-stability", help="Build fixed rolling/expanding spectral stability diagnostics")
     commands.add_parser("denn-timing-audit", help="Re-derive the v0.16 lag statistic under the world-snapshot publication model")
     commands.add_parser("denn-state-vector", help="Run the v0.17 joint-state suite: interactions, LOO ablation, permutation importance, regime slices")
+    commands.add_parser("denn-grouped", help="Run the v0.18 group-level suite: leave-one-block-out ablation, block permutation, within-block collinearity")
     replay = commands.add_parser("replay", help="Normalize preserved ECB snapshot offline")
     replay.add_argument("metadata", type=Path)
     replay.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 23))
@@ -143,6 +144,9 @@ def main():
     elif args.command == "denn-state-vector":
         from .denn import build_state_vector
         result = build_state_vector()
+    elif args.command == "denn-grouped":
+        from .denn import build_grouped
+        result = build_grouped()
     else:
         from .providers import ECBReferenceProvider
         from .store import root

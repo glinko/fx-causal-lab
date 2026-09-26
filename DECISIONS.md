@@ -207,3 +207,40 @@
 - **Ни один из 12 вариантов не проходит Bonferroni 0.00417 — ни положительный, ни отрицательный.** Ближайшие near-miss'ы (только нескорр. α=0.05): joint 1d (p=0.049) и oil_x_rate_spread 1d (4/17 в пользу, p=0.049, dMSE +3.4e-8) — оба в направлении ухудшения, т.е. знак против полезности. Значимых положительных результатов нет.
 - **Permutation importance (diagnostic-only):** все значения малы (максимум spread_10y_z60 +11.7% на 60d, vix_z60 +6% на 1d/5d); ни один столбец не доминирует. Слой вне Bonferroni-семьи; выводы по полезности — из paired ablation deltas.
 - **Следующие шаги:** (1) DENN memory-features ablation (baseline vs baseline+age/decay) — следующий пункт v0.17; (2) nonlinear multivariate baseline (LightGBM/RF) как слой 5 стека — требует sidecar-окружение с numpy/sklearn, контейнер core не имеет их; (3) temporal/lagged interactions (слой 8) — lag'и терминов, а не только level; (4) multivariate wavelet coherence (слой 9).
+
+## 2026-09-26 — v0.18: переход к economic blocks; пререгистрация grouped suite
+
+**Checkpoint:** NULL v0.17 заморожен как исторический чекпоинт — поправки к DECISIONS.md (исправление формулировок о Bonferroni/permutation) и результат `denn_state_vector.json` закоммичены в `eb26ef0` ДО каких-либо новых экспериментов. Секция v0.17 не изменяется; новые гипотезы ниже зафиксированы до просмотра результатов grouped-прогона.
+
+### Директива (user, 2026-09-26)
+- Единица анализа поднимается со столбца до **экономического блока**. Сигнал v0.17 (2Y spread: положительный LOO-ablation на всех горизонтах + 0% permutation importance) читается как «2Y и 10Y — две проекции одного латентного фактора: relative rates / policy differential»; single-column importance не видит совместный вклад блока.
+- Матрица строится по блокам world-state, а не по индикаторам: внутри блока десяток исходных рядов, модель/PCA получает скрытое состояние блока `H_rates, H_risk, H_flows, ...` вместо дублирующих колонок.
+
+### Пререгистрированный world-state (Tier A — открытые источники; Tier B — платные/ограниченные)
+| Блок | Состав (Tier A) | Статус |
+|---|---|---|
+| rates / monetary | US-EA 2Y/5Y/10Y дифференциалы, 2s10s (US, EA), relative curve slope | есть (6 cols → блок rates) |
+| inflation expectations | Fed TIPS real 5Y/10Y + inflation compensation 5Y/10Y (ежедневно, с 1999); ECB Consumer Expectations Survey (5y exp., monthly) | TIER A, к загрузке |
+| growth | (позже; на горизонте месяцев) | backlog |
+| risk / financial conditions | VIX + Chicago Fed NFCI/ANFCI и подкомпоненты risk/credit/leverage (weekly, с 1971) | TIER A, к загрузке |
+| funding / liquidity | открытые прокси: SOFR/repo, bank funding stress, Fed liquidity (H.4.1 weekly); cross-currency EURUSD basis — TIER B (дорогой) | TIER A, к загрузке |
+| energy / ToT | Brent, WTI + European-specific: TTF gas, US nat gas (проверить лицензию/глубину), European electricity proxy → relative shock `EnergyShock_EA − EnergyShock_US` | TIER A, к загрузке |
+| capital flows | Treasury TIC (monthly): NetForeignDemand_US, portfolio flows; interaction `Flows × RateDifferential` | TIER A, к загрузке |
+| positioning | CFTC (уже есть) | есть |
+| relative equity | `R_US equities − R_EU equities` (не S&P сам по себе); позже: US Banks vs EU Banks, US Tech vs EU Industrials | TIER A, к загрузке |
+| CB liquidity | Fed H.4.1 + ECB balance sheet (SDMX): growth-normalized, relative liquidity impulse (slow-state variable) | TIER A, к загрузке |
+| FX state | momentum (есть) + **USD-ex-EUR factor** (USDJPY, GBPUSD, USDCAD, USDCHF, ...) — не DXY (тавтология по EUR); вопрос: движение USD вообще vs специфическое EUR | TIER A, к загрузке |
+| trade / ToT | US/EA trade balance, current account, relative terms of trade (monthly) | backlog |
+| gold | уже в планах | backlog |
+
+### Пререгистрированный экспериментный стек (все — purged walk-forward, frozen hypotheses, multiplicity control, null preservation)
+1. linear baseline (есть, v0.14); 2. ElasticNet; 3. **group ablation** (этот прогон — первый на текущей матрице); 4. group permutation; 5. PCA per block; 6. LightGBM (sidecar-окружение); 7. + decay memory; 8. + spectral features.
+- Orthogonalized shocks (oil/equity/gold residuals после общих financial factors) — пререгистрированный приём для блоков energy/equity после их расширения.
+- Если LightGBM на замороженной матрице тоже не найдёт signal — существенно сильнее: в текущих данных мало predictive information. Если nonlinear стабильно выигрывает — первая поддержка идеи взаимодействий.
+- NULL v0.17 опровергает только узкую гипотезу «6 continuous features + 5 ручных interactions + linear ridge дают стабильный OOS-сигнал», а не DENN как нелинейную динамическую систему F(WorldState).
+- Расширение событий (CPI/NFP/FOMC) сейчас НЕ приоритет: бутылочное горлышко — бедный world-state.
+
+### Grouped suite v0.18 (первый прогон)
+- Протокол заморожен в `config/grouped.yaml` (`denn-grouped-1`): блоки на ТЕКУЩЕЙ матрице — rates [2Y,10Y], energy [Brent,WTI], risk [VIX], fx_state [momentum]; family = 4 leave-one-block-out ablations, Bonferroni 0.05/4 = 0.0125; diagnostic-слои (вне семьи): block permutation importance (shuffled all members together) и within-block pairwise correlations; cross-reference с суммой single-LOO дельт v0.17 (descriptive gap = redundancy/synergy).
+- Код: `src/fxlab/denn/grouped.py`, CLI `denn-grouped`, тесты `tests/test_grouped.py`. Baseline-якорь: воспроизведение aggregate v0.14 обязано совпасть с `denn_baseline` до 1e-9.
+- Гипотезы (до просмотра): H1 — rates-блок имеет положительный block-ablation delta хотя бы на длинных горизонтах, превышающий сумму его single-LOO дельт (совместный латентный вклад); H2 — within-block корреляция 2Y/10Y и Brent/WTI высока (>0.9), подтверждая «две проекции» паттерн.

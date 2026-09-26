@@ -1,0 +1,119 @@
+# v0.18 PRE-REGISTRATION: group-level (block) state-vector suite.
+#
+# Frozen BEFORE execution. Blocks, experiments, family size and inference
+# protocol are fixed here; changing any of them after the first run on the
+# real grid requires a new version string and a DECISIONS.md entry.
+#
+# Motivation (DECISIONS.md, 2026-09-26, user directive):
+# The v0.17 null result plus the rates redundancy finding (spread_2y_z60:
+# positive LOO ablation on all four horizons but exactly 0% permutation
+# importance — ridge zeroes the 2Y column as collinear with 10Y) indicates
+# that 2Y and 10Y spreads are two projections of ONE latent factor: the
+# relative-rates / policy differential. The unit of analysis is therefore
+# raised from a single column to a pre-registered economic BLOCK. This suite
+# measures block-level conditional contribution on the existing FROZEN v0.14
+# matrix. No new data is ingested, no transforms are added.
+
+version: denn-grouped-1
+
+parent_report: denn_baseline
+features:
+  - spread_2y_z60
+  - spread_10y_z60
+  - brent_asinh_change_20d
+  - wti_asinh_change_20d
+  - vix_z60
+  - eurusd_momentum_20d
+
+# ---------------------------------------------------------------------------
+# Economic blocks on the CURRENT matrix. The union of members must equal
+# `features` exactly and every feature belongs to exactly one block
+# (enforced by the validator). These are the v2 world-state architecture
+# projected onto the 6 available columns. Blocks with no data yet
+# (inflation expectations, flows, funding, ...) are deliberately NOT part
+# of this run; they are frozen in DECISIONS.md as the Tier A/B acquisition
+# plan and will require a new protocol version (denn-grouped-2) once
+# ingested.
+# ---------------------------------------------------------------------------
+blocks:
+  - name: rates
+    members: [spread_2y_z60, spread_10y_z60]
+    channel: >-
+      Relative rates / policy differential. One latent factor, two
+      projections (2Y and 10Y spreads). This is the block whose internal
+      redundancy the v0.17 permutation finding exposed.
+  - name: energy
+    members: [brent_asinh_change_20d, wti_asinh_change_20d]
+    channel: >-
+      Oil complex (terms-of-trade / inflation shock). Brent and WTI are
+      highly correlated — a second instance of the two-projections pattern.
+  - name: risk
+    members: [vix_z60]
+    channel: >-
+      Risk / financial conditions. Single proxy; the v2 plan widens this
+      block with NFCI/ANFCI subindices (Tier A).
+  - name: fx_state
+    members: [eurusd_momentum_20d]
+    channel: >-
+      FX-specific state (own 20d momentum / trend regime).
+
+horizons: [1, 5, 20, 60]
+ridge_lambdas: [0.01, 0.1, 1.0, 10.0]   # identical grid to denn-baseline
+minimum_train_rows: 750
+minimum_validation_rows: 100
+minimum_test_rows: 40
+
+# ---------------------------------------------------------------------------
+# Experiment 1 (the Bonferroni family): leave-one-BLOCK-out ablation.
+# For each block B: fit the baseline ridge on (features \ B) under the same
+# purged walk-forward as v0.14/v0.17; per fold,
+#   delta = MSE(B removed) - MSE(full model).
+# delta > 0 in a fold => removing the block worsens OOS fit => the block
+# carries non-redundant conditional information beyond the other blocks.
+# A single-feature ablation asks "is this column needed?"; a block ablation
+# asks "is this part of the world state needed?".
+# ---------------------------------------------------------------------------
+ablation:
+  method: leave_one_block_out
+  direction: worsens   # positive delta is "in favor" of the block
+
+# ---------------------------------------------------------------------------
+# Experiment 2 (diagnostic, OUTSIDE the Bonferroni family): block
+# permutation importance. The full 6-feature model is re-predicted on pooled
+# OOS rows with ALL of a block's standardized columns shuffled together
+# (exact linear form, same construction as v0.17 column permutation).
+# Answers: how much does the model lean on the block as a unit?
+# ---------------------------------------------------------------------------
+permutation:
+  reps: 200
+  seed: 42
+  model: full_baseline
+
+# ---------------------------------------------------------------------------
+# Experiment 3 (diagnostic, data-derived): within-block pairwise
+# correlations, pooled over OOS test rows. Quantifies the collinearity that
+# motivated grouping (e.g. rates 2Y vs 10Y). No inference attached.
+# ---------------------------------------------------------------------------
+block_correlation:
+  scope: pooled_oos
+
+# ---------------------------------------------------------------------------
+# Cross-reference (diagnostic): per block and horizon, compare the block
+# ablation delta with the SUM of its members' v0.17 single-feature LOO
+# deltas. The gap is a within-block redundancy/synergy diagnostic of the
+# joint model; it is descriptive and carries no p-value.
+# ---------------------------------------------------------------------------
+cross_reference_report: denn_state_vector
+
+multiplicity:
+  alpha: 0.05
+  method: bonferroni
+  family_size: 4        # one block ablation per block (4 blocks)
+sign_test: paired_sign_test_over_folds   # H0: no systematic OOS delta-MSE difference
+bootstrap:
+  reps: 1000
+  seed: 42
+  statistic: mean_paired_fold_delta_mse  # CI for the mean delta-MSE
+
+strict_pit_eligible: false
+inference_status: non_strict_group_state_suite_current_history_without_vintages
