@@ -1,7 +1,7 @@
 const { chromium } = require(process.env.PLAYWRIGHT_PACKAGE || 'playwright');
 const fs = require('fs');
 const path = require('path');
-const baseUrl = process.env.FXLAB_BASE_URL || 'http://192.168.88.5:8088';
+const baseUrl = process.env.FXLAB_BASE_URL || 'http://127.0.0.1:8088';
 (async () => {
   const browser = await chromium.launch({headless:true});
   const out = path.resolve(process.argv[2] || 'data/qa');

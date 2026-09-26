@@ -65,6 +65,7 @@ def main():
     commands.add_parser("denn-timing-audit", help="Re-derive the v0.16 lag statistic under the world-snapshot publication model")
     commands.add_parser("denn-state-vector", help="Run the v0.17 joint-state suite: interactions, LOO ablation, permutation importance, regime slices")
     commands.add_parser("denn-grouped", help="Run the v0.18 group-level suite: leave-one-block-out ablation, block permutation, within-block collinearity")
+    commands.add_parser("denn-grouped-tier-a", help="Run the pre-registered expanded Tier A economic-block suite")
     replay = commands.add_parser("replay", help="Normalize preserved ECB snapshot offline")
     replay.add_argument("metadata", type=Path)
     replay.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 23))
@@ -157,6 +158,9 @@ def main():
     elif args.command == "denn-grouped":
         from .denn import build_grouped
         result = build_grouped()
+    elif args.command == "denn-grouped-tier-a":
+        from .denn import build_grouped_tier_a
+        result = build_grouped_tier_a()
     else:
         from .providers import ECBReferenceProvider
         from .store import root

@@ -1,0 +1,93 @@
+# v0.19 PRE-REGISTRATION: expanded economic-block suite on Tier A world-state.
+#
+# Frozen before the first run on the real Tier A matrix. The formal family is
+# seven leave-one-block-out tests on one common complete-case interval. TIC is
+# deliberately excluded: its 2021+ history cannot support the six-year
+# expanding-window burn-in plus an independent validation year. Missing values
+# are never imputed. Age/decay columns are reserved for a separate memory
+# ablation so this test changes the observed world-state, not two layers at once.
+
+version: denn-grouped-tier-a-1
+parent_report: tier_a_features
+
+features:
+  - spread_2y_z60
+  - spread_10y_z60
+  - brent_asinh_change_20d
+  - wti_asinh_change_20d
+  - vix_z60
+  - eurusd_momentum_20d
+  - bk5_z60
+  - bk10_z60
+  - nfci_z60
+  - anfci_z60
+  - h41_tga_ratio_z252
+  - h41_rrp_ratio_z252
+  - h41_reserves_ratio_z252
+  - spx_ret_20d
+  - eu_ret_20d
+  - gold_ret_20d
+
+blocks:
+  - name: rates
+    members: [spread_2y_z60, spread_10y_z60]
+    channel: relative nominal rates / policy differential
+  - name: energy
+    members: [brent_asinh_change_20d, wti_asinh_change_20d]
+    channel: oil / inflation / terms-of-trade shock
+  - name: risk_financial
+    members: [vix_z60, nfci_z60, anfci_z60]
+    channel: market risk and broad financial conditions
+  - name: fx_state
+    members: [eurusd_momentum_20d]
+    channel: EUR/USD endogenous state
+  - name: inflation_expectations
+    members: [bk5_z60, bk10_z60]
+    channel: U.S. market-implied inflation compensation
+  - name: fed_liquidity
+    members: [h41_tga_ratio_z252, h41_rrp_ratio_z252, h41_reserves_ratio_z252]
+    channel: Federal Reserve balance-sheet liquidity composition
+  - name: cross_asset
+    members: [spx_ret_20d, eu_ret_20d, gold_ret_20d]
+    channel: relative equity performance and gold
+
+horizons: [1, 5, 20, 60]
+ridge_lambdas: [0.01, 0.1, 1.0, 10.0]
+minimum_train_rows: 750
+minimum_validation_rows: 100
+minimum_test_rows: 40
+
+sample:
+  method: common_complete_case
+  no_imputation: true
+  expected_start_not_before: 2007-05-04
+  excluded_insufficient_history: [tic_total_change_12m, tic_lt_change_12m]
+  excluded_for_separate_memory_test:
+    - bk5_z60__age_days
+    - bk10_z60__age_days
+    - nfci_z60__age_days
+    - anfci_z60__age_days
+    - h41_tga_ratio_z252__age_days
+    - h41_rrp_ratio_z252__age_days
+    - h41_reserves_ratio_z252__age_days
+
+ablation:
+  method: leave_one_block_out
+  direction: worsens
+permutation:
+  reps: 200
+  seed: 42
+  model: full_expanded_baseline
+  scope: within_walk_forward_fold
+multiplicity:
+  alpha: 0.05
+  method: bonferroni
+  family_size: 7
+sign_test: paired_sign_test_over_folds
+bootstrap:
+  reps: 1000
+  seed: 42
+  statistic: mean_paired_fold_delta_mse
+
+strict_pit_eligible: false
+inference_status: non_strict_expanded_group_state_suite_current_history_without_vintages

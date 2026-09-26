@@ -14,7 +14,7 @@ One researcher investigating EUR/USD over hours to months.
 Build a reproducible point-in-time research pipeline. A null result is a valid result. Separate measured facts, availability assumptions and causal hypotheses.
 
 ## Operating Context
-Deploy on websrv, 192.168.88.5. Existing Caddy sites must remain intact. Public data first. No paid credentials required for bootstrap.
+Deploy on Ubuntu host 192.168.88.15 under `/home/alex/fx-causal-lab`. Public data first. No paid credentials required for bootstrap.
 
 ## Capabilities and Constraints
 Primary targets: 1, 5, 20, 60 trading days. H1 secondary. Separate pre-event, post-release and reaction-confirmed experiments. Unknown historical availability is excluded from strict experiments. Consensus stays null if unavailable. OpenSPG is deferred.

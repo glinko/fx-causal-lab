@@ -118,6 +118,7 @@ def test_web_empty_and_loaded_data(tmp_path, monkeypatch):
     assert client.get("/reports/denn-timing-audit").status_code == 200
     assert client.get("/reports/denn-state-vector").status_code == 200
     assert client.get("/reports/denn-grouped").status_code == 200
+    assert client.get("/reports/denn-grouped-tier-a").status_code == 200
     assert client.get("/reports/tier-a").status_code == 200
     assert client.get("/reports/roadmap").status_code == 200
     assert client.get("/download/nonexistent").status_code == 404

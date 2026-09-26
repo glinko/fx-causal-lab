@@ -276,3 +276,10 @@ Block-ablation (dMSE = изменение MSE при удалении ЦЕЛОГ
 - Фактически загружены и нормализованы 14 рядов: Fed 5Y/10Y inflation compensation и TIPS, NFCI/ANFCI, три H.4.1 liquidity ratio, два TIC holdings ряда, S&P 500, Euro Stoxx 50 и gold. Статус: 12 `READY_NON_STRICT`, 2 `PARTIAL_READY` (TIC с 2020), 0 unavailable. Все ряды остаются current-history/non-strict; отсутствующие значения не имитируются.
 - Nullable Tier A feature matrix содержит 5 098 строк на frozen D1 grid (2004-12-17…2026-06-25). Доступные block ranges: inflation expectations с 2005-04-28; financial conditions с 2004-12-17; Fed liquidity с 2006-06-01; TIC с 2021-04-01; market proxies с 2007-05-04.
 - Следующий gate: до просмотра результатов зарегистрировать expanded grouped suite на Tier A block ranges; для каждого теста использовать только его заявленный common interval и не заполнять пропуски.
+
+## 2026-09-26 — Пререгистрация expanded Tier A grouped suite
+
+- Протокол `denn-grouped-tier-a-1` заморожен в `config/grouped_tier_a.yaml` до первого прогона на реальной матрице.
+- Одна common complete-case выборка без imputation; 16 признаков объединены в 7 блоков: rates, energy, risk/financial conditions, FX state, inflation expectations, Fed liquidity и cross-asset. Формальная семья: 7 leave-one-block-out ablations, Bonferroni 0.05/7; fold-local block permutation и within-block correlations остаются диагностикой.
+- TIC не включён: доступный интервал 2021+ не оставляет выборки после шестилетнего train burn-in и отдельного validation года. Age/decay признаки не включены, чтобы не смешивать расширение observed state с отдельной memory-ablation гипотезой.
+- Критерий перехода: сначала сохранить полный NULL/positive результат этой фиксированной линейной модели; только затем запускать отдельную memory/decay ablation. Dynamic GNN по-прежнему заблокирован.

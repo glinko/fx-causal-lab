@@ -329,6 +329,20 @@ def denn_grouped(request: Request):
                                       context={"kind": "grouped", "report": report, "rows": rows})
 
 
+@app.get("/reports/denn-grouped-tier-a", response_class=HTMLResponse)
+def denn_grouped_tier_a(request: Request):
+    report = read_json("denn_grouped_tier_a.json", None)
+    rows = []
+    if report:
+        for horizon in report.get("horizons", []):
+            result = report.get("result", {}).get(str(horizon), {})
+            for block, ablation in result.get("block_ablation", {}).items():
+                rows.append({"horizon": horizon, "block": block, "ablation": ablation,
+                             "permutation": result.get("block_permutation_importance", {}).get(block, {})})
+    return templates.TemplateResponse(request=request, name="research_suite.html",
+                                      context={"kind": "grouped_tier_a", "report": report, "rows": rows})
+
+
 @app.get("/reports/tier-a", response_class=HTMLResponse)
 def tier_a_report(request: Request):
     coverage = read_json("tier_a_coverage.json", None)
@@ -421,7 +435,7 @@ def download(name: str):
         files["denn_spectral_stability.json"] = root()/"reports"/"denn_spectral_stability.json"
         for label, relative in stability["files"].items():
             files[f"spectral_stability_{label}.parquet"] = root()/relative
-    for report_name in ("denn_timing_audit", "denn_state_vector", "denn_grouped",
+    for report_name in ("denn_timing_audit", "denn_state_vector", "denn_grouped", "denn_grouped_tier_a",
                         "tier_a_coverage", "tier_a_features"):
         report = read_json(f"{report_name}.json", None)
         if report:

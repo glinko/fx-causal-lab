@@ -1,15 +1,15 @@
 # Развёртывание
 
-Сервер: `websrv` / Ubuntu 24.04 / `192.168.88.5`.
+Сервер: Ubuntu / `192.168.88.15` (SSH `alex` с ключом).
 
-Адрес: [FX Causal Lab](http://192.168.88.5:8088).
+Сервис: `http://127.0.0.1:8088` на сервере; доступ через существующий локальный маршрут/SSH tunnel.
 
-Проект: `/opt/fx-causal-lab`. Все команды ниже выполняются в этом каталоге под `alex`.
+Проект: `/home/alex/fx-causal-lab`. Все команды ниже выполняются в этом каталоге под `alex`.
 
 ```bash
 sudo docker compose ps
 sudo docker compose logs --tail=100 web
-curl -fsS http://192.168.88.5:8088/healthz
+curl -fsS http://127.0.0.1:8088/healthz
 sudo docker compose exec web fxlab --help
 sudo docker compose exec web fxlab recon
 sudo docker compose exec web fxlab open-data-backfill --from 2004-09-06
@@ -42,7 +42,7 @@ sudo docker compose stop
 
 `stop` останавливает только этот проект. Не использовать системные prune-команды. При обновлении сохранять `.env` и `data/`. Для отката сохранять предыдущий image/tag и предыдущую копию исходников до сборки новой версии.
 
-Docker и Compose установлены из репозиториев Ubuntu. Системные сервисы Docker/containerd включены; существующий Caddyfile не изменён. Привязка порта задаётся `.env`: `FXLAB_BIND=192.168.88.5`. Для другого сервера изменить значение. Не публиковать сервис наружу без аутентификации.
+Docker и Compose установлены на Ubuntu. Текущий bind — `127.0.0.1:8088`; изменение `FXLAB_BIND` является отдельным deployment-решением. Не публиковать сервис наружу без аутентификации.
 
 Контейнер read-only, uid 1000; записывать разрешено в data и временный tmpfs. После перезагрузки контейнер поднимается через `restart: unless-stopped`. Загрузки запускаются вручную; обещания ежедневного автоматического обновления нет.
 
@@ -179,7 +179,7 @@ sudo docker compose exec web fxlab denn-baseline
 ```bash
 sudo docker run --rm --network none --user 1000:1000 \
   -e FXLAB_DATA=/app/data -e FXLAB_PROJECT=/app \
-  -v /opt/fx-causal-lab/data:/app/data fx-causal-lab:0.14.0 fxlab denn-baseline
+  -v /home/alex/fx-causal-lab/data:/app/data fx-causal-lab:0.19.0 fxlab denn-baseline
 ```
 
 Все входы current-history имеют `strict_pit_eligible=false`; `published_at`, `available_at` и `revision_id` остаются null, пока исторические vintages не доказаны. Для ежедневного observation известна дата, но не точное intraday время. Это exploratory OOS benchmark, а не causal или trading result.

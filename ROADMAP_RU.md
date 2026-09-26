@@ -40,7 +40,7 @@
 
 | Компонент | Статус | Результат |
 |---|---|---|
-| Ubuntu deployment | DONE | Сервис работает в Docker на `192.168.88.5:8088`; контейнер без root, read-only filesystem, отдельный data mount. |
+| Ubuntu deployment | DONE | Сервис 0.19.0 работает в Docker на `192.168.88.15` с loopback bind `127.0.0.1:8088`; контейнер без root, read-only filesystem, отдельный data mount. |
 | CLI | DONE | Backfill, replay, normalization, alignment, experiments, graph, DENN и spectral-команды запускаются отдельно. |
 | Web research journal | DONE | Данные, quality reports, experiments, граф и downloadable manifests/Parquet доступны в браузере. |
 | Bronze / Silver / Gold | DONE | Raw snapshots отделены от нормализованных и исследовательских datasets. |
@@ -76,6 +76,7 @@
 | State-vector suite | v0.17 | DONE non-strict | Interactions + leave-one-out ablation + conditional (regime) effects поверх multivariate baseline; unit of analysis = economic state vector, pairwise correlation = diagnostics only. Пререгистрированная семья 12, Bonferroni 0.00417: **null сохранён** — ни один вариант не проходит; near-miss (нескорр. α=0.05): joint и oil_x_rate_spread на 1d (p=0.049, ухудшение). Ablation: spread_2y_z60 — единственный directionally-consistent кандидат (dMSE > 0 на всех 4 горизонтах, p ≥ 0.143). Отчёт: `data/reports/denn_state_vector.json`. |
 | Grouped (block) suite | v0.18 | DONE non-strict | Единица анализа = экономический блок: leave-one-block-out ablation (семья 4, Bonferroni 0.0125) + fold-local block permutation + within-block correlations. **NULL подтверждён**; направленный near-miss rates 60d (p=0.33, gap +5.9e-05). Отчёт: `data/reports/denn_grouped.json`. |
 | Tier A world-state acquisition | v0.19 | DONE non-strict | Реально загружены 14 рядов: inflation compensation/TIPS, NFCI/ANFCI, H.4.1 liquidity, TIC holdings, US/EU equities, gold. 12 READY_NON_STRICT, 2 PARTIAL_READY, 0 unavailable. Nullable feature matrix: 5 098 D1 rows; block-specific ranges без imputation. |
+| Expanded Tier A grouped suite | v0.19 | REGISTERED | `denn-grouped-tier-a-1`: 16 features, 7 blocks, common complete-case без imputation; TIC исключён из-за короткой истории, age/decay оставлены для следующей отдельной ablation. |
 | DENN memory ablation | v0.17 | PLANNED | Baseline vs baseline+memory features (после state-vector suite). |
 | Wavelet coherence | v0.17 | PLANNED | Morlet time×frequency, trailing-only (после ablation). |
 

@@ -1,10 +1,7 @@
 """v0.18 Group-level (block) state-vector suite.
 
-The unit of analysis is the economic state BLOCK, not a single column.
-The v0.17 redundancy finding (spread_2y_z60: positive LOO ablation on every
-horizon, exactly 0% permutation importance — ridge zeroes the 2Y column as
-collinear with 10Y) indicates that 2Y and 10Y spreads are two projections of
-one latent factor (relative rates / policy differential). This suite measures
+The unit of analysis is the economic state BLOCK, not a single column. This
+suite measures
 block-level conditional contribution on the FROZEN v0.14 matrix:
 
 1. leave-one-block-out ablation — the Bonferroni family (one test per block),

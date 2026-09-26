@@ -30,6 +30,7 @@ fxlab denn-spectral-stability
 fxlab denn-timing-audit
 fxlab denn-state-vector
 fxlab denn-grouped
+fxlab denn-grouped-tier-a
 fxlab tier-a-fetch
 fxlab tier-a-features
 uvicorn fxlab.web:app --host 127.0.0.1 --port 8088
