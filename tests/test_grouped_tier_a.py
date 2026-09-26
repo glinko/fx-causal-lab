@@ -67,3 +67,9 @@ def test_loader_uses_complete_cases_without_imputation(tmp_path, monkeypatch):
     assert len(loaded) == 2600
     assert parent["dataset_id"] == "fixture"
     assert loaded[0]["feature_date"] == start
+
+
+def test_registered_sample_metadata_is_json_serializable():
+    config, _ = gt._load_config(CONFIG)
+    encoded = json.dumps(config["sample"], default=str)
+    assert '"expected_start_not_before": "2007-05-04"' in encoded
