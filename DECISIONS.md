@@ -306,3 +306,10 @@ Block-ablation (dMSE = изменение MSE при удалении ЦЕЛОГ
 - Folds в пользу memory: 2/14, 5/14, 6/14 и 7/14; exact two-sided sign p = 0.01294/0.42395/0.79053/1.0. Ни один тест не проходит Bonferroni 0.0125. На 1d bootstrap CI полностью ниже нуля, но это описательная оценка и зарегистрированный порог не пройден.
 - Aggregate treatment skill vs historical mean = −3.54%/−13.20%/−57.41%/−160.59% против baseline −0.68%/−3.41%/−14.22%/−21.44%. Простое добавление 13 temporal columns усиливает variance/overfitting, особенно на длинных горизонтах.
 - Вывод ограничен этой фиксированной линейной ridge-спецификацией и current-history входами. Он не доказывает бесполезность temporal operators вообще, но отвергает прямой переход к Dynamic GNN на основании этих признаков. Следующий допустимый model gate — структурированное уменьшение размерности/regularization, проверяемое отдельно.
+
+## 2026-09-26 — Пререгистрация fold-local block PCA v0.21
+
+- Протокол `denn-block-pca-1` заморожен в `config/block_pca.yaml` до первого запуска на реальной матрице. Выборка, 16 входных признаков, горизонты и annual folds совпадают с expanded Tier A suite.
+- Каждый из семи заранее определённых economic blocks сжимается в один first principal component correlation matrix. Means, scales и loadings оцениваются только на past rows соответствующего fold: отдельно на selection-train для выбора ridge lambda и на fit rows для финального test prediction.
+- Формальная статистика по каждому горизонту — `full_16_feature_mse − seven_block_state_mse`; положительное значение означает пользу компрессии. Семья = четыре горизонта, Bonferroni threshold 0.0125, exact paired sign test. Explained variance каждого состояния — diagnostic, а не критерий post-hoc отбора.
+- PCA является unsupervised linear compression и может потерять predictive направление с малой variance. Этот риск фиксируется до результата. Dynamic GNN остаётся заблокирован; положительный PCA результат поддержит экономическую block representation, отрицательный — необходимость другого regularization/data gate.

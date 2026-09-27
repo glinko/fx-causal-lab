@@ -1,0 +1,63 @@
+# v0.21 PRE-REGISTRATION: fold-local economic-block PCA compression.
+# Frozen before the first run on the real Tier A matrix.
+
+version: denn-block-pca-1
+parent_report: tier_a_features
+features:
+  - spread_2y_z60
+  - spread_10y_z60
+  - brent_asinh_change_20d
+  - wti_asinh_change_20d
+  - vix_z60
+  - eurusd_momentum_20d
+  - bk5_z60
+  - bk10_z60
+  - nfci_z60
+  - anfci_z60
+  - h41_tga_ratio_z252
+  - h41_rrp_ratio_z252
+  - h41_reserves_ratio_z252
+  - spx_ret_20d
+  - eu_ret_20d
+  - gold_ret_20d
+blocks:
+  - {name: rates, members: [spread_2y_z60, spread_10y_z60]}
+  - {name: energy, members: [brent_asinh_change_20d, wti_asinh_change_20d]}
+  - {name: risk_financial, members: [vix_z60, nfci_z60, anfci_z60]}
+  - {name: fx_state, members: [eurusd_momentum_20d]}
+  - {name: inflation_expectations, members: [bk5_z60, bk10_z60]}
+  - {name: fed_liquidity, members: [h41_tga_ratio_z252, h41_rrp_ratio_z252, h41_reserves_ratio_z252]}
+  - {name: cross_asset, members: [spx_ret_20d, eu_ret_20d, gold_ret_20d]}
+
+horizons: [1, 5, 20, 60]
+ridge_lambdas: [0.01, 0.1, 1.0, 10.0]
+minimum_train_rows: 750
+minimum_validation_rows: 100
+minimum_test_rows: 40
+sample:
+  method: same_complete_case_as_grouped_tier_a
+  expected_start_not_before: 2007-05-04
+  no_imputation: true
+
+compression:
+  method: first_principal_component_of_fold_local_correlation_matrix
+  components_per_block: 1
+  fit_scope: past_rows_only
+  power_iterations: 100
+comparison:
+  baseline: full_observed_state_16
+  treatment: seven_fold_local_block_states
+  fold_statistic: baseline_mse_minus_treatment_mse
+  positive_direction: compression_improves
+multiplicity:
+  alpha: 0.05
+  method: bonferroni_over_horizons
+  family_size: 4
+sign_test: paired_sign_test_over_folds
+bootstrap:
+  reps: 1000
+  seed: 42
+  statistic: mean_paired_fold_improvement
+
+strict_pit_eligible: false
+inference_status: non_strict_block_pca_current_history_without_vintages

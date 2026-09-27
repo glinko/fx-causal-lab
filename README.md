@@ -2,7 +2,7 @@
 
 Исследовательский MVP EUR/USD на Ubuntu: публичные источники, provenance, проверки доступности и веб-отчёты.
 
-Версия 0.20.0: отдельный пререгистрированный memory/age-decay ablation показал NULL — фиксированные EMA/decay признаки ухудшили OOS baseline на всех четырёх горизонтах. Dynamic GNN остаётся заблокирован.
+Версия 0.21.0: после memory NULL зарегистрирована fold-local PCA-компрессия 16 признаков в семь экономических состояний. Dynamic GNN остаётся заблокирован до результата этого gate.
 
 ```bash
 pip install -c requirements.lock '.[test]'
@@ -32,6 +32,7 @@ fxlab denn-state-vector
 fxlab denn-grouped
 fxlab denn-grouped-tier-a
 fxlab denn-memory-ablation
+fxlab denn-block-pca
 fxlab tier-a-fetch
 fxlab tier-a-features
 uvicorn fxlab.web:app --host 127.0.0.1 --port 8088
@@ -55,6 +56,8 @@ M4 даёт 267 выровненных строк. M5 использует 153 p
 `fxlab denn-grouped-tier-a` проверяет 16 признаков в 7 economic blocks на 4 639 complete-case D1 строках. Первый зарегистрированный прогон сохранил NULL после Bonferroni: лучший near-miss — rates на 1d (12/14 folds, p=0.01294 при пороге 0.00714); полная ridge-модель не превзошла historical mean ни на одном горизонте.
 
 `fxlab denn-memory-ablation` сравнивает эту же observed-state baseline с 13 заранее заданными EMA-memory и freshness-decay признаками. На 4 639 строках и 14 annual folds memory-вариант не улучшил ни один горизонт: skill vs mean равен −3.54%/−13.20%/−57.41%/−160.59% против baseline −0.68%/−3.41%/−14.22%/−21.44%. Все четыре формальных теста — NULL после Bonferroni 0.0125; отсутствующие значения не заполнялись.
+
+`fxlab denn-block-pca` строит по одному first principal component на каждый из семи economic blocks. Means, scales и loadings оцениваются заново только на прошлых строках каждого walk-forward fold; полный 16-feature ridge остаётся парным control.
 
 `fxlab denn-baseline` работает офлайн. Snapshot schema хранит `event_time`, nullable `published_at`/`available_at`/`revision_id`, фактический `ingested_at`, source, unit, source snapshot и quality. Пока исторические vintages не доказаны, все строки имеют `strict_pit_eligible=false`, а отчёт является честным non-strict benchmark, не торговой стратегией.
 
