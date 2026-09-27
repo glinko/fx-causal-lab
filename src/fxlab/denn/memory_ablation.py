@@ -20,6 +20,11 @@ UTC = timezone.utc
 CONFIG_PATH = Path(os.environ.get("FXLAB_PROJECT", ".")) / "config" / "memory_ablation.yaml"
 
 
+def _json_safe(value):
+    """Convert YAML-native dates in registered metadata to stable JSON strings."""
+    return json.loads(json.dumps(value, default=str))
+
+
 def _load_config(path: Path = CONFIG_PATH) -> tuple[dict, str]:
     body = path.read_bytes()
     config = yaml.safe_load(body)
@@ -170,7 +175,7 @@ def build_memory_ablation(config_path: Path = CONFIG_PATH) -> dict:
         "sample_rows": len(rows), "date_from": str(rows[0]["feature_date"]), "date_to": str(rows[-1]["feature_date"]),
         "baseline_features": list(config["baseline_features"]), "memory_features": memory_features,
         "decayed_features": config["decayed_features"], "horizons": list(config["horizons"]),
-        "sample": config["sample"], "bootstrap": config["bootstrap"],
+        "sample": _json_safe(config["sample"]), "bootstrap": _json_safe(config["bootstrap"]),
         "comparison": config["comparison"], "multiplicity": config["multiplicity"],
         "result": {label: {key: value for key, value in data.items() if key != "folds"}
                    for label, data in result.items()},

@@ -1,6 +1,7 @@
 """Contracts and deterministic signal test for the v0.20 memory ablation."""
 from datetime import date, timedelta
 from pathlib import Path
+import json
 import random
 
 import pytest
@@ -32,6 +33,8 @@ def test_config_freezes_features_half_lives_and_family():
     assert all(item["half_life_days"] > 0 for item in config["decayed_features"])
     assert config["sample"]["no_imputation"] is True
     assert len(digest) == 64
+    serialized = json.dumps(memory._json_safe(config["sample"]))
+    assert '"expected_start_not_before": "2007-05-04"' in serialized
 
 
 def test_config_rejects_overlap_and_nonpositive_half_life(tmp_path):
