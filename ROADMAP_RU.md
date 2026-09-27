@@ -40,7 +40,7 @@
 
 | Компонент | Статус | Результат |
 |---|---|---|
-| Ubuntu deployment | DONE | Сервис 0.21.0 работает в Docker на `192.168.88.15` с loopback bind `127.0.0.1:8088`; версия 0.22 зарегистрирована и ждёт первого расчёта. |
+| Ubuntu deployment | DONE | Сервис 0.22.0 работает в Docker на `192.168.88.15` с loopback bind `127.0.0.1:8088`; контейнер без root, read-only filesystem, отдельный data mount. |
 | CLI | DONE | Backfill, replay, normalization, alignment, experiments, graph, DENN и spectral-команды запускаются отдельно. |
 | Web research journal | DONE | Данные, quality reports, experiments, граф и downloadable manifests/Parquet доступны в браузере. |
 | Bronze / Silver / Gold | DONE | Raw snapshots отделены от нормализованных и исследовательских datasets. |
@@ -79,7 +79,7 @@
 | Expanded Tier A grouped suite | v0.19 | DONE non-strict | 4 639 rows, 14 folds, 7-block Bonferroni 0.00714: NULL на всех горизонтах. Rates 1d near-miss p=0.01294; full ridge skill vs mean −0.68%/−3.41%/−14.22%/−21.44%. Age/decay остаётся отдельным следующим тестом. |
 | DENN memory ablation | v0.20 | DONE non-strict | 4 639 rows, 14 folds; +13 fixed EMA/age-decay features ухудшили OOS MSE на всех горизонтах. Ни один тест не прошёл Bonferroni 0.0125; Dynamic GNN заблокирован. |
 | Fold-local block PCA | v0.21 | DONE non-strict | Aggregate MSE лучше full model на 1d/5d/20d/60d, skill +1.14%/−0.16%/−3.49%/+0.22%; paired sign tests не проходят Bonferroni 0.0125. |
-| Автоматический отбор показателей | v0.22 | REGISTERED | Та же выборка и те же годы; модель может отключать слабые признаки. Сравниваем ошибку с обычной 16-feature моделью и считаем, в скольких годах улучшение повторилось. |
+| Автоматический отбор показателей | v0.22 | DONE non-strict | Ошибка ниже обычной модели на всех сроках; лучше в 8/14, 8/14, 11/14 и 12/14 лет. На 1d качество +0.70% к простому среднему, на 5d почти вровень, на 20d/60d всё ещё хуже. |
 | Wavelet coherence | v0.17 | PLANNED | Morlet time×frequency, trailing-only (после ablation). |
 
 ### 3.3 Текущее покрытие данных
@@ -114,6 +114,7 @@
 9. Tier A v0.19 (2026-09-26): 14 рядов фактически загружены, нормализованы и сохранены. Feature matrix сохраняет NULL до modeled availability и использует block-specific overlap. Следующий этап — пререгистрированный expanded grouped suite, затем memory/decay ablation.
 10. Memory ablation v0.20 (2026-09-26): на той же 4 639-row complete-case выборке добавление 13 фиксированных EMA/age-decay признаков ухудшило aggregate MSE на 1d/5d/20d/60d. Treatment skill vs historical mean = −3.54%/−13.20%/−57.41%/−160.59%; формальный результат NULL после Bonferroni 0.0125. Простое расширение временными колонками не поддерживает переход к Dynamic GNN.
 11. Fold-local block PCA v0.21 (2026-09-26): семь unsupervised economic states улучшили aggregate OOS MSE на всех горизонтах и дали положительный skill на 1d (+1.14%) и 60d (+0.22%). Однако fold consistency = 7/14, 9/14, 10/14, 9/14; exact sign p = 1.0/0.424/0.180/0.424, поэтому formal result остаётся NULL. Это directional support block representation, а не подтверждённый прогнозный сигнал.
+12. Автоматический отбор v0.22 (2026-09-27): модель уменьшила ошибку относительно полного набора на всех сроках. На 60d улучшение было в 12 из 14 лет, но итог всё ещё на 13.40% хуже простого среднего. На 1d результат впервые слегка выше среднего (+0.70%), однако улучшение повторилось только в 8 из 14 лет. Вывод: удаление лишних показателей помогает, но ещё не даёт надёжного прогноза.
 
 ## 4. Definition of Done для нового источника
 
