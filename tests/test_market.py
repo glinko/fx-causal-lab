@@ -144,6 +144,26 @@ def test_bad_replay_checksum_keeps_current_dataset(tmp_path, monkeypatch):
     assert not (tmp_path / "silver").exists()
 
 
+def test_manifest_paths_are_portable_between_windows_and_linux(tmp_path, monkeypatch):
+    import fxlab.market as market
+    monkeypatch.setenv("FXLAB_DATA", str(tmp_path))
+
+    def fake_fetch(client, url, **kwargs):
+        if "/instruments/" in url:
+            return schedule(), META
+        return sample(), META
+
+    monkeypatch.setattr(market, "fetch_snapshot", fake_fetch)
+    report = market.backfill_bars(
+        date(2024, 1, 1),
+        date(2024, 1, 2),
+        offline=True,
+        cutoff=datetime(2024, 2, 1, tzinfo=UTC),
+    )
+    assert all("\\" not in path for path in report["files"].values())
+    assert all(path.startswith("silver/dukascopy/") for path in report["files"].values())
+
+
 def test_rate_limit_retries_with_conservative_delay(tmp_path, monkeypatch):
     import fxlab.market as market
     monkeypatch.setenv("FXLAB_DATA", str(tmp_path))

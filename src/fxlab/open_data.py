@@ -38,6 +38,7 @@ SERIES_META = {
 }
 
 REQUIRED_COMMON = ["EURUSD_REF", "US_2Y", "EA_2Y", "US_10Y", "EA_10Y", "BRENT", "WTI", "VIX"]
+REQUIRED_COMMON_MARKET = ["EURUSD", "US_2Y", "EA_2Y", "US_10Y", "EA_10Y", "BRENT", "WTI", "VIX"]
 
 INVENTORY_CANDIDATES = [
     {"series_id": "US_EQUITY", "title": "US equity index/proxy", "tier": "A", "status": "SOURCE_SELECTION",
@@ -245,21 +246,22 @@ def _coverage(series_id: str, values: list[tuple[date, float]], path: Path) -> d
             "status": status, "strict_pit_eligible": False, "file": path.relative_to(root()).as_posix()}
 
 
-def _write_common(series: dict[str, list[tuple[date, float]]], path: Path) -> dict:
-    maps = {name: dict(series[name]) for name in REQUIRED_COMMON}
+def _write_common(series: dict[str, list[tuple[date, float]]], path: Path,
+                  required_series: list[str] = REQUIRED_COMMON) -> dict:
+    maps = {name: dict(series[name]) for name in required_series}
     common = sorted(set.intersection(*(set(values) for values in maps.values())))
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(f".{uuid4().hex}.parquet.tmp")
-    columns = ",".join(f'"{name}" DOUBLE' for name in REQUIRED_COMMON)
-    placeholders = ",".join("?" for _ in range(len(REQUIRED_COMMON) + 1))
+    columns = ",".join(f'"{name}" DOUBLE' for name in required_series)
+    placeholders = ",".join("?" for _ in range(len(required_series) + 1))
     with duckdb.connect() as connection:
         connection.execute(f"CREATE TABLE common(observation_date DATE,{columns})")
         connection.executemany(f"INSERT INTO common VALUES ({placeholders})",
-                               [(day, *(maps[name][day] for name in REQUIRED_COMMON)) for day in common])
+                               [(day, *(maps[name][day] for name in required_series)) for day in common])
         connection.execute("COPY common TO ? (FORMAT PARQUET)", [str(temporary)])
     temporary.replace(path)
     return {"from": str(common[0]) if common else None, "to": str(common[-1]) if common else None,
-            "rows": len(common), "required_series": REQUIRED_COMMON, "file": path.relative_to(root()).as_posix()}
+            "rows": len(common), "required_series": required_series, "file": path.relative_to(root()).as_posix()}
 
 
 def build_open_data_coverage(start: date = date(2004, 9, 6), end: date | None = None, *,
@@ -340,6 +342,13 @@ def build_open_data_coverage(start: date = date(2004, 9, 6), end: date | None = 
         _write_series(_observation_rows(series_id, observations, meta["source_url"], meta["sha256"], meta["ingested_at"]), path)
         coverage.append(_coverage(series_id, observations, path))
     common = _write_common(values, root() / "gold" / "open_daily" / dataset_id / "common_d1.parquet")
+    common_market = None
+    if "EURUSD" in values:
+        common_market = _write_common(
+            values,
+            root() / "gold" / "open_daily" / dataset_id / "common_market_d1.parquet",
+            REQUIRED_COMMON_MARKET,
+        )
 
     existing = []
     for filename, series_id, title, frequency in (
@@ -360,6 +369,7 @@ def build_open_data_coverage(start: date = date(2004, 9, 6), end: date | None = 
         "existing_event_series": existing, "unavailable_series": unavailable_series,
         "candidates": INVENTORY_CANDIDATES,
         "optional_premium": OPTIONAL_PREMIUM, "common_overlap": common,
+        "common_market_overlap": common_market,
         "counts": {"integrated": len(coverage) + len(existing), "continuous_d1": len(coverage),
                    "ready": sum(row["status"] == "READY" for row in coverage),
                    "partial": sum(row["status"] == "PARTIAL" for row in coverage),
@@ -370,10 +380,12 @@ def build_open_data_coverage(start: date = date(2004, 9, 6), end: date | None = 
             "Downloaded history proves local availability and normalization, not historical point-in-time vintages.",
             "No missing weekday is forward-filled in source Parquet or the common inner-join grid.",
             "ECB AAA yield curves are model-estimated euro-area curves, not a directly traded sovereign instrument.",
-            "The long common grid uses the ECB EUR/USD daily reference rate; Dukascopy H1/NY17 D1 remains a separate tradable-price series.",
+            "The reference grid uses ECB EUR/USD; a second market grid uses complete Dukascopy NY17 D1 bars when available.",
             "Consensus is optional and does not block this dataset or the spectral MVP.",
         ],
-        "files": {"common_d1": common["file"], **{row["series_id"]: row["file"] for row in coverage}},
+        "files": {"common_d1": common["file"],
+                  **({"common_market_d1": common_market["file"]} if common_market else {}),
+                  **{row["series_id"]: row["file"] for row in coverage}},
     }
     atomic_json(root() / "reports" / "data_coverage.json", report)
     return report

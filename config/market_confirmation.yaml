@@ -1,0 +1,24 @@
+version: denn-market-confirmation-1
+
+# This check is frozen before viewing the Dukascopy comparison result.
+targets:
+  reference: EURUSD_REF
+  market: EURUSD
+
+registered_lags: [0, 1, 5, 20]
+rolling_window_sessions: 1024
+rolling_step_sessions: 256
+
+primary_check:
+  factor: SPREAD_2Y_CHANGE
+  lag_sessions: 1
+  expected_sign: negative
+  minimum_absolute_correlation: 0.05
+  minimum_rolling_sign_share: 0.75
+
+series:
+  SPREAD_2Y_CHANGE: {source: US_EA_2Y, transform: difference}
+  SPREAD_10Y_CHANGE: {source: US_EA_10Y, transform: difference}
+  BRENT_CHANGE: {source: BRENT, transform: asinh_difference, scale: 20.0}
+  WTI_CHANGE: {source: WTI, transform: asinh_difference, scale: 20.0}
+  VIX_RETURN: {source: VIX, transform: log_difference}

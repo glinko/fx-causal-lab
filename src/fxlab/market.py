@@ -288,7 +288,7 @@ def backfill_bars(start: date, end: date, *, offline=False, cutoff=None, pinned=
               "missing_expected_hours": len(missing), "rejected_rows": len(rejected), "outside_schedule": len(outside),
               "zero_volume_bars": sum(row["volume"] == 0 for row in hourly),
               "normalized_sha256": normalized_sha256,
-              "files": {key: str((folder / filename).relative_to(root())) for key, filename in
+              "files": {key: (folder / filename).relative_to(root()).as_posix() for key, filename in
                         [("h1", "h1.parquet"), ("d1", "d1.parquet"), ("gaps", "gaps.json"), ("quarantine", "quarantine.json")]},
               "snapshots": snapshots, "calendar": "NY 17:00 with current provider holiday metadata; UTC storage",
               "strict_pit_eligible": False,

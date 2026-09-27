@@ -2,8 +2,8 @@
 
 Эти вопросы являются очередью проверок, а не запросом очередного согласования пользователя.
 
-1. Выбрать публичный H1/D1 provider с достаточной глубиной, понятным часовым поясом и приемлемыми условиями использования. ECB reference rate не заменяет OHLC.
-2. Перепроверить неоднозначные timestamps в старом HistData и invalid OHLC Dukascopy до любого импорта. Не исправлять сезонный сдвиг без доказательств.
+1. [Данные закрыты в v0.24] Dukascopy даёт H1/D1 с 2004-09. Остаётся проверить условия длительного хранения/распространения и неизменность архива; ECB reference rate сохраняется как независимый контроль.
+2. [Проверено в v0.24] 13 invalid OHLC Dukascopy локализованы в октябре 2024 года и исключены без исправления. Старый HistData не импортируется.
 3. Для каждого macro series определить canonical ID, units, историческую глубину, календарь, original releases и vintages. HTTP 200 и один валидный sample не закрывают M0.
 4. FRED/ALFRED API требуют ключа; проверить публичные альтернативы для bootstrap, не выдавая current revised values за исторические vintages.
 5. US/DE 2Y: выбрать сопоставимые серии с доказанной частотой и временем доступности. Daily yields не подходят для измерения first-hour reaction.
@@ -17,7 +17,7 @@
 13. FOMC: найти независимое доказательство historical availability/receipt и архив изменений страниц. До этого точный официальный release time хранится отдельно от `available_at`.
 14. ECB: FOEDB и страницы релизов подтвердили 14:15 Europe/Berlin для текущего окна. Остаётся найти независимое доказательство historical receipt, архив изменений страниц и проверку исключений при расширении истории.
 15. M7 дал только 31 positioning-regime feature row после as-of и minimum-history фильтров; 114 событий не имеют доступной позиции, ещё 8 имеют недостаточную историю. Решить, расширять ли historical CFTC availability до любых formal contrasts.
-16. Завершить free/public continuous coverage: выбрать и документировать долгую US/EU equity proxy history и расширить EUR/USD до общего периода 2004/2005+.
+16. [Закрыто для текущего MVP] US/EU equity proxies загружены в v0.19, EUR/USD расширен до 2004-09 в v0.24. Следующий шаг — собрать общий набор на рыночном EUR/USD и повторить ключевые эксперименты.
 17. [Закрыто в v0.14] Реализованы deterministic DENN snapshots, decay kernels, шесть зафиксированных features и purged walk-forward benchmark. Все current-history строки явно non-strict.
 18. [Закрыто в v0.15] Реализованы фиксированный preprocessing contract, FFT/Welch bands, coherence/phase, Haar energy и lag scan. Full-sample maxima явно descriptive.
 19. [Закрыто в v0.16] Проверены fixed rolling/expanding spectral windows, modal band share, phase-direction consistency и заранее зарегистрированные lag 0/1/5/20. Результаты остаются descriptive non-strict.

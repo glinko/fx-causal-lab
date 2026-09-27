@@ -1,7 +1,7 @@
 # FX Causal Lab — выполненная работа и исследовательский роадмэп
 
-Статус документа: рабочий план после v0.16  
-Дата среза: 2026-09-25  
+Статус документа: рабочий план после v0.24  
+Дата среза: 2026-09-27  
 Основной объект: EUR/USD  
 Горизонты: 1, 5, 20 и 60 торговых сессий  
 Среда: Ubuntu, Python 3.12, Docker Compose, DuckDB/Parquet, CLI и веб-отчёты
@@ -57,7 +57,7 @@
 | Этап | Версия | Статус | Что доказано |
 |---|---:|---|---|
 | Начальный ECB reference pipeline | v0.1 | DONE | Raw snapshot, normalization, replay, web и базовая PIT schema работают сквозным образом. |
-| EUR/USD H1/D1 quality | v0.2 | PARTIAL | 18 667 валидных H1, 780 NY17 D1, 13 invalid OHLC в quarantine; три года истории. Historical immutability не доказана. |
+| EUR/USD H1/D1 quality | v0.24 | PARTIAL | 137 737 валидных H1, 5 744 NY17 D1 с 2004-09 по 2026-09; 5 732 дня полные. 21 отсутствующий час не заполнен, 13 неверных свечей исключены. Повторная сборка дала ту же контрольную сумму. Historical immutability не доказана. |
 | BLS CPI/NFP archive | v0.3 | PARTIAL | 70 releases и 105 headline observations с официальными embargo timestamps. `available_at` и consensus отсутствуют. |
 | CFTC EUR TFF | v0.4 | PARTIAL | 159 weekly rows; 38 conservative availability, 121 unknown. |
 | FOMC statements | v0.5 | PARTIAL | 25 решений с официальным release time и target range; historical receipt не доказан. |
@@ -81,6 +81,7 @@
 | Fold-local block PCA | v0.21 | DONE non-strict | Aggregate MSE лучше full model на 1d/5d/20d/60d, skill +1.14%/−0.16%/−3.49%/+0.22%; paired sign tests не проходят Bonferroni 0.0125. |
 | Автоматический отбор показателей | v0.22 | DONE non-strict | Ошибка ниже обычной модели на всех сроках; лучше в 8/14, 8/14, 11/14 и 12/14 лет. На 1d качество +0.70% к простому среднему, на 5d почти вровень, на 20d/60d всё ещё хуже. |
 | Сложные сочетания факторов | v0.23 | DONE non-strict | Новая модель хуже автоматического отбора на всех сроках и выигрывает только в 3/14, 2/14, 3/14 и 4/14 лет. Следующий приоритет — данные. |
+| Расширение открытых данных | v0.24 | DONE local / deployment pending | Длинный EUR/USD реально загружен и проверен; CFTC расширен до 2006 года; EIA stocks/production адаптер и воспроизводимый локальный прогон готовы. Перенос на Ubuntu ждёт восстановления связи с сервером. |
 | Wavelet coherence | v0.17 | PLANNED | Morlet time×frequency, trailing-only (после ablation). |
 
 ### 3.3 Текущее покрытие данных
@@ -88,7 +89,7 @@
 | Набор | Частота | Покрытие | Текущее применение | Главный пробел |
 |---|---|---|---|---|
 | ECB EUR/USD reference | D1 | 2004-09–2026-09 | Длинная continuous сетка | Не executable OHLC; historical availability unknown. |
-| Dukascopy EUR/USD | H1 / NY17 D1 | Около 3 лет | Market quality и event prototype | Нужна длинная история, условия использования и archive immutability. |
+| Dukascopy EUR/USD | H1 / NY17 D1 | 2004-09–2026-09 | Основной рыночный ряд и проверка результатов ECB reference | Условия использования и archive immutability ещё требуют проверки. |
 | U.S. Treasury 2Y/10Y | D1 | 2004+ | Spread features и spectral analysis | Нужен точный daily cutoff; current history non-strict. |
 | ECB euro-area AAA 2Y/10Y | D1 | 2004-09+ | Spread features и spectral analysis | Не sovereign German yield; timing и vintage semantics требуют проверки. |
 | US–EA 2Y/10Y spreads | D1 derived | Общий inner join | DENN/spectral factors | Наследуют ограничения обеих сторон. |
@@ -96,10 +97,10 @@
 | VIX | D1 | Длинная публичная история | Risk factor | Current-history, без historical vintage proof. |
 | BLS CPI/NFP | Event/monthly | 2023-09–2026-08 | Event alignment | Коротко; нет consensus и historical receipt. |
 | FOMC / ECB decisions | Event | 2023-09–2026-09 | Event alignment | Нет policy surprise factor и historical receipt. |
-| CFTC EUR TFF | Weekly | 2023-09–2026-09 | Positioning regimes | Коротко; 121 unknown availability; Futures Only. |
+| CFTC EUR TFF | Weekly | Адаптер 2006-06–2026-09; объединённый архив 2006–2016 проверен на 551 строке | Positioning regimes | Нужно завершить серверный прогон и восстановить реальные даты публикации; Futures Only. |
 | US/European equities | D1 | 2000+ / 2007+ | Tier A world-state | Публичные Yahoo proxies загружены; перед распространением нужен review условий использования. |
 | Gold | D1 | 2000+ | Tier A world-state | Публичный proxy загружен; перед распространением нужен review условий использования. |
-| EIA stocks / production | Weekly | Адаптер готов, загрузка ожидает сервер | Data expansion v0.24 | Историческое точное время выпуска отсутствует; используется явно отмеченная задержка до следующей пятницы. |
+| EIA stocks / production | Weekly | 2004-01–2026-09, 1 186 строк на ряд в локальной проверке | Data expansion v0.24 | Историческое точное время выпуска отсутствует; используется явно отмеченная задержка до следующей пятницы. |
 | TIC / credit | Monthly/D1 | TIC частично с 2020; credit/NFCI доступны | Tier A / частично | Нужны более длинный TIC и проверка старых выпусков. |
 | Historical consensus | Event/vintage | Нет | Недоступно | Optional paid source; не блокирует continuous MVP. |
 

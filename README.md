@@ -2,7 +2,7 @@
 
 Исследовательский MVP EUR/USD на Ubuntu: публичные источники, provenance, проверки доступности и веб-отчёты.
 
-Версия 0.22.0: автоматический отбор уменьшил ошибку на всех четырёх сроках, но устойчивого преимущества пока нет. На 1 день результат немного лучше простого среднего; на 20 и 60 дней модель всё ещё заметно хуже него.
+Версия 0.24.0: после неудачной проверки более сложной модели работа вернулась к данным. Загружена рыночная история EUR/USD с сентября 2004 года, расширен адаптер CFTC до 2006 года и добавлены недельные ряды EIA по запасам и добыче нефти.
 
 ```bash
 pip install -c requirements.lock '.[test]'
@@ -45,9 +45,9 @@ pytest -q
 
 [Веб-журнал](http://192.168.88.15:8088) · [Tier A world-state](http://192.168.88.15:8088/reports/tier-a) · [Memory ablation](http://192.168.88.15:8088/reports/denn-memory-ablation) · [Timing audit](http://192.168.88.15:8088/reports/denn-timing-audit) · [State-vector suite](http://192.168.88.15:8088/reports/denn-state-vector) · [Grouped suite](http://192.168.88.15:8088/reports/denn-grouped) · [Подробный roadmap](http://192.168.88.15:8088/reports/roadmap) · [Spectral stability](http://192.168.88.15:8088/reports/denn-spectral-stability) · [Data Coverage Matrix](http://192.168.88.15:8088/reports/data-coverage)
 
-18 667 валидных H1; 780 дневных сессий, из них 772 полные. 13 некорректных OHLC исключены. Пропуски не заполняются. H1 и D1 доступны в Parquet вместе с манифестом исходных снимков. Модель хранит отдельные timestamps, provenance и nullable consensus/vintages; неизвестная историческая доступность не допускается в строгие эксперименты.
+137 737 валидных H1 с сентября 2004 по сентябрь 2026 года; 5 744 дневные сессии, из них 5 732 полные. В истории найден 21 отсутствующий час. 13 некорректных свечей поставщика исключены, дубликатов нет. Пропуски не заполняются. Повторная сборка из сохранённых исходников дала тот же результат и ту же контрольную сумму.
 
-Open-data matrix содержит 11 continuous D1 series и два event datasets. Для spectral bootstrap общий inner-overlap по ECB EUR/USD reference, US/EA 2Y/10Y, Brent, WTI и VIX составляет 5 217 дат с 2004-09-07 по 2026-09-22. Dukascopy H1/NY17 D1 остаётся отдельным tradable-price рядом и пока покрывает три года; reference rate не выдаётся за OHLC.
+Open-data matrix содержит 11 continuous D1 series и два event datasets. Для spectral bootstrap общий период по ECB EUR/USD reference, US/EA 2Y/10Y, Brent, WTI и VIX составляет 5 217 дат с 2004-09-07 по 2026-09-22. Dukascopy H1/NY17 D1 теперь покрывает тот же длинный период и станет основной независимой проверкой результатов, ранее рассчитанных на справочном курсе ECB.
 
 Spectral stability использует 18 fixed rolling и 18 expanding окон. Full-sample monthly coherence для 2Y spread не является устойчиво доминирующей в rolling slices: максимальная modal-band share равна 44.4%. Зарегистрированная lag +1 корреляция spread changes с будущим EUR/USD сохраняет отрицательный знак во всех rolling windows, но окна перекрываются на 75%, inputs non-strict, а корреляция не является причинным эффектом.
 

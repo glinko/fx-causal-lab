@@ -64,13 +64,16 @@ def test_coverage_builds_actual_parquet_and_derived_spreads(tmp_path, monkeypatc
     report = open_data.build_open_data_coverage(date(2005, 1, 3), date(2005, 1, 4))
     assert report["counts"]["continuous_d1"] == 11
     assert report["common_overlap"]["rows"] == 2
+    assert report["common_market_overlap"]["rows"] == 2
     assert report["optional_premium"][0]["status"] == "OPTIONAL"
 
     spread = tmp_path / report["files"]["US_EA_2Y"]
     common = tmp_path / report["files"]["common_d1"]
+    market_common = tmp_path / report["files"]["common_market_d1"]
     with duckdb.connect() as connection:
         assert connection.execute("SELECT value FROM read_parquet(?) ORDER BY observation_date", [str(spread)]).fetchall() == [(0.5,), (1.0,)]
         assert connection.execute("SELECT count(*) FROM read_parquet(?)", [str(common)]).fetchone()[0] == 2
+        assert connection.execute('SELECT count(*), min("EURUSD") FROM read_parquet(?)', [str(market_common)]).fetchone() == (2, 1.0)
 
     def missing_eurusd(*_args):
         raise FileNotFoundError("Dukascopy D1 is absent")
@@ -81,4 +84,6 @@ def test_coverage_builds_actual_parquet_and_derived_spreads(tmp_path, monkeypatc
     assert without_auxiliary_price["counts"]["missing_optional"] == 1
     assert without_auxiliary_price["unavailable_series"][0]["series_id"] == "EURUSD"
     assert "EURUSD" not in without_auxiliary_price["files"]
+    assert "common_market_d1" not in without_auxiliary_price["files"]
+    assert without_auxiliary_price["common_market_overlap"] is None
     assert without_auxiliary_price["common_overlap"]["rows"] == 2
