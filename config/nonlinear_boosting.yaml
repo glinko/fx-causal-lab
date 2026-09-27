@@ -1,0 +1,62 @@
+# v0.23 PRE-REGISTRATION: nonlinear interactions on the frozen Tier A matrix.
+# Frozen before the first run on real data.
+
+version: denn-nonlinear-boosting-1
+parent_report: tier_a_features
+baseline_report: denn_elastic_net
+baseline_config: config/elastic_net.yaml
+features:
+  - spread_2y_z60
+  - spread_10y_z60
+  - brent_asinh_change_20d
+  - wti_asinh_change_20d
+  - vix_z60
+  - eurusd_momentum_20d
+  - bk5_z60
+  - bk10_z60
+  - nfci_z60
+  - anfci_z60
+  - h41_tga_ratio_z252
+  - h41_rrp_ratio_z252
+  - h41_reserves_ratio_z252
+  - spx_ret_20d
+  - eu_ret_20d
+  - gold_ret_20d
+
+horizons: [1, 5, 20, 60]
+gradient_boosting:
+  implementation: sklearn_hist_gradient_boosting
+  loss: squared_error
+  learning_rates: [0.03, 0.06]
+  max_leaf_nodes: [7, 15]
+  l2_regularizations: [0.1, 1.0]
+  max_iter: 200
+  min_samples_leaf: 30
+  max_bins: 63
+  early_stopping: false
+  random_state: 42
+  tie_break: simpler_model
+minimum_train_rows: 750
+minimum_validation_rows: 100
+minimum_test_rows: 40
+sample:
+  method: same_complete_case_as_grouped_tier_a
+  expected_start_not_before: 2007-05-04
+  no_imputation: true
+
+comparison:
+  baseline: elastic_net_with_the_frozen_v022_grid
+  treatment: nonlinear_gradient_boosted_trees_on_the_same_16_features
+  fold_statistic: baseline_mse_minus_treatment_mse
+  positive_direction: nonlinear_model_improves
+multiplicity:
+  alpha: 0.05
+  method: four_horizon_family
+  family_size: 4
+bootstrap:
+  reps: 1000
+  seed: 42
+  statistic: mean_paired_fold_improvement
+
+strict_pit_eligible: false
+inference_status: non_strict_nonlinear_current_history_without_vintages

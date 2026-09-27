@@ -122,6 +122,7 @@ def test_web_empty_and_loaded_data(tmp_path, monkeypatch):
     assert client.get("/reports/denn-memory-ablation").status_code == 200
     assert client.get("/reports/denn-block-pca").status_code == 200
     assert client.get("/reports/denn-elastic-net").status_code == 200
+    assert client.get("/reports/denn-nonlinear").status_code == 200
     assert client.get("/reports/tier-a").status_code == 200
     assert client.get("/reports/roadmap").status_code == 200
     assert client.get("/download/nonexistent").status_code == 404

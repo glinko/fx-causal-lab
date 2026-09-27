@@ -80,6 +80,7 @@
 | DENN memory ablation | v0.20 | DONE non-strict | 4 639 rows, 14 folds; +13 fixed EMA/age-decay features ухудшили OOS MSE на всех горизонтах. Ни один тест не прошёл Bonferroni 0.0125; Dynamic GNN заблокирован. |
 | Fold-local block PCA | v0.21 | DONE non-strict | Aggregate MSE лучше full model на 1d/5d/20d/60d, skill +1.14%/−0.16%/−3.49%/+0.22%; paired sign tests не проходят Bonferroni 0.0125. |
 | Автоматический отбор показателей | v0.22 | DONE non-strict | Ошибка ниже обычной модели на всех сроках; лучше в 8/14, 8/14, 11/14 и 12/14 лет. На 1d качество +0.70% к простому среднему, на 5d почти вровень, на 20d/60d всё ещё хуже. |
+| Сложные сочетания факторов | v0.23 | IN PROGRESS | Та же матрица, те же годы проверки; автоматический отбор сравнивается с деревьями, которые могут находить нелинейные сочетания. |
 | Wavelet coherence | v0.17 | PLANNED | Morlet time×frequency, trailing-only (после ablation). |
 
 ### 3.3 Текущее покрытие данных
@@ -96,8 +97,8 @@
 | BLS CPI/NFP | Event/monthly | 2023-09–2026-08 | Event alignment | Коротко; нет consensus и historical receipt. |
 | FOMC / ECB decisions | Event | 2023-09–2026-09 | Event alignment | Нет policy surprise factor и historical receipt. |
 | CFTC EUR TFF | Weekly | 2023-09–2026-09 | Positioning regimes | Коротко; 121 unknown availability; Futures Only. |
-| US/European equities | D1 | Нет интегрированного ряда | Недоступно | Нужно выбрать публичные proxies и реально скачать историю. |
-| Gold | D1 | Нет интегрированного ряда | Недоступно | Нужен публичный источник с понятными terms. |
+| US/European equities | D1 | 2000+ / 2007+ | Tier A world-state | Публичные Yahoo proxies загружены; перед распространением нужен review условий использования. |
+| Gold | D1 | 2000+ | Tier A world-state | Публичный proxy загружен; перед распространением нужен review условий использования. |
 | EIA fundamentals / TIC / credit | Weekly/monthly/D1 | Нет интегрированных рядов | Недоступно | Требуются adapters, release calendars и provenance. |
 | Historical consensus | Event/vintage | Нет | Недоступно | Optional paid source; не блокирует continuous MVP. |
 
