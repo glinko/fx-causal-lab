@@ -313,3 +313,11 @@ Block-ablation (dMSE = изменение MSE при удалении ЦЕЛОГ
 - Каждый из семи заранее определённых economic blocks сжимается в один first principal component correlation matrix. Means, scales и loadings оцениваются только на past rows соответствующего fold: отдельно на selection-train для выбора ridge lambda и на fit rows для финального test prediction.
 - Формальная статистика по каждому горизонту — `full_16_feature_mse − seven_block_state_mse`; положительное значение означает пользу компрессии. Семья = четыре горизонта, Bonferroni threshold 0.0125, exact paired sign test. Explained variance каждого состояния — diagnostic, а не критерий post-hoc отбора.
 - PCA является unsupervised linear compression и может потерять predictive направление с малой variance. Этот риск фиксируется до результата. Dynamic GNN остаётся заблокирован; положительный PCA результат поддержит экономическую block representation, отрицательный — необходимость другого regularization/data gate.
+
+### Fold-local block PCA: результат
+
+- Dataset `ba5206be60c9dfdee186`: 4 639 строк, 2007-05-04…2026-06-25, 14 folds на горизонт. Full-model control в точности воспроизводит expanded Tier A metrics.
+- Семь block states улучшают pooled OOS MSE на всех горизонтах. Skill vs historical mean становится +1.14%/−0.16%/−3.49%/+0.22% на 1d/5d/20d/60d против −0.68%/−3.41%/−14.22%/−21.44% у полной 16-feature модели.
+- Paired mean improvement положительна: +4.30e-7/+3.89e-6/+4.47e-5/+2.68e-4. Но folds в пользу compression = 7/14, 9/14, 10/14, 9/14; exact sign p = 1.0/0.42395/0.17957/0.42395. Ни один горизонт не проходит Bonferroni 0.0125; bootstrap CI также пересекает ноль.
+- Mean explained variance: rates 79%, energy 94%, risk/financial 76%, inflation expectations 95%, Fed liquidity 43%, cross-asset 62% (FX singleton 100%). Один компонент хорошо описывает energy/inflation, но слишком груб для liquidity и cross-asset.
+- Вывод: экономическая block representation directionally уменьшает переобучение и заслуживает следующей проверки regularization, однако её стабильность не доказана. Нельзя переходить к Dynamic GNN или называть этот результат торговым преимуществом. Следующий model gate — заранее зарегистрированная sparse/supervised regularization либо двухкомпонентная проверка только для заранее указанных многомерных блоков.

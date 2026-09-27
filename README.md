@@ -2,7 +2,7 @@
 
 Исследовательский MVP EUR/USD на Ubuntu: публичные источники, provenance, проверки доступности и веб-отчёты.
 
-Версия 0.21.0: после memory NULL зарегистрирована fold-local PCA-компрессия 16 признаков в семь экономических состояний. Dynamic GNN остаётся заблокирован до результата этого gate.
+Версия 0.21.0: fold-local PCA-компрессия 16 признаков в семь economic states улучшила aggregate OOS MSE на всех горизонтах, но не прошла paired sign-test multiplicity gate. Dynamic GNN остаётся заблокирован.
 
 ```bash
 pip install -c requirements.lock '.[test]'
@@ -58,6 +58,8 @@ M4 даёт 267 выровненных строк. M5 использует 153 p
 `fxlab denn-memory-ablation` сравнивает эту же observed-state baseline с 13 заранее заданными EMA-memory и freshness-decay признаками. На 4 639 строках и 14 annual folds memory-вариант не улучшил ни один горизонт: skill vs mean равен −3.54%/−13.20%/−57.41%/−160.59% против baseline −0.68%/−3.41%/−14.22%/−21.44%. Все четыре формальных теста — NULL после Bonferroni 0.0125; отсутствующие значения не заполнялись.
 
 `fxlab denn-block-pca` строит по одному first principal component на каждый из семи economic blocks. Means, scales и loadings оцениваются заново только на прошлых строках каждого walk-forward fold; полный 16-feature ridge остаётся парным control.
+
+Первый зарегистрированный прогон дал directional, но не формальный результат: block states улучшили skill vs mean с −0.68%/−3.41%/−14.22%/−21.44% до +1.14%/−0.16%/−3.49%/+0.22%. Folds в пользу compression = 7/14, 9/14, 10/14 и 9/14; ни один p-value не прошёл Bonferroni 0.0125.
 
 `fxlab denn-baseline` работает офлайн. Snapshot schema хранит `event_time`, nullable `published_at`/`available_at`/`revision_id`, фактический `ingested_at`, source, unit, source snapshot и quality. Пока исторические vintages не доказаны, все строки имеют `strict_pit_eligible=false`, а отчёт является честным non-strict benchmark, не торговой стратегией.
 

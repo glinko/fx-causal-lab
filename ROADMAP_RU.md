@@ -40,7 +40,7 @@
 
 | Компонент | Статус | Результат |
 |---|---|---|
-| Ubuntu deployment | DONE | Сервис 0.20.0 работает в Docker на `192.168.88.15` с loopback bind `127.0.0.1:8088`; контейнер без root, read-only filesystem, отдельный data mount. v0.21 зарегистрирован, но ещё не развёрнут. |
+| Ubuntu deployment | DONE | Сервис 0.21.0 работает в Docker на `192.168.88.15` с loopback bind `127.0.0.1:8088`; контейнер без root, read-only filesystem, отдельный data mount. |
 | CLI | DONE | Backfill, replay, normalization, alignment, experiments, graph, DENN и spectral-команды запускаются отдельно. |
 | Web research journal | DONE | Данные, quality reports, experiments, граф и downloadable manifests/Parquet доступны в браузере. |
 | Bronze / Silver / Gold | DONE | Raw snapshots отделены от нормализованных и исследовательских datasets. |
@@ -78,7 +78,7 @@
 | Tier A world-state acquisition | v0.19 | DONE non-strict | Реально загружены 14 рядов: inflation compensation/TIPS, NFCI/ANFCI, H.4.1 liquidity, TIC holdings, US/EU equities, gold. 12 READY_NON_STRICT, 2 PARTIAL_READY, 0 unavailable. Nullable feature matrix: 5 098 D1 rows; block-specific ranges без imputation. |
 | Expanded Tier A grouped suite | v0.19 | DONE non-strict | 4 639 rows, 14 folds, 7-block Bonferroni 0.00714: NULL на всех горизонтах. Rates 1d near-miss p=0.01294; full ridge skill vs mean −0.68%/−3.41%/−14.22%/−21.44%. Age/decay остаётся отдельным следующим тестом. |
 | DENN memory ablation | v0.20 | DONE non-strict | 4 639 rows, 14 folds; +13 fixed EMA/age-decay features ухудшили OOS MSE на всех горизонтах. Ни один тест не прошёл Bonferroni 0.0125; Dynamic GNN заблокирован. |
-| Fold-local block PCA | v0.21 | REGISTERED | 16 observed features → 7 economic states; PCA fit only on past rows inside each fold, paired four-horizon family, Bonferroni 0.0125. |
+| Fold-local block PCA | v0.21 | DONE non-strict | Aggregate MSE лучше full model на 1d/5d/20d/60d, skill +1.14%/−0.16%/−3.49%/+0.22%; paired sign tests не проходят Bonferroni 0.0125. |
 | Wavelet coherence | v0.17 | PLANNED | Morlet time×frequency, trailing-only (после ablation). |
 
 ### 3.3 Текущее покрытие данных
@@ -112,6 +112,7 @@
 8. Grouped (block) suite v0.18 (2026-09-26): пререгистрированная семья 4 leave-one-block-out ablations подтверждает NULL. Направленный near-miss: rates 60d dMSE +3.7e-05 (p = 0.33), redundancy/synergy gap +5.9e-05. После fold-local permutation 1d importance: rates +3.08%, energy +1.12%, fx_state +0.78%, risk +0.08%. Вывод прежний: расширять world-state, а не продолжать подбор на тех же шести колонках.
 9. Tier A v0.19 (2026-09-26): 14 рядов фактически загружены, нормализованы и сохранены. Feature matrix сохраняет NULL до modeled availability и использует block-specific overlap. Следующий этап — пререгистрированный expanded grouped suite, затем memory/decay ablation.
 10. Memory ablation v0.20 (2026-09-26): на той же 4 639-row complete-case выборке добавление 13 фиксированных EMA/age-decay признаков ухудшило aggregate MSE на 1d/5d/20d/60d. Treatment skill vs historical mean = −3.54%/−13.20%/−57.41%/−160.59%; формальный результат NULL после Bonferroni 0.0125. Простое расширение временными колонками не поддерживает переход к Dynamic GNN.
+11. Fold-local block PCA v0.21 (2026-09-26): семь unsupervised economic states улучшили aggregate OOS MSE на всех горизонтах и дали положительный skill на 1d (+1.14%) и 60d (+0.22%). Однако fold consistency = 7/14, 9/14, 10/14, 9/14; exact sign p = 1.0/0.424/0.180/0.424, поэтому formal result остаётся NULL. Это directional support block representation, а не подтверждённый прогнозный сигнал.
 
 ## 4. Definition of Done для нового источника
 
