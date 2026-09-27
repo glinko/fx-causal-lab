@@ -112,6 +112,7 @@ def test_web_empty_and_loaded_data(tmp_path, monkeypatch):
     assert client.get("/reports/acquisition-review").status_code == 200
     assert client.get("/reports/data-coverage").status_code == 200
     assert client.get("/reports/denn").status_code == 200
+    assert client.get("/reports/anyjev").status_code == 200
     assert client.get("/reports/denn-baseline").status_code == 200
     assert client.get("/reports/denn-spectral").status_code == 200
     assert client.get("/reports/denn-spectral-stability").status_code == 200

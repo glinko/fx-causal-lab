@@ -2,7 +2,7 @@
 
 Исследовательский MVP EUR/USD на Ubuntu: публичные источники, provenance, проверки доступности и веб-отчёты.
 
-Версия 0.27.0: к прогнозу на рыночном EUR/USD добавлены позиции CFTC, открытый интерес, запасы нефти и добыча EIA. Автоматический отбор частично исправил слабую исходную модель, но новые данные не обошли простой ориентир ни на одном сроке.
+Версия 0.27.1: проверена схема внедрения AnyJev поверх отдельного Qwen3-8B runtime. Зафиксированы устройство сервисов, четыре прогнозных вопроса, последовательное обучение без знания будущего и сравнение в долларах. Текущий Qwen3.8-27B Hermes остаётся рабочим и не заменяется.
 
 ```bash
 pip install -c requirements.lock '.[test]'
@@ -44,7 +44,7 @@ uvicorn fxlab.web:app --host 127.0.0.1 --port 8088
 pytest -q
 ```
 
-[Веб-журнал](http://192.168.88.15:8088) · [Tier A world-state](http://192.168.88.15:8088/reports/tier-a) · [Memory ablation](http://192.168.88.15:8088/reports/denn-memory-ablation) · [Timing audit](http://192.168.88.15:8088/reports/denn-timing-audit) · [State-vector suite](http://192.168.88.15:8088/reports/denn-state-vector) · [Grouped suite](http://192.168.88.15:8088/reports/denn-grouped) · [Подробный roadmap](http://192.168.88.15:8088/reports/roadmap) · [Spectral stability](http://192.168.88.15:8088/reports/denn-spectral-stability) · [Data Coverage Matrix](http://192.168.88.15:8088/reports/data-coverage)
+[Веб-журнал](http://192.168.88.15:8088) · [Tier A world-state](http://192.168.88.15:8088/reports/tier-a) · [Memory ablation](http://192.168.88.15:8088/reports/denn-memory-ablation) · [Timing audit](http://192.168.88.15:8088/reports/denn-timing-audit) · [State-vector suite](http://192.168.88.15:8088/reports/denn-state-vector) · [Grouped suite](http://192.168.88.15:8088/reports/denn-grouped) · [План AnyJev](http://192.168.88.15:8088/reports/anyjev) · [Подробный roadmap](http://192.168.88.15:8088/reports/roadmap) · [Spectral stability](http://192.168.88.15:8088/reports/denn-spectral-stability) · [Data Coverage Matrix](http://192.168.88.15:8088/reports/data-coverage)
 
 137 737 валидных H1 с сентября 2004 по сентябрь 2026 года; 5 744 дневные сессии, из них 5 732 полные. В истории найден 21 отсутствующий час. 13 некорректных свечей поставщика исключены, дубликатов нет. Пропуски не заполняются. Повторная сборка из сохранённых исходников дала тот же результат и ту же контрольную сумму.
 
@@ -88,4 +88,4 @@ Spectral baseline использует 5 216 aligned changes и 39 перекр�
 
 Старый `fxlab acquisition-audit` сохранён как первый CPI/NFP event-study prototype с tick/M1 проверкой. Его vendor-часть не определяет приоритет проекта.
 
-См. DECISIONS.md, OPEN_QUESTIONS.md, DEPLOYMENT.md. `docs/SPEC_RU.md` — исходная спецификация, `docs/DENN_SPEC_RU.md` — текущая research architecture; решения пользователя имеют приоритет. Существующие сайты Caddy не изменяются.
+См. DECISIONS.md, OPEN_QUESTIONS.md, DEPLOYMENT.md. `docs/SPEC_RU.md` — исходная спецификация, `docs/DENN_SPEC_RU.md` — текущая research architecture, `docs/ANYJEV_INTEGRATION_RU.md` — проверенная схема AnyJev/Qwen; решения пользователя имеют приоритет. Существующие сайты Caddy не изменяются.
