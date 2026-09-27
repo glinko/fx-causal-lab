@@ -4,7 +4,7 @@ from datetime import date, timedelta
 
 import duckdb
 
-from fxlab.denn.market_confirmation import build_market_confirmation
+from fxlab.denn.market_confirmation import _canonical, build_market_confirmation
 
 
 def _common_file(path, target_name, prices, rows):
@@ -56,3 +56,7 @@ def test_market_confirmation_is_reproducible(tmp_path, monkeypatch):
     assert {row["target"] for row in first["rolling_summaries"]} == {"market", "reference"}
     for relative in first["files"].values():
         assert (tmp_path / relative).exists()
+
+
+def test_canonical_result_ignores_platform_last_bit_noise():
+    assert _canonical({"value": 0.10129883812093335}) == _canonical({"value": 0.1012988381209334})

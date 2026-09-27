@@ -69,6 +69,17 @@ def _lagged(left: list[float], right: list[float], lag: int) -> tuple[list[float
     return (left[:-lag], right[lag:]) if lag else (left, right)
 
 
+def _canonical(value):
+    """Remove harmless last-bit differences between math libraries on Windows and Linux."""
+    if isinstance(value, float):
+        return round(value, 14)
+    if isinstance(value, list):
+        return [_canonical(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _canonical(item) for key, item in value.items()}
+    return value
+
+
 def _load_inputs() -> tuple[list, dict[str, list[float]], dict]:
     report_path = root() / "reports" / "data_coverage.json"
     if not report_path.exists():
@@ -174,7 +185,7 @@ def build_market_confirmation(config_path: Path = CONFIG_PATH) -> dict:
         }, "full": full_rows, "rolling": rolling_rows, "summaries": summaries,
     }
     normalized_hash = hashlib.sha256(json.dumps(
-        normalized, sort_keys=True, default=str, separators=(",", ":"), allow_nan=False
+        _canonical(normalized), sort_keys=True, default=str, separators=(",", ":"), allow_nan=False
     ).encode()).hexdigest()
     dataset_id = normalized_hash[:20]
     folder = root() / "gold" / "denn_market_confirmation" / dataset_id
