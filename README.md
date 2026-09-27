@@ -51,6 +51,8 @@ M4 даёт 267 выровненных строк. M5 использует 153 p
 
 `fxlab tier-a-fetch` независимо загружает и нормализует 14 world-state рядов. `fxlab tier-a-features` строит nullable as-of матрицу с отдельным common interval для каждого economic block; pre-release и unavailable значения не имитируются.
 
+`fxlab denn-grouped-tier-a` проверяет 16 признаков в 7 economic blocks на 4 639 complete-case D1 строках. Первый зарегистрированный прогон сохранил NULL после Bonferroni: лучший near-miss — rates на 1d (12/14 folds, p=0.01294 при пороге 0.00714); полная ridge-модель не превзошла historical mean ни на одном горизонте.
+
 `fxlab denn-baseline` работает офлайн. Snapshot schema хранит `event_time`, nullable `published_at`/`available_at`/`revision_id`, фактический `ingested_at`, source, unit, source snapshot и quality. Пока исторические vintages не доказаны, все строки имеют `strict_pit_eligible=false`, а отчёт является честным non-strict benchmark, не торговой стратегией.
 
 Первый реальный baseline содержит 41 736 snapshots, 5 098 feature rows, 68 годовых folds и 14 548 out-of-sample predictions. Ridge с шестью factors не превзошёл historical-mean baseline: aggregate skill равен −0.01%, −1.47%, −5.80% и −0.80% для 1d/5d/20d/60d. Это зафиксированный null result и контроль для следующего spectral этапа.

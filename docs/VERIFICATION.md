@@ -198,3 +198,11 @@ Remaining: original macro releases, actual publication times, historical revisio
 - The roadmap preserves consensus as optional, requires an independent long tradable EUR/USD series, and keeps strict/non-strict experiments, three prediction modes and null results separate.
 - Local verification: 74 tests passed. The rendered report contains 11 level-two sections, 24 level-three sections, eight tables and 81 table rows with no browser console errors or page-level overflow at the inspected 652px viewport.
 - This documentation release creates no new dataset and changes no prior research result or strict-PIT status.
+## Version 0.19.0 audit, Tier A and expanded grouped suite — 2026-09-26
+
+- GitHub `master` includes the reviewed v0.17/v0.18 server work plus audit corrections: off-by-one feature labels fixed, permutation restricted to each walk-forward fold, timing inference moved to circular moving-block residual bootstrap.
+- Full container suite passed: 108 tests. Timing/state/grouped/Tier A report pages and JSON downloads returned HTTP 200 against the real server data.
+- Tier A acquisition downloaded and normalized 14 series: 12 READY_NON_STRICT, 2 PARTIAL_READY, 0 unavailable. The feature matrix contains 5 098 rows; missing values remain NULL.
+- `denn-grouped-tier-a-1` was committed before its first successful run. Dataset `f961f3fb24b18a063caf` contains 4 639 complete-case rows (2007-05-04…2026-06-25) and 14 folds per horizon.
+- Formal result: no block passes Bonferroni 0.05/7. Full-model skill vs historical mean is −0.68%, −3.41%, −14.22% and −21.44% for 1d/5d/20d/60d. The 1d rates block is a non-confirmed near-miss (12/14 folds, p=0.01294 > 0.00714).
+- Ubuntu checkout `/home/alex/fx-causal-lab` is synchronized with GitHub; service image `fx-causal-lab:0.19.0` is healthy on loopback port 8088.

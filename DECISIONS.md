@@ -283,3 +283,11 @@ Block-ablation (dMSE = изменение MSE при удалении ЦЕЛОГ
 - Одна common complete-case выборка без imputation; 16 признаков объединены в 7 блоков: rates, energy, risk/financial conditions, FX state, inflation expectations, Fed liquidity и cross-asset. Формальная семья: 7 leave-one-block-out ablations, Bonferroni 0.05/7; fold-local block permutation и within-block correlations остаются диагностикой.
 - TIC не включён: доступный интервал 2021+ не оставляет выборки после шестилетнего train burn-in и отдельного validation года. Age/decay признаки не включены, чтобы не смешивать расширение observed state с отдельной memory-ablation гипотезой.
 - Критерий перехода: сначала сохранить полный NULL/positive результат этой фиксированной линейной модели; только затем запускать отдельную memory/decay ablation. Dynamic GNN по-прежнему заблокирован.
+
+### Expanded Tier A grouped suite: результат
+
+- Dataset `f961f3fb24b18a063caf`: 4 639 complete-case строк, 2007-05-04…2026-06-25; 14 walk-forward folds на каждом горизонте. Ни один из 7 блоков не проходит Bonferroni 0.00714 — формальный результат NULL.
+- Полная 16-feature ridge-модель не превосходит historical mean: skill −0.68% / −3.41% / −14.22% / −21.44% для 1d/5d/20d/60d. Расширение observed state без дополнительной regularization/structure усиливает переобучение на длинных горизонтах.
+- Ближайший положительный кандидат: rates на 1d, ablation ΔMSE +3.34e-7, 12/14 folds, sign p=0.01294; это не проходит зарегистрированный порог. Rates остаётся descriptively наиболее устойчивым блоком: fold-local permutation +3.43%/+3.21%/+0.79%/+3.67% на 1d/5d/20d/60d.
+- Energy имеет отрицательную ablation delta на всех горизонтах; на 20d/60d удаление блока улучшает модель (p=0.057, вне зарегистрированного порога). Cross-asset даёт большую permutation sensitivity на 60d (+7.71%), но его ablation delta отрицательна; reliance модели не является полезным OOS contribution.
+- Inflation expectations, financial conditions и Fed liquidity не дают зарегистрированного положительного эффекта в этой линейной спецификации. Это не исключает conditional/temporal вклад; следующая отдельная гипотеза — age/decay memory ablation, без изменения текущего NULL-результата.
