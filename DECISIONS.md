@@ -298,3 +298,11 @@ Block-ablation (dMSE = изменение MSE при удалении ЦЕЛОГ
 - Treatment добавляет 13 заранее заданных temporal features: шесть EMA-memory состояний из deterministic baseline и семь freshness-decay состояний для inflation expectations, NFCI/ANFCI и H.4.1. Half-life фиксирован до просмотра результата: 30 календарных дней для inflation expectations, 14 дней для weekly financial/liquidity observations.
 - Формальная семья содержит четыре paired walk-forward теста, по одному на 1d/5d/20d/60d. Статистика fold-level = `baseline_mse - treatment_mse`; положительный знак означает улучшение memory-варианта. Exact sign test проходит только при p < 0.0125; bootstrap CI остаётся описательной оценкой размера эффекта.
 - Ни half-life, ни набор признаков не оптимизируются по test folds. Эксперимент остаётся non-strict из-за current-history входов. Dynamic GNN не разрешён до сохранения этого результата и следующего review gate.
+
+### Memory / age-decay ablation: результат
+
+- Dataset `340e1d29e6a3b81a27b2`: 4 639 complete-case строк, 2007-05-04…2026-06-25, 14 annual walk-forward folds на каждом горизонте. Baseline в точности воспроизводит expanded Tier A aggregate metrics.
+- Ни один горизонт не показывает положительного зарегистрированного результата. Средняя paired improvement (`baseline MSE − treatment MSE`) отрицательна: −6.91e-7 / −1.14e-5 / −1.76e-4 / −1.82e-3 для 1d/5d/20d/60d.
+- Folds в пользу memory: 2/14, 5/14, 6/14 и 7/14; exact two-sided sign p = 0.01294/0.42395/0.79053/1.0. Ни один тест не проходит Bonferroni 0.0125. На 1d bootstrap CI полностью ниже нуля, но это описательная оценка и зарегистрированный порог не пройден.
+- Aggregate treatment skill vs historical mean = −3.54%/−13.20%/−57.41%/−160.59% против baseline −0.68%/−3.41%/−14.22%/−21.44%. Простое добавление 13 temporal columns усиливает variance/overfitting, особенно на длинных горизонтах.
+- Вывод ограничен этой фиксированной линейной ridge-спецификацией и current-history входами. Он не доказывает бесполезность temporal operators вообще, но отвергает прямой переход к Dynamic GNN на основании этих признаков. Следующий допустимый model gate — структурированное уменьшение размерности/regularization, проверяемое отдельно.

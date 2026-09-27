@@ -179,7 +179,7 @@ sudo docker compose exec web fxlab denn-baseline
 ```bash
 sudo docker run --rm --network none --user 1000:1000 \
   -e FXLAB_DATA=/app/data -e FXLAB_PROJECT=/app \
-  -v /home/alex/fx-causal-lab/data:/app/data fx-causal-lab:0.19.0 fxlab denn-baseline
+  -v /home/alex/fx-causal-lab/data:/app/data fx-causal-lab:0.20.0 fxlab denn-baseline
 ```
 
 Все входы current-history имеют `strict_pit_eligible=false`; `published_at`, `available_at` и `revision_id` остаются null, пока исторические vintages не доказаны. Для ежедневного observation известна дата, но не точное intraday время. Это exploratory OOS benchmark, а не causal или trading result.
