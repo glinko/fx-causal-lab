@@ -98,7 +98,7 @@
 | VIX | D1 | Длинная публичная история | Risk factor | Current-history, без historical vintage proof. |
 | BLS CPI/NFP | Event/monthly | 2023-09–2026-08 | Event alignment | Коротко; нет consensus и historical receipt. |
 | FOMC / ECB decisions | Event | 2023-09–2026-09 | Event alignment | Нет policy surprise factor и historical receipt. |
-| CFTC EUR TFF | Weekly | Адаптер 2006-06–2026-09; объединённый архив 2006–2016 проверен на 551 строке | Positioning regimes | Нужно завершить серверный прогон и восстановить реальные даты публикации; Futures Only. |
+| CFTC EUR TFF | Weekly | 2006-06–2026-09, 1 059 строк | Positioning regimes | Только 39 последних строк имеют консервативную дату доступности; для 1 020 старых строк время публикации неизвестно. Futures Only. |
 | US/European equities | D1 | 2000+ / 2007+ | Tier A world-state | Публичные Yahoo proxies загружены; перед распространением нужен review условий использования. |
 | Gold | D1 | 2000+ | Tier A world-state | Публичный proxy загружен; перед распространением нужен review условий использования. |
 | EIA stocks / production | Weekly | 2004-01–2026-09, 1 186 строк на ряд в локальной проверке | Data expansion v0.24 | Историческое точное время выпуска отсутствует; используется явно отмеченная задержка до следующей пятницы. |

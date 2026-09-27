@@ -276,8 +276,8 @@ def replay_bls_releases(manifest: Path | dict) -> dict:
         "indicators": {indicator: sum(row["indicator"] == indicator for row in observations)
                        for indicator in sorted({row["indicator"] for row in observations})},
         "first_published_at": events[0]["published_at"].isoformat(), "last_published_at": events[-1]["published_at"].isoformat(),
-        "files": {"releases": str((folder / "releases.parquet").relative_to(root())),
-                  "observations": str((folder / "observations.parquet").relative_to(root())) if observations else None},
+        "files": {"releases": (folder / "releases.parquet").relative_to(root()).as_posix(),
+                  "observations": (folder / "observations.parquet").relative_to(root()).as_posix() if observations else None},
         "snapshots": snapshots, "strict_pit_eligible": False,
         "limitations": [
             "Archived release pages preserve first-release wording, but may contain later corrections or reissues.",

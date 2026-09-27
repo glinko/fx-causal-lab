@@ -236,7 +236,7 @@ def replay_cftc(manifest: Path | dict) -> dict:
               "unknown_availability_rows": sum(row["available_at"] is None for row in rows),
               "non_tuesday_rows": sum(datetime.fromisoformat(row["report_date"]).weekday() != 1 for row in rows),
               "normalized_sha256": normalized_sha256,
-              "files": {"positions": str((folder/"eur_tff.parquet").relative_to(root()))},
+              "files": {"positions": (folder/"eur_tff.parquet").relative_to(root()).as_posix()},
               "snapshots": source["snapshots"], "strict_pit_eligible": False,
               "limitations": [
                   "Report date describes Tuesday positions and is never used as feature availability.",

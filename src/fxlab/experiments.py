@@ -164,7 +164,7 @@ def build_baseline_experiments() -> dict:
         "bh_q_below_005": sum(row["q_value_bh"] is not None and row["q_value_bh"] < .05 for row in results),
         "strict_pit_rows": 0, "replications": REPLICATIONS,
         "replication_status": {"available": 0, "unavailable": len(REPLICATIONS)},
-        "files": {"results": str((folder/"results.parquet").relative_to(root()))},
+        "files": {"results": (folder/"results.parquet").relative_to(root()).as_posix()},
         "method": {
             "sample": "pre_event BLS/FOMC/ECB rows; CFTC schedule events excluded",
             "estimand": "unconditional mean EUR/USD return after an event boundary",

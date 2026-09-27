@@ -197,7 +197,7 @@ def replay_ecb_policy(manifest: Path | dict) -> dict:
               "hikes": sum(row["deposit_change_bp"] is not None and row["deposit_change_bp"] > 0 for row in rows),
               "unknown_availability_rows": sum(row["available_at"] is None for row in rows),
               "normalized_sha256": normalized_sha256,
-              "files": {"decisions": str((folder/"decisions.parquet").relative_to(root()))},
+              "files": {"decisions": (folder/"decisions.parquet").relative_to(root()).as_posix()},
               "snapshots": source["snapshots"], "strict_pit_eligible": False,
               "limitations": [
                   "FOEDB supplies the exact 14:15 Frankfurt publication timestamp and official page URL.",

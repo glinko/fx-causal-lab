@@ -215,7 +215,7 @@ def build_event_targets() -> dict:
                             for horizon in HORIZONS},
         "strict_pit_rows": sum(row["strict_pit_eligible"] for row in aligned),
         "exclusions": {**exclusions, "rows_without_market_anchor": no_market_anchor},
-        "inputs": inputs, "files": {"event_targets": str((folder/"event_targets.parquet").relative_to(root()))},
+        "inputs": inputs, "files": {"event_targets": (folder/"event_targets.parquet").relative_to(root()).as_posix()},
         "limitations": [
             "Targets use the first H1 open at or after prediction_time and NY17 session closes at 1/5/20/60 trading-session horizons.",
             "An incomplete D1 session invalidates that horizon and every longer horizon; it is never skipped.",

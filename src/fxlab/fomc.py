@@ -178,7 +178,7 @@ def replay_fomc(manifest: Path | dict) -> dict:
               "hikes": sum(row["rate_change_bp"] is not None and row["rate_change_bp"] > 0 for row in rows),
               "unknown_availability_rows": sum(row["available_at"] is None for row in rows),
               "normalized_sha256": normalized_sha256,
-              "files": {"statements": str((folder/"statements.parquet").relative_to(root()))},
+              "files": {"statements": (folder/"statements.parquet").relative_to(root()).as_posix()},
               "snapshots": source["snapshots"], "strict_pit_eligible": False,
               "limitations": [
                   "Each statement supplies an exact release time and target range; the archived page may later be updated.",
