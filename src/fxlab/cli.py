@@ -66,6 +66,7 @@ def main():
     commands.add_parser("denn-state-vector", help="Run the v0.17 joint-state suite: interactions, LOO ablation, permutation importance, regime slices")
     commands.add_parser("denn-grouped", help="Run the v0.18 group-level suite: leave-one-block-out ablation, block permutation, within-block collinearity")
     commands.add_parser("denn-grouped-tier-a", help="Run the pre-registered expanded Tier A economic-block suite")
+    commands.add_parser("denn-memory-ablation", help="Compare registered observed-state and age/decay memory variants")
     replay = commands.add_parser("replay", help="Normalize preserved ECB snapshot offline")
     replay.add_argument("metadata", type=Path)
     replay.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 23))
@@ -161,6 +162,9 @@ def main():
     elif args.command == "denn-grouped-tier-a":
         from .denn import build_grouped_tier_a
         result = build_grouped_tier_a()
+    elif args.command == "denn-memory-ablation":
+        from .denn import build_memory_ablation
+        result = build_memory_ablation()
     else:
         from .providers import ECBReferenceProvider
         from .store import root

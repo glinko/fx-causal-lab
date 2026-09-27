@@ -77,7 +77,7 @@
 | Grouped (block) suite | v0.18 | DONE non-strict | Единица анализа = экономический блок: leave-one-block-out ablation (семья 4, Bonferroni 0.0125) + fold-local block permutation + within-block correlations. **NULL подтверждён**; направленный near-miss rates 60d (p=0.33, gap +5.9e-05). Отчёт: `data/reports/denn_grouped.json`. |
 | Tier A world-state acquisition | v0.19 | DONE non-strict | Реально загружены 14 рядов: inflation compensation/TIPS, NFCI/ANFCI, H.4.1 liquidity, TIC holdings, US/EU equities, gold. 12 READY_NON_STRICT, 2 PARTIAL_READY, 0 unavailable. Nullable feature matrix: 5 098 D1 rows; block-specific ranges без imputation. |
 | Expanded Tier A grouped suite | v0.19 | DONE non-strict | 4 639 rows, 14 folds, 7-block Bonferroni 0.00714: NULL на всех горизонтах. Rates 1d near-miss p=0.01294; full ridge skill vs mean −0.68%/−3.41%/−14.22%/−21.44%. Age/decay остаётся отдельным следующим тестом. |
-| DENN memory ablation | v0.17 | PLANNED | Baseline vs baseline+memory features (после state-vector suite). |
+| DENN memory ablation | v0.20 | REGISTERED | Baseline 16 observed-state features vs baseline + 13 fixed EMA/age-decay features; одна complete-case выборка, paired annual folds, Bonferroni 0.0125. |
 | Wavelet coherence | v0.17 | PLANNED | Morlet time×frequency, trailing-only (после ablation). |
 
 ### 3.3 Текущее покрытие данных

@@ -2,7 +2,7 @@
 
 Исследовательский MVP EUR/USD на Ubuntu: публичные источники, provenance, проверки доступности и веб-отчёты.
 
-Версия 0.19.0: publication-time audit, multivariate/grouped DENN suites и Tier A world-state acquisition дополняют deterministic baseline, spectral diagnostics и purged walk-forward control. Dynamic GNN остаётся за следующим data/validation gate.
+Версия 0.20.0: отдельный пререгистрированный memory/age-decay ablation проверяет, даёт ли временная память ценность сверх 16-feature Tier A state. Dynamic GNN остаётся за следующим data/validation gate.
 
 ```bash
 pip install -c requirements.lock '.[test]'
@@ -31,6 +31,7 @@ fxlab denn-timing-audit
 fxlab denn-state-vector
 fxlab denn-grouped
 fxlab denn-grouped-tier-a
+fxlab denn-memory-ablation
 fxlab tier-a-fetch
 fxlab tier-a-features
 uvicorn fxlab.web:app --host 127.0.0.1 --port 8088
@@ -52,6 +53,8 @@ M4 даёт 267 выровненных строк. M5 использует 153 p
 `fxlab tier-a-fetch` независимо загружает и нормализует 14 world-state рядов. `fxlab tier-a-features` строит nullable as-of матрицу с отдельным common interval для каждого economic block; pre-release и unavailable значения не имитируются.
 
 `fxlab denn-grouped-tier-a` проверяет 16 признаков в 7 economic blocks на 4 639 complete-case D1 строках. Первый зарегистрированный прогон сохранил NULL после Bonferroni: лучший near-miss — rates на 1d (12/14 folds, p=0.01294 при пороге 0.00714); полная ridge-модель не превзошла historical mean ни на одном горизонте.
+
+`fxlab denn-memory-ablation` сравнивает эту же observed-state baseline с заранее заданными EMA-memory и freshness-decay признаками. Формальная семья содержит четыре горизонта; отсутствующие значения не заполняются.
 
 `fxlab denn-baseline` работает офлайн. Snapshot schema хранит `event_time`, nullable `published_at`/`available_at`/`revision_id`, фактический `ingested_at`, source, unit, source snapshot и quality. Пока исторические vintages не доказаны, все строки имеют `strict_pit_eligible=false`, а отчёт является честным non-strict benchmark, не торговой стратегией.
 

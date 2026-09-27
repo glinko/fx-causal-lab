@@ -291,3 +291,10 @@ Block-ablation (dMSE = изменение MSE при удалении ЦЕЛОГ
 - Ближайший положительный кандидат: rates на 1d, ablation ΔMSE +3.34e-7, 12/14 folds, sign p=0.01294; это не проходит зарегистрированный порог. Rates остаётся descriptively наиболее устойчивым блоком: fold-local permutation +3.43%/+3.21%/+0.79%/+3.67% на 1d/5d/20d/60d.
 - Energy имеет отрицательную ablation delta на всех горизонтах; на 20d/60d удаление блока улучшает модель (p=0.057, вне зарегистрированного порога). Cross-asset даёт большую permutation sensitivity на 60d (+7.71%), но его ablation delta отрицательна; reliance модели не является полезным OOS contribution.
 - Inflation expectations, financial conditions и Fed liquidity не дают зарегистрированного положительного эффекта в этой линейной спецификации. Это не исключает conditional/temporal вклад; следующая отдельная гипотеза — age/decay memory ablation, без изменения текущего NULL-результата.
+
+## 2026-09-26 — Пререгистрация memory / age-decay ablation v0.20
+
+- Протокол `denn-memory-ablation-1` заморожен в `config/memory_ablation.yaml` до первого запуска на реальной матрице. Выборка и 16 baseline features совпадают с expanded Tier A suite; отсутствующие значения не заполняются.
+- Treatment добавляет 13 заранее заданных temporal features: шесть EMA-memory состояний из deterministic baseline и семь freshness-decay состояний для inflation expectations, NFCI/ANFCI и H.4.1. Half-life фиксирован до просмотра результата: 30 календарных дней для inflation expectations, 14 дней для weekly financial/liquidity observations.
+- Формальная семья содержит четыре paired walk-forward теста, по одному на 1d/5d/20d/60d. Статистика fold-level = `baseline_mse - treatment_mse`; положительный знак означает улучшение memory-варианта. Exact sign test проходит только при p < 0.0125; bootstrap CI остаётся описательной оценкой размера эффекта.
+- Ни half-life, ни набор признаков не оптимизируются по test folds. Эксперимент остаётся non-strict из-за current-history входов. Dynamic GNN не разрешён до сохранения этого результата и следующего review gate.

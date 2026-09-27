@@ -343,6 +343,20 @@ def denn_grouped_tier_a(request: Request):
                                       context={"kind": "grouped_tier_a", "report": report, "rows": rows})
 
 
+@app.get("/reports/denn-memory-ablation", response_class=HTMLResponse)
+def denn_memory_ablation(request: Request):
+    report = read_json("denn_memory_ablation.json", None)
+    rows = []
+    if report:
+        for horizon in report.get("horizons", []):
+            result = report.get("result", {}).get(f"{horizon}d", {})
+            rows.append({"horizon": horizon, "baseline": result.get("baseline", {}),
+                         "treatment": result.get("treatment", {}),
+                         "paired": result.get("paired_improvement", {})})
+    return templates.TemplateResponse(request=request, name="research_suite.html",
+                                      context={"kind": "memory", "report": report, "rows": rows})
+
+
 @app.get("/reports/tier-a", response_class=HTMLResponse)
 def tier_a_report(request: Request):
     coverage = read_json("tier_a_coverage.json", None)
@@ -436,6 +450,7 @@ def download(name: str):
         for label, relative in stability["files"].items():
             files[f"spectral_stability_{label}.parquet"] = root()/relative
     for report_name in ("denn_timing_audit", "denn_state_vector", "denn_grouped", "denn_grouped_tier_a",
+                        "denn_memory_ablation",
                         "tier_a_coverage", "tier_a_features"):
         report = read_json(f"{report_name}.json", None)
         if report:
