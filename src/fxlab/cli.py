@@ -76,6 +76,7 @@ def main():
     commands.add_parser("denn-elastic-net", help="Let a sparse model remove weak Tier A features year by year")
     commands.add_parser("denn-nonlinear", help="Compare Elastic Net with nonlinear interactions on the same fixed data")
     commands.add_parser("denn-market-confirmation", help="Repeat registered daily relationships on Dukascopy EUR/USD")
+    commands.add_parser("denn-market-forecast", help="Run 1/5/20/60-day forecasts on Dukascopy EUR/USD")
     replay = commands.add_parser("replay", help="Normalize preserved ECB snapshot offline")
     replay.add_argument("metadata", type=Path)
     replay.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 23))
@@ -192,6 +193,9 @@ def main():
     elif args.command == "denn-market-confirmation":
         from .denn.market_confirmation import build_market_confirmation
         result = build_market_confirmation()
+    elif args.command == "denn-market-forecast":
+        from .denn.market_forecast import build_market_forecast
+        result = build_market_forecast()
     else:
         from .providers import ECBReferenceProvider
         from .store import root

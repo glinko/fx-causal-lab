@@ -1,0 +1,47 @@
+# v0.26 PRE-REGISTRATION: repeat the frozen Tier A forecast on tradable EUR/USD.
+# Frozen before the first run on the real Dukascopy target.
+
+version: denn-market-forecast-1
+parent_report: tier_a_features
+features:
+  - spread_2y_z60
+  - spread_10y_z60
+  - brent_asinh_change_20d
+  - wti_asinh_change_20d
+  - vix_z60
+  - eurusd_momentum_20d
+  - bk5_z60
+  - bk10_z60
+  - nfci_z60
+  - anfci_z60
+  - h41_tga_ratio_z252
+  - h41_rrp_ratio_z252
+  - h41_reserves_ratio_z252
+  - spx_ret_20d
+  - eu_ret_20d
+  - gold_ret_20d
+horizons: [1, 5, 20, 60]
+ridge_lambdas: [0.01, 0.1, 1.0, 10.0]
+elastic_net:
+  alphas: [0.000001, 0.000003, 0.00001, 0.00003, 0.0001, 0.0003, 0.001]
+  l1_ratios: [0.25, 0.5, 0.75, 1.0]
+  max_iter: 20000
+  tolerance: 0.00000001
+  selection: cyclic
+  tie_break: stronger_regularization
+minimum_train_rows: 750
+minimum_validation_rows: 100
+minimum_test_rows: 40
+sample:
+  target: Dukascopy EURUSD D1 bid close at 17:00 New York
+  feature_boundary: after daily observations, timing remains non-strict
+  complete_cases_only: true
+  no_imputation: true
+comparisons:
+  - zero_return
+  - expanding_historical_mean
+  - market_momentum_ridge
+  - full_16_feature_ridge
+  - elastic_net_feature_selection
+strict_pit_eligible: false
+inference_status: non_strict_market_target_current_history_without_vintages

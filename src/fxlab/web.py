@@ -435,6 +435,28 @@ def denn_market_confirmation(request: Request):
                                       context={"report": report, "rows": rows})
 
 
+@app.get("/reports/denn-market-forecast", response_class=HTMLResponse)
+def denn_market_forecast(request: Request):
+    report = read_json("denn_market_forecast.json", None)
+    rows = []
+    if report:
+        labels = {
+            "zero_return": "Без изменения курса",
+            "expanding_historical_mean": "Среднее прошлых лет",
+            "market_momentum_ridge": "Только недавнее движение EUR/USD",
+            "full_16_feature_ridge": "Все 16 показателей",
+            "elastic_net_feature_selection": "Автоматический отбор показателей",
+        }
+        for horizon in report.get("horizons", []):
+            data = report["result"][f"{horizon}d"]
+            best = report["best_by_horizon"][f"{horizon}d"]
+            for model, metrics in data["models"].items():
+                rows.append({"horizon": horizon, "model": labels.get(model, model), "model_id": model,
+                             "metrics": metrics, "best": model == best})
+    return templates.TemplateResponse(request=request, name="market_forecast.html",
+                                      context={"report": report, "rows": rows})
+
+
 @app.get("/reports/{name}", response_class=HTMLResponse)
 def document(request: Request, name: str):
     if name not in DOCS:
@@ -521,7 +543,7 @@ def download(name: str):
             files[f"spectral_stability_{label}.parquet"] = root()/relative
     for report_name in ("denn_timing_audit", "denn_state_vector", "denn_grouped", "denn_grouped_tier_a",
                         "denn_memory_ablation", "denn_block_pca", "denn_elastic_net", "denn_nonlinear_boosting", "eia_energy",
-                        "denn_market_confirmation", "tier_a_coverage", "tier_a_features"):
+                        "denn_market_confirmation", "denn_market_forecast", "tier_a_coverage", "tier_a_features"):
         report = read_json(f"{report_name}.json", None)
         if report:
             files[f"{report_name}.json"] = root()/"reports"/f"{report_name}.json"
