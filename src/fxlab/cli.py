@@ -33,6 +33,11 @@ def main():
     cftc.add_argument("--to", dest="end", type=date.fromisoformat, default=date.today())
     cftc_replay = commands.add_parser("cftc-replay", help="Normalize preserved CFTC snapshots without network")
     cftc_replay.add_argument("manifest", type=Path)
+    eia = commands.add_parser("eia-backfill", help="Fetch official weekly EIA crude stocks and production")
+    eia.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2004, 1, 1))
+    eia.add_argument("--to", dest="end", type=date.fromisoformat, default=date.today())
+    eia_replay = commands.add_parser("eia-replay", help="Normalize preserved EIA workbooks without network")
+    eia_replay.add_argument("manifest", type=Path)
     fomc = commands.add_parser("fomc-backfill", help="Fetch and normalize archived FOMC statements")
     fomc.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 1))
     fomc.add_argument("--to", dest="end", type=date.fromisoformat, default=date.today())
@@ -105,6 +110,12 @@ def main():
     elif args.command == "cftc-replay":
         from .cftc import replay_cftc
         result = replay_cftc(args.manifest)
+    elif args.command == "eia-backfill":
+        from .eia import backfill_eia
+        result = backfill_eia(args.start, args.end)
+    elif args.command == "eia-replay":
+        from .eia import replay_eia
+        result = replay_eia(args.manifest)
     elif args.command == "fomc-backfill":
         from .fomc import backfill_fomc
         result = backfill_fomc(args.start, args.end)

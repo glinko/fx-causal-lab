@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FX Causal Lab — данные EIA</title><link rel="stylesheet" href="/static/style.css"></head>
+<body><a class="skip" href="#main">К содержимому</a><header><a class="brand" href="/">FX Causal Lab</a><nav><a href="/">Обзор</a><a href="/reports/data-coverage">Покрытие данных</a></nav><span class="edition">Data / v0.24.0</span></header>
+<main id="main" class="document">
+{% if report %}
+<div class="intro"><h1>Недельные данные по нефти</h1><p>официальная история EIA</p></div>
+<div class="notice"><strong>Что здесь:</strong> коммерческие запасы нефти в США и объём добычи. Данные выходят раз в неделю; для исторического анализа значение считается доступным только со следующей пятницы.</div>
+<div class="table-wrap"><table><thead><tr><th>Показатель</th><th>Начало</th><th>Конец</th><th>Наблюдений</th><th>Статус</th></tr></thead><tbody>{% for series_id, row in report.series.items() %}<tr><td>{{ row.title }}</td><td>{{ row.from }}</td><td>{{ row.to }}</td><td>{{ row.rows }}</td><td><span class="status">{{ row.status }}</span></td></tr>{% endfor %}</tbody></table></div>
+<section><h2>Как это читать</h2><p>Файл содержит нынешнюю опубликованную историю. Он не показывает, как старые значения выглядели до последующих исправлений. Поэтому эти ряды подходят для первого исследовательского сравнения, но окончательные выводы по прошлым датам потребуют архива старых выпусков.</p></section>
+<section class="hash"><p>Dataset: {{ report.dataset_id }}<br>Строк: {{ report.rows }}</p><a href="/download/eia_energy.json">Данные отчёта · JSON</a> · <a href="/download/eia_energy_weekly_petroleum.parquet">Нормализованные данные · Parquet</a></section>
+{% else %}<div class="notice"><strong>Данных пока нет.</strong> Выполните `fxlab eia-backfill`.</div>{% endif %}
+</main><footer><span>FX Causal Lab · public data first</span><span>Источник: U.S. Energy Information Administration.</span></footer></body></html>

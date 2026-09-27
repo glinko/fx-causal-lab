@@ -99,7 +99,8 @@
 | CFTC EUR TFF | Weekly | 2023-09–2026-09 | Positioning regimes | Коротко; 121 unknown availability; Futures Only. |
 | US/European equities | D1 | 2000+ / 2007+ | Tier A world-state | Публичные Yahoo proxies загружены; перед распространением нужен review условий использования. |
 | Gold | D1 | 2000+ | Tier A world-state | Публичный proxy загружен; перед распространением нужен review условий использования. |
-| EIA fundamentals / TIC / credit | Weekly/monthly/D1 | Нет интегрированных рядов | Недоступно | Требуются adapters, release calendars и provenance. |
+| EIA stocks / production | Weekly | Адаптер готов, загрузка ожидает сервер | Data expansion v0.24 | Историческое точное время выпуска отсутствует; используется явно отмеченная задержка до следующей пятницы. |
+| TIC / credit | Monthly/D1 | TIC частично с 2020; credit/NFCI доступны | Tier A / частично | Нужны более длинный TIC и проверка старых выпусков. |
 | Historical consensus | Event/vintage | Нет | Недоступно | Optional paid source; не блокирует continuous MVP. |
 
 ### 3.4 Полученные исследовательские результаты

@@ -5,6 +5,7 @@ import io
 import json
 import re
 import zipfile
+from decimal import Decimal, InvalidOperation
 from datetime import date, datetime, time, timedelta, timezone
 from html.parser import HTMLParser
 from pathlib import Path
@@ -21,6 +22,8 @@ EUR_CODE = "099741"
 PARSER = "cftc-tff-futures-only-1"
 SCHEDULE_URL = "https://www.cftc.gov/MarketReports/CommitmentsofTraders/ReleaseSchedule/index.htm"
 ANNUAL_URL = "https://www.cftc.gov/files/dea/history/fut_fin_txt_{year}.zip"
+HISTORICAL_URL = "https://www.cftc.gov/files/dea/history/fin_fut_txt_2006_2016.zip"
+TFF_HISTORY_START = date(2006, 6, 13)
 MONTHS = {name: number for number, name in enumerate(
     "January February March April May June July August September October November December".split(), 1)}
 CATEGORIES = {
@@ -88,9 +91,32 @@ def scheduled_for(report_date: date, schedule: list[date]) -> datetime | None:
 
 def integer(row: dict, field: str) -> int:
     value = row.get(field, "").strip().replace(",", "")
-    if not re.fullmatch(r"-?\d+", value):
+    try:
+        number = Decimal(value)
+    except InvalidOperation as exc:
+        raise ValueError(f"Invalid CFTC integer field {field}") from exc
+    if not number.is_finite() or number != number.to_integral_value():
         raise ValueError(f"Invalid CFTC integer field {field}")
-    return int(value)
+    return int(number)
+
+
+def report_day(value: str) -> date:
+    value = value.strip()
+    for pattern in ("%Y-%m-%d", "%m/%d/%Y %I:%M:%S %p"):
+        try:
+            return datetime.strptime(value, pattern).date()
+        except ValueError:
+            pass
+    raise ValueError("Invalid CFTC report date")
+
+
+def archive_requests(start: date, end: date) -> list[dict]:
+    requests = []
+    if start <= date(2016, 12, 31) and end >= TFF_HISTORY_START:
+        requests.append({"period": "2006-2016", "url": HISTORICAL_URL})
+    for year in range(max(2017, start.year), end.year + 1):
+        requests.append({"period": str(year), "url": ANNUAL_URL.format(year=year)})
+    return requests
 
 
 def normalize_tff(body: bytes, meta: dict, start: date, end: date, schedule: list[date]) -> list[dict]:
@@ -107,7 +133,7 @@ def normalize_tff(body: bytes, meta: dict, start: date, end: date, schedule: lis
             code = row.get("CFTC_Contract_Market_Code", "").strip('"')
             if code != EUR_CODE:
                 continue
-            report_date = date.fromisoformat(row["Report_Date_as_YYYY-MM-DD"])
+            report_date = report_day(row["Report_Date_as_YYYY-MM-DD"])
             if not start <= report_date <= end:
                 continue
             if "FutOnly" not in row.get("FutOnly_or_Combined", ""):
@@ -163,14 +189,15 @@ def fetch_cftc_snapshots(start: date, end: date) -> dict:
         response.raise_for_status()
         release_schedule(response.content)
         snapshots.append(schedule_meta)
-        years = range(start.year, end.year + 1)
         annual = []
-        for year in years:
-            response = client.get(ANNUAL_URL.format(year=year))
+        for request in archive_requests(start, end):
+            response = client.get(request["url"])
             meta = save_raw("cftc_tff", str(response.url), response.content, dict(response.headers), response.status_code)
             response.raise_for_status()
-            annual.append({"year": year, "snapshot": meta})
+            annual.append({"period": request["period"], "snapshot": meta})
             snapshots.append(meta)
+    if not annual:
+        raise ValueError("No CFTC TFF archive covers the requested period")
     manifest = {"provider": "cftc_tff_futures_only", "requested_start": str(start), "requested_end": str(end),
                 "schedule": schedule_meta, "annual": annual, "snapshots": snapshots,
                 "fetched_at": datetime.now(UTC).isoformat()}

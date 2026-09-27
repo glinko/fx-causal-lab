@@ -6,7 +6,7 @@ from datetime import date
 
 import pytest
 
-from fxlab.cftc import normalize_tff, release_schedule
+from fxlab.cftc import archive_requests, normalize_tff, release_schedule
 
 
 SCHEDULE = b'''<html><h3>2026 Release Schedule</h3><table>
@@ -25,10 +25,10 @@ SCHEDULE = b'''<html><h3>2026 Release Schedule</h3><table>
 <tr><td>December</td><td>04</td><td>11</td><td>18</td><td>28*</td></tr></table></html>'''
 
 
-def fixture_zip(report_date="2026-01-06", negative=False):
+def fixture_zip(report_date="2026-01-06", negative=False, decimal_values=False):
     fields = {"Market_and_Exchange_Names": "EURO FX - CHICAGO MERCANTILE EXCHANGE",
               "Report_Date_as_YYYY-MM-DD": report_date, "CFTC_Contract_Market_Code": "099741",
-              "FutOnly_or_Combined": "FutOnly", "Open_Interest_All": "1000",
+              "FutOnly_or_Combined": "FutOnly", "Open_Interest_All": "1000.000000" if decimal_values else "1000",
               "NonRept_Positions_Long_All": "100", "NonRept_Positions_Short_All": "80"}
     for prefix in ("Dealer", "Asset_Mgr", "Lev_Money", "Other_Rept"):
         fields[f"{prefix}_Positions_Long_All"] = "-1" if negative and prefix == "Dealer" else "100"
@@ -71,3 +71,17 @@ def test_old_rows_have_unknown_availability_and_bad_positions_fail():
     bad = fixture_zip(negative=True)
     with pytest.raises(ValueError, match="non-negative"):
         normalize_tff(bad, meta(bad), date(2026, 1, 1), date(2026, 1, 31), release_schedule(SCHEDULE))
+
+
+def test_combined_history_format_and_archive_plan():
+    body = fixture_zip("06/13/2006 12:00:00 AM", decimal_values=True)
+    row = normalize_tff(body, meta(body), date(2006, 6, 1), date(2006, 6, 30), release_schedule(SCHEDULE))[0]
+    assert row["report_date"] == "2006-06-13"
+    assert row["open_interest"] == 1000
+    assert row["available_at"] is None
+
+    requests = archive_requests(date(2006, 6, 13), date(2026, 9, 27))
+    assert requests[0]["period"] == "2006-2016"
+    assert requests[1]["period"] == "2017"
+    assert requests[-1]["period"] == "2026"
+    assert len(requests) == 11

@@ -35,6 +35,8 @@ fxlab denn-memory-ablation
 fxlab denn-block-pca
 fxlab denn-elastic-net
 fxlab denn-nonlinear
+fxlab eia-backfill --from 2004-01-01
+fxlab cftc-backfill --from 2006-06-13
 fxlab tier-a-fetch
 fxlab tier-a-features
 uvicorn fxlab.web:app --host 127.0.0.1 --port 8088

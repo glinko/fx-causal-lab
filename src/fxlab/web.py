@@ -411,6 +411,12 @@ def tier_a_report(request: Request):
                                       context={"coverage": coverage, "features": features})
 
 
+@app.get("/reports/eia-energy", response_class=HTMLResponse)
+def eia_energy(request: Request):
+    report = read_json("eia_energy.json", None)
+    return templates.TemplateResponse(request=request, name="energy.html", context={"report": report})
+
+
 @app.get("/reports/{name}", response_class=HTMLResponse)
 def document(request: Request, name: str):
     if name not in DOCS:
@@ -496,7 +502,7 @@ def download(name: str):
         for label, relative in stability["files"].items():
             files[f"spectral_stability_{label}.parquet"] = root()/relative
     for report_name in ("denn_timing_audit", "denn_state_vector", "denn_grouped", "denn_grouped_tier_a",
-                        "denn_memory_ablation", "denn_block_pca", "denn_elastic_net", "denn_nonlinear_boosting",
+                        "denn_memory_ablation", "denn_block_pca", "denn_elastic_net", "denn_nonlinear_boosting", "eia_energy",
                         "tier_a_coverage", "tier_a_features"):
         report = read_json(f"{report_name}.json", None)
         if report:
