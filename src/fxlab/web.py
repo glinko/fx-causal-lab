@@ -417,6 +417,24 @@ def eia_energy(request: Request):
     return templates.TemplateResponse(request=request, name="energy.html", context={"report": report})
 
 
+@app.get("/reports/denn-market-confirmation", response_class=HTMLResponse)
+def denn_market_confirmation(request: Request):
+    report = read_json("denn_market_confirmation.json", None)
+    rows = []
+    if report:
+        full = {(row["target"], row["factor"], row["lag_sessions"]): row["correlation"]
+                for row in report["full_correlations"]}
+        for summary in report["rolling_summaries"]:
+            if summary["target"] != "market":
+                continue
+            key = (summary["factor"], summary["lag_sessions"])
+            rows.append({"factor": key[0], "lag": key[1],
+                         "reference": full[("reference", *key)], "market": full[("market", *key)],
+                         "negative_share": summary["negative_share"]})
+    return templates.TemplateResponse(request=request, name="market_confirmation.html",
+                                      context={"report": report, "rows": rows})
+
+
 @app.get("/reports/{name}", response_class=HTMLResponse)
 def document(request: Request, name: str):
     if name not in DOCS:
@@ -503,7 +521,7 @@ def download(name: str):
             files[f"spectral_stability_{label}.parquet"] = root()/relative
     for report_name in ("denn_timing_audit", "denn_state_vector", "denn_grouped", "denn_grouped_tier_a",
                         "denn_memory_ablation", "denn_block_pca", "denn_elastic_net", "denn_nonlinear_boosting", "eia_energy",
-                        "tier_a_coverage", "tier_a_features"):
+                        "denn_market_confirmation", "tier_a_coverage", "tier_a_features"):
         report = read_json(f"{report_name}.json", None)
         if report:
             files[f"{report_name}.json"] = root()/"reports"/f"{report_name}.json"
