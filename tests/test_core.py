@@ -126,6 +126,7 @@ def test_web_empty_and_loaded_data(tmp_path, monkeypatch):
     assert client.get("/reports/eia-energy").status_code == 200
     assert client.get("/reports/denn-market-confirmation").status_code == 200
     assert client.get("/reports/denn-market-forecast").status_code == 200
+    assert client.get("/reports/denn-flow-energy").status_code == 200
     assert client.get("/reports/tier-a").status_code == 200
     assert client.get("/reports/roadmap").status_code == 200
     assert client.get("/download/nonexistent").status_code == 404

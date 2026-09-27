@@ -457,6 +457,22 @@ def denn_market_forecast(request: Request):
                                       context={"report": report, "rows": rows})
 
 
+@app.get("/reports/denn-flow-energy", response_class=HTMLResponse)
+def denn_flow_energy(request: Request):
+    report = read_json("denn_flow_energy.json", None)
+    rows = []
+    if report:
+        labels = {"zero_return": "Без изменения курса", "expanding_historical_mean": "Среднее прошлых лет",
+                  "base_16_feature_ridge": "Исходные 16 показателей",
+                  "extended_24_feature_ridge": "16 показателей + CFTC/EIA",
+                  "extended_elastic_net": "CFTC/EIA с автоматическим отбором"}
+        for horizon in report.get("horizons", []):
+            for model, metrics in report["result"][f"{horizon}d"]["models"].items():
+                rows.append({"horizon": horizon, "model": labels.get(model, model), "metrics": metrics})
+    return templates.TemplateResponse(request=request, name="flow_energy.html",
+                                      context={"report": report, "rows": rows})
+
+
 @app.get("/reports/{name}", response_class=HTMLResponse)
 def document(request: Request, name: str):
     if name not in DOCS:
@@ -543,7 +559,8 @@ def download(name: str):
             files[f"spectral_stability_{label}.parquet"] = root()/relative
     for report_name in ("denn_timing_audit", "denn_state_vector", "denn_grouped", "denn_grouped_tier_a",
                         "denn_memory_ablation", "denn_block_pca", "denn_elastic_net", "denn_nonlinear_boosting", "eia_energy",
-                        "denn_market_confirmation", "denn_market_forecast", "tier_a_coverage", "tier_a_features"):
+                        "denn_market_confirmation", "denn_market_forecast", "denn_flow_energy",
+                        "tier_a_coverage", "tier_a_features"):
         report = read_json(f"{report_name}.json", None)
         if report:
             files[f"{report_name}.json"] = root()/"reports"/f"{report_name}.json"

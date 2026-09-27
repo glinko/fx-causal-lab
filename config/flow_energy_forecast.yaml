@@ -1,0 +1,58 @@
+# v0.27 PRE-REGISTRATION: add public CFTC and EIA weekly information.
+# Frozen before the first run on the real extended matrix.
+
+version: denn-flow-energy-forecast-1
+parent_market_config: config/market_forecast.yaml
+base_features:
+  - spread_2y_z60
+  - spread_10y_z60
+  - brent_asinh_change_20d
+  - wti_asinh_change_20d
+  - vix_z60
+  - eurusd_momentum_20d
+  - bk5_z60
+  - bk10_z60
+  - nfci_z60
+  - anfci_z60
+  - h41_tga_ratio_z252
+  - h41_rrp_ratio_z252
+  - h41_reserves_ratio_z252
+  - spx_ret_20d
+  - eu_ret_20d
+  - gold_ret_20d
+new_features:
+  - cftc_leveraged_z52
+  - cftc_asset_manager_z52
+  - cftc_dealer_z52
+  - cftc_leveraged_change_4w
+  - cftc_asset_manager_change_4w
+  - cftc_open_interest_log_change_4w
+  - eia_stocks_change_1w_z52
+  - eia_production_change_4w_z52
+horizons: [1, 5, 20, 60]
+ridge_lambdas: [0.01, 0.1, 1.0, 10.0]
+elastic_net:
+  alphas: [0.000001, 0.000003, 0.00001, 0.00003, 0.0001, 0.0003, 0.001]
+  l1_ratios: [0.25, 0.5, 0.75, 1.0]
+  max_iter: 20000
+  tolerance: 0.00000001
+  selection: cyclic
+  tie_break: stronger_regularization
+minimum_train_rows: 750
+minimum_validation_rows: 100
+minimum_test_rows: 40
+availability:
+  cftc_unknown_history_delay_days: 10
+  cftc_unknown_history_status: inferred_conservative_research_only
+  eia_status: inferred_conservative
+sample:
+  complete_cases_only: true
+  no_imputation: true
+comparisons:
+  - zero_return
+  - expanding_historical_mean
+  - base_16_feature_ridge
+  - extended_24_feature_ridge
+  - extended_elastic_net
+strict_pit_eligible: false
+inference_status: non_strict_flow_energy_current_history_and_inferred_availability
