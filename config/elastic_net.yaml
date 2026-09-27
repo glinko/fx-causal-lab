@@ -1,0 +1,57 @@
+# v0.22 PRE-REGISTRATION: supervised sparse model on the fixed Tier A matrix.
+# Frozen before the first run on real data.
+
+version: denn-elastic-net-1
+parent_report: tier_a_features
+features:
+  - spread_2y_z60
+  - spread_10y_z60
+  - brent_asinh_change_20d
+  - wti_asinh_change_20d
+  - vix_z60
+  - eurusd_momentum_20d
+  - bk5_z60
+  - bk10_z60
+  - nfci_z60
+  - anfci_z60
+  - h41_tga_ratio_z252
+  - h41_rrp_ratio_z252
+  - h41_reserves_ratio_z252
+  - spx_ret_20d
+  - eu_ret_20d
+  - gold_ret_20d
+
+horizons: [1, 5, 20, 60]
+ridge_lambdas: [0.01, 0.1, 1.0, 10.0]
+elastic_net:
+  alphas: [0.000001, 0.000003, 0.00001, 0.00003, 0.0001, 0.0003, 0.001]
+  l1_ratios: [0.25, 0.5, 0.75, 1.0]
+  max_iter: 20000
+  tolerance: 0.00000001
+  selection: cyclic
+  tie_break: stronger_regularization
+minimum_train_rows: 750
+minimum_validation_rows: 100
+minimum_test_rows: 40
+sample:
+  method: same_complete_case_as_grouped_tier_a
+  expected_start_not_before: 2007-05-04
+  no_imputation: true
+
+comparison:
+  baseline: full_16_feature_ridge
+  treatment: elastic_net_on_same_16_features
+  fold_statistic: baseline_mse_minus_treatment_mse
+  positive_direction: sparse_model_improves
+multiplicity:
+  alpha: 0.05
+  method: four_horizon_family
+  family_size: 4
+sign_test: paired_sign_test_over_folds
+bootstrap:
+  reps: 1000
+  seed: 42
+  statistic: mean_paired_fold_improvement
+
+strict_pit_eligible: false
+inference_status: non_strict_elastic_net_current_history_without_vintages

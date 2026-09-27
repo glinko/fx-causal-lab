@@ -2,7 +2,7 @@
 
 Исследовательский MVP EUR/USD на Ubuntu: публичные источники, provenance, проверки доступности и веб-отчёты.
 
-Версия 0.21.0: fold-local PCA-компрессия 16 признаков в семь economic states улучшила aggregate OOS MSE на всех горизонтах, но не прошла paired sign-test multiplicity gate. Dynamic GNN остаётся заблокирован.
+Версия 0.22.0: модель с автоматическим отбором проверяет, можно ли улучшить прогноз, если отключать слабые показатели. Настройки выбираются только по прошлым годам, будущий год остаётся честной проверкой.
 
 ```bash
 pip install -c requirements.lock '.[test]'
@@ -33,6 +33,7 @@ fxlab denn-grouped
 fxlab denn-grouped-tier-a
 fxlab denn-memory-ablation
 fxlab denn-block-pca
+fxlab denn-elastic-net
 fxlab tier-a-fetch
 fxlab tier-a-features
 uvicorn fxlab.web:app --host 127.0.0.1 --port 8088
@@ -60,6 +61,8 @@ M4 даёт 267 выровненных строк. M5 использует 153 p
 `fxlab denn-block-pca` строит по одному first principal component на каждый из семи economic blocks. Means, scales и loadings оцениваются заново только на прошлых строках каждого walk-forward fold; полный 16-feature ridge остаётся парным control.
 
 Первый зарегистрированный прогон дал directional, но не формальный результат: block states улучшили skill vs mean с −0.68%/−3.41%/−14.22%/−21.44% до +1.14%/−0.16%/−3.49%/+0.22%. Folds в пользу compression = 7/14, 9/14, 10/14 и 9/14; ни один p-value не прошёл Bonferroni 0.0125.
+
+`fxlab denn-elastic-net` использует те же 16 показателей и те же проверочные годы, но может уменьшать влияние слабых рядов до нуля. В отчёте видно, стала ли ошибка меньше, в скольких годах улучшение повторилось и какие показатели модель оставляла чаще всего.
 
 `fxlab denn-baseline` работает офлайн. Snapshot schema хранит `event_time`, nullable `published_at`/`available_at`/`revision_id`, фактический `ingested_at`, source, unit, source snapshot и quality. Пока исторические vintages не доказаны, все строки имеют `strict_pit_eligible=false`, а отчёт является честным non-strict benchmark, не торговой стратегией.
 

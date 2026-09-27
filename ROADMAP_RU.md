@@ -40,7 +40,7 @@
 
 | Компонент | Статус | Результат |
 |---|---|---|
-| Ubuntu deployment | DONE | Сервис 0.21.0 работает в Docker на `192.168.88.15` с loopback bind `127.0.0.1:8088`; контейнер без root, read-only filesystem, отдельный data mount. |
+| Ubuntu deployment | DONE | Сервис 0.21.0 работает в Docker на `192.168.88.15` с loopback bind `127.0.0.1:8088`; версия 0.22 зарегистрирована и ждёт первого расчёта. |
 | CLI | DONE | Backfill, replay, normalization, alignment, experiments, graph, DENN и spectral-команды запускаются отдельно. |
 | Web research journal | DONE | Данные, quality reports, experiments, граф и downloadable manifests/Parquet доступны в браузере. |
 | Bronze / Silver / Gold | DONE | Raw snapshots отделены от нормализованных и исследовательских datasets. |
@@ -79,6 +79,7 @@
 | Expanded Tier A grouped suite | v0.19 | DONE non-strict | 4 639 rows, 14 folds, 7-block Bonferroni 0.00714: NULL на всех горизонтах. Rates 1d near-miss p=0.01294; full ridge skill vs mean −0.68%/−3.41%/−14.22%/−21.44%. Age/decay остаётся отдельным следующим тестом. |
 | DENN memory ablation | v0.20 | DONE non-strict | 4 639 rows, 14 folds; +13 fixed EMA/age-decay features ухудшили OOS MSE на всех горизонтах. Ни один тест не прошёл Bonferroni 0.0125; Dynamic GNN заблокирован. |
 | Fold-local block PCA | v0.21 | DONE non-strict | Aggregate MSE лучше full model на 1d/5d/20d/60d, skill +1.14%/−0.16%/−3.49%/+0.22%; paired sign tests не проходят Bonferroni 0.0125. |
+| Автоматический отбор показателей | v0.22 | REGISTERED | Та же выборка и те же годы; модель может отключать слабые признаки. Сравниваем ошибку с обычной 16-feature моделью и считаем, в скольких годах улучшение повторилось. |
 | Wavelet coherence | v0.17 | PLANNED | Morlet time×frequency, trailing-only (после ablation). |
 
 ### 3.3 Текущее покрытие данных

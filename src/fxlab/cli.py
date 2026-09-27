@@ -68,6 +68,7 @@ def main():
     commands.add_parser("denn-grouped-tier-a", help="Run the pre-registered expanded Tier A economic-block suite")
     commands.add_parser("denn-memory-ablation", help="Compare registered observed-state and age/decay memory variants")
     commands.add_parser("denn-block-pca", help="Compare the 16-feature baseline with seven fold-local block states")
+    commands.add_parser("denn-elastic-net", help="Let a sparse model remove weak Tier A features year by year")
     replay = commands.add_parser("replay", help="Normalize preserved ECB snapshot offline")
     replay.add_argument("metadata", type=Path)
     replay.add_argument("--from", dest="start", type=date.fromisoformat, default=date(2023, 9, 23))
@@ -169,6 +170,9 @@ def main():
     elif args.command == "denn-block-pca":
         from .denn import build_block_pca
         result = build_block_pca()
+    elif args.command == "denn-elastic-net":
+        from .denn import build_elastic_net
+        result = build_elastic_net()
     else:
         from .providers import ECBReferenceProvider
         from .store import root
