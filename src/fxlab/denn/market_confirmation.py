@@ -72,7 +72,7 @@ def _lagged(left: list[float], right: list[float], lag: int) -> tuple[list[float
 def _canonical(value):
     """Remove harmless last-bit differences between math libraries on Windows and Linux."""
     if isinstance(value, float):
-        return round(value, 14)
+        return round(value, 12)
     if isinstance(value, list):
         return [_canonical(item) for item in value]
     if isinstance(value, dict):
