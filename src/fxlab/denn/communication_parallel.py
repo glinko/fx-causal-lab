@@ -562,7 +562,9 @@ def import_anyjev_text_ablation(path: Path, head_path: Path | None = None) -> di
         "without_text_direction_counts": without_text["direction_counts"],
         "with_text_direction_counts": with_text["direction_counts"], "verdict": verdict,
         "combined_score": False, "numeric_prediction_in_state": False, "files": files,
-        "hashes": identity,
+        "hashes": {"with_text_result_sha256": identity["with_text_result_sha256"],
+                   "without_text_result_sha256": identity["without_text_result_sha256"],
+                   "without_text_head_sha256": identity["without_text_head_sha256"]},
         "limitations": [
             "This paired comparison covers one five-session test period and ECB/Eurosystem communications only.",
             "The historical texts remain non-strict because exact archive availability is not known.",
