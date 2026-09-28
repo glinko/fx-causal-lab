@@ -463,3 +463,112 @@ def import_anyjev_l2(path: Path, head_path: Path | None = None) -> dict:
     atomic_json(folder/"manifest.json", report)
     atomic_json(root()/"reports"/"communication_anyjev_l2.json", report)
     return report
+
+
+def import_anyjev_text_ablation(path: Path, head_path: Path | None = None) -> dict:
+    """Compare the frozen L2 result with a paired run where speech text was removed."""
+    parent = json.loads((root()/"reports"/"communication_parallel.json").read_text(encoding="utf-8"))
+    bundle = json.loads((root()/"reports"/"communication_anyjev_l2_bundle.json").read_text(encoding="utf-8"))
+    with_text_report = json.loads((root()/"reports"/"communication_anyjev_l2.json").read_text(encoding="utf-8"))
+    with_text_path = root()/with_text_report["files"]["result"]
+    with_text = json.loads(with_text_path.read_text(encoding="utf-8"))
+    without_text = json.loads(path.read_text(encoding="utf-8"))
+    for result, expected_mode in ((with_text, "with_text"), (without_text, "without_text")):
+        if result.get("schema_version") != "fxlab-anyjev-l2-result-1" or result.get("status") != "complete":
+            raise ValueError(f"Invalid AnyJev L2 {expected_mode} result")
+        actual_mode = result.get("state_mode", "with_text")
+        if actual_mode != expected_mode:
+            raise ValueError(f"Expected {expected_mode}, received {actual_mode}")
+        if result.get("bundle_sha256") != bundle["bundle_sha256"] or result.get("config_sha256") != bundle["config_sha256"]:
+            raise ValueError("AnyJev text ablation does not match the frozen bundle/config")
+        if result.get("numeric_prediction_in_state") is not False:
+            raise ValueError("Numeric prediction leaked into an AnyJev text ablation")
+    with_by_job = {row["job_id"]: row for row in with_text["predictions"]}
+    without_by_job = {row["job_id"]: row for row in without_text["predictions"]}
+    if not with_by_job or set(with_by_job) != set(without_by_job):
+        raise ValueError("Text and no-text runs do not contain the same frozen test jobs")
+    for row in without_by_job.values():
+        if row.get("state_mode") != "without_text" or row.get("actual_not_in_request") is not True:
+            raise ValueError("Invalid no-text prediction provenance")
+        if any(name in row for name in ("actual_return", "actual_direction", "forecast_return", "combined_score")):
+            raise ValueError("No-text result contains a forbidden outcome or numeric forecast")
+    with duckdb.connect() as connection:
+        numeric = connection.execute(
+            "SELECT event_id,horizon_sessions,actual_direction FROM read_parquet(?) WHERE horizon_sessions=5",
+            [str(root()/parent["files"]["quantitative_predictions"])],
+        ).fetchall()
+    actual_by_key = {(row[0], int(row[1])): str(row[2]) for row in numeric}
+    joined = []
+    for job_id in sorted(with_by_job):
+        text_row, no_text_row = with_by_job[job_id], without_by_job[job_id]
+        if text_row["event_id"] != no_text_row["event_id"] or int(text_row["horizon_sessions"]) != int(no_text_row["horizon_sessions"]):
+            raise ValueError(f"Paired AnyJev predictions disagree on identity: {job_id}")
+        key = (text_row["event_id"], int(text_row["horizon_sessions"]))
+        actual = actual_by_key[key]
+        text_correct = text_row["direction"] == actual
+        no_text_correct = no_text_row["direction"] == actual
+        comparison = ("both_correct" if text_correct and no_text_correct else
+                      "text_only" if text_correct else "no_text_only" if no_text_correct else "both_wrong")
+        joined.append({
+            "job_id": job_id, "event_id": text_row["event_id"],
+            "prediction_time": text_row["prediction_time"], "horizon_sessions": int(text_row["horizon_sessions"]),
+            "with_text_direction": text_row["direction"], "without_text_direction": no_text_row["direction"],
+            "actual_direction": actual, "comparison": comparison,
+            "same_direction": text_row["direction"] == no_text_row["direction"],
+        })
+    counts = {name: sum(row["comparison"] == name for row in joined)
+              for name in ("both_correct", "text_only", "no_text_only", "both_wrong")}
+    with_accuracy = fmean(row["with_text_direction"] == row["actual_direction"] for row in joined)
+    without_accuracy = fmean(row["without_text_direction"] == row["actual_direction"] for row in joined)
+    accuracy_delta = with_accuracy - without_accuracy
+    log_loss_delta = float(without_text["test_log_loss"]) - float(with_text["test_log_loss"])
+    if accuracy_delta > 0 and log_loss_delta > 0:
+        verdict = "text_helped_on_this_test"
+    elif accuracy_delta < 0 and log_loss_delta < 0:
+        verdict = "text_hurt_on_this_test"
+    else:
+        verdict = "mixed_no_clear_text_value"
+    without_bytes = path.read_bytes()
+    head_bytes = head_path.read_bytes() if head_path is not None else None
+    identity = {"bundle_dataset_id": bundle["dataset_id"],
+                "with_text_result_sha256": hashlib.sha256(with_text_path.read_bytes()).hexdigest(),
+                "without_text_result_sha256": hashlib.sha256(without_bytes).hexdigest(),
+                "without_text_head_sha256": hashlib.sha256(head_bytes).hexdigest() if head_bytes is not None else None,
+                "rows": joined}
+    dataset_id = hashlib.sha256(json.dumps(identity, sort_keys=True, default=str,
+                                            separators=(",", ":")).encode()).hexdigest()[:20]
+    folder = root()/"gold"/"communication_anyjev_text_ablation"/dataset_id
+    _write_parquet(joined, folder/"comparison.parquet", "prediction_time,event_id")
+    (folder/"without_text_result.json").write_bytes(without_bytes)
+    files = {"comparison": (folder/"comparison.parquet").relative_to(root()).as_posix(),
+             "without_text_result": (folder/"without_text_result.json").relative_to(root()).as_posix(),
+             "with_text_result": with_text_report["files"]["result"]}
+    if head_bytes is not None:
+        (folder/"without_text_head.json").write_bytes(head_bytes)
+        files["without_text_head"] = (folder/"without_text_head.json").relative_to(root()).as_posix()
+    report = {
+        "dataset_id": dataset_id, "bundle_dataset_id": bundle["dataset_id"], "rows": len(joined),
+        "horizon_sessions": 5, "model_id": without_text["model_id"], "level": "L2",
+        "split_rows": without_text["split_rows"], "counts": counts,
+        "with_text_accuracy": with_accuracy, "without_text_accuracy": without_accuracy,
+        "accuracy_delta_text_minus_no_text": accuracy_delta,
+        "with_text_log_loss": float(with_text["test_log_loss"]),
+        "without_text_log_loss": float(without_text["test_log_loss"]),
+        "log_loss_improvement_from_text": log_loss_delta,
+        "with_text_brier": float(with_text["test_brier"]),
+        "without_text_brier": float(without_text["test_brier"]),
+        "same_direction_share": fmean(row["same_direction"] for row in joined),
+        "majority_guess_accuracy": float(without_text["test_majority_class_accuracy"]),
+        "without_text_direction_counts": without_text["direction_counts"],
+        "with_text_direction_counts": with_text["direction_counts"], "verdict": verdict,
+        "combined_score": False, "numeric_prediction_in_state": False, "files": files,
+        "hashes": identity,
+        "limitations": [
+            "This paired comparison covers one five-session test period and ECB/Eurosystem communications only.",
+            "The historical texts remain non-strict because exact archive availability is not known.",
+            "A difference on 112 observations must be repeated on later periods before it is treated as stable.",
+        ], "generated_at": datetime.now(UTC).isoformat(),
+    }
+    atomic_json(folder/"manifest.json", report)
+    atomic_json(root()/"reports"/"communication_anyjev_text_ablation.json", report)
+    return report

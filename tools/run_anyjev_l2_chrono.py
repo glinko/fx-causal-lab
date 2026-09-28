@@ -27,6 +27,14 @@ def compact_state(state: str, maximum: int) -> str:
     return prefix + marker + text[:first] + " [middle omitted deterministically] " + text[-last:]
 
 
+def state_for_mode(state: str, mode: str, maximum: int) -> str:
+    if mode == "with_text":
+        return compact_state(state, maximum)
+    if mode == "without_text":
+        return state.partition("\npublished_text: ")[0]
+    raise ValueError(f"Unsupported state mode: {mode}")
+
+
 def softmax(scores: np.ndarray, temperature: float) -> np.ndarray:
     shifted = scores / temperature
     shifted -= shifted.max(axis=1, keepdims=True)
@@ -65,6 +73,7 @@ def main() -> None:
     parser.add_argument("config", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("--head-output", type=Path)
+    parser.add_argument("--state-mode", choices=("with_text", "without_text"), default="with_text")
     args = parser.parse_args()
     config_bytes = args.config.read_bytes()
     config = yaml.safe_load(config_bytes)
@@ -81,7 +90,7 @@ def main() -> None:
         raise ValueError("A future outcome or numeric prediction leaked into an AnyJev state")
     splits = split_rows(rows, config["splits"])
     ordered = [row for name in ("train", "validation", "test") for row in splits[name]]
-    states = [compact_state(row["state"], int(config["max_state_chars"])) for row in ordered]
+    states = [state_for_mode(row["state"], args.state_mode, int(config["max_state_chars"])) for row in ordered]
     labels = np.asarray([int(row["label_index"]) for row in ordered], dtype=int)
 
     from anyjev import Decider, Question
@@ -139,11 +148,13 @@ def main() -> None:
             "prediction_time": row["prediction_time"], "feature_date": row["feature_date"],
             "horizon_sessions": int(row["horizon_sessions"]), "track": "anyjev",
             "model_id": config["model"], "level": "L2", "split": "test",
+            "state_mode": args.state_mode,
             "direction": option_ids[predicted],
             "probabilities": {option_ids[i]: float(probability[i]) for i in range(3)},
             "actual_not_in_request": True, "state_sha256": row["state_sha256"],
             "state_chars_total": int(row["state_chars_total"]),
-            "state_chars_used": len(compact_state(row["state"], int(config["max_state_chars"]))),
+            "state_chars_used": len(state_for_mode(row["state"], args.state_mode,
+                                                     int(config["max_state_chars"]))),
             "elapsed_seconds": 0.0,
         })
     direction_counts = {name: sum(row["direction"] == name for row in predictions) for name in option_ids}
@@ -155,6 +166,7 @@ def main() -> None:
         "config_sha256": hashlib.sha256(config_bytes.replace(b"\r\n", b"\n")).hexdigest(),
         "model_id": config["model"], "model_path": config["model_path"],
         "anyjev_commit": config["anyjev_commit"], "level": "L2", "layer": int(config["layer"]),
+        "state_mode": args.state_mode,
         "split_rows": counts, "selected_lambda": selected_lambda,
         "selected_temperature": selected_temperature, "test_accuracy": accuracy,
         "test_log_loss": log_loss(test_probabilities, test_labels),

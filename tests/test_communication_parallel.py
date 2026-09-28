@@ -3,7 +3,8 @@ from datetime import date, datetime, timedelta, timezone
 import json
 
 from fxlab.denn.communication_parallel import (build_anyjev_jobs, import_anyjev_l2,
-                                                import_anyjev_pilot, score_quantitative)
+                                                import_anyjev_pilot, import_anyjev_text_ablation,
+                                                score_quantitative)
 from fxlab.denn.pipeline import _write_parquet
 
 
@@ -106,3 +107,38 @@ def test_l2_import_keeps_tracks_separate(tmp_path, monkeypatch):
     assert report["counts"]["anyjev_only"] == 1
     assert report["combined_score"] is False
     assert report["numeric_prediction_in_state"] is False
+
+
+def test_text_ablation_compares_identical_jobs(tmp_path, monkeypatch):
+    monkeypatch.setenv("FXLAB_DATA", str(tmp_path))
+    numeric_path = tmp_path/"gold/numeric.parquet"
+    _write_parquet([{"event_id": "event-1", "horizon_sessions": 5, "actual_direction": "up"}],
+                   numeric_path, "event_id")
+    (tmp_path/"reports").mkdir()
+    (tmp_path/"reports/communication_parallel.json").write_text(json.dumps({
+        "dataset_id": "parent", "files": {"quantitative_predictions": "gold/numeric.parquet"}}))
+    (tmp_path/"reports/communication_anyjev_l2_bundle.json").write_text(json.dumps({
+        "dataset_id": "bundle", "bundle_sha256": "bundle-hash", "config_sha256": "config-hash"}))
+
+    def result(mode, direction, loss):
+        return {"schema_version": "fxlab-anyjev-l2-result-1", "status": "complete",
+                "bundle_sha256": "bundle-hash", "config_sha256": "config-hash",
+                "numeric_prediction_in_state": False, "state_mode": mode,
+                "model_id": "Qwen3-8B-b24", "split_rows": {"train": 10, "validation": 3, "test": 1},
+                "test_log_loss": loss, "test_brier": loss / 2, "test_majority_class_accuracy": 1.0,
+                "direction_counts": {"down": 0, "flat": 0, "up": 1},
+                "predictions": [{"job_id": "job-1", "event_id": "event-1",
+                                 "prediction_time": "2023-01-01T00:00:00Z", "horizon_sessions": 5,
+                                 "track": "anyjev", "level": "L2", "split": "test", "state_mode": mode,
+                                 "direction": direction, "actual_not_in_request": True}]}
+
+    with_path = tmp_path/"with.json"
+    with_path.write_text(json.dumps(result("with_text", "up", 0.2)))
+    (tmp_path/"reports/communication_anyjev_l2.json").write_text(json.dumps({
+        "files": {"result": "with.json"}}))
+    without_path = tmp_path/"without.json"
+    without_path.write_text(json.dumps(result("without_text", "down", 0.4)))
+    report = import_anyjev_text_ablation(without_path)
+    assert report["counts"]["text_only"] == 1
+    assert report["verdict"] == "text_helped_on_this_test"
+    assert report["combined_score"] is False

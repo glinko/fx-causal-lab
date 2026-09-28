@@ -63,6 +63,9 @@ def main():
     communication_l2_import = commands.add_parser("communications-anyjev-l2-import", help="Import a chronological AnyJev L2 result")
     communication_l2_import.add_argument("result", type=Path)
     communication_l2_import.add_argument("--head", type=Path, help="Preserve the fitted closed-form head artifact")
+    communication_text_ablation = commands.add_parser("communications-anyjev-text-ablation-import", help="Import the paired L2 run without speech text")
+    communication_text_ablation.add_argument("result", type=Path)
+    communication_text_ablation.add_argument("--head", type=Path, help="Preserve the no-text L2 head artifact")
     commands.add_parser("align-events", help="Build leakage-aware EUR/USD targets for preserved events")
     commands.add_parser("baseline-experiments", help="Build descriptive M5 event baselines and replication status")
     commands.add_parser("graph-build", help="Validate and export the M6 causal-hypothesis graph")
@@ -167,6 +170,9 @@ def main():
     elif args.command == "communications-anyjev-l2-import":
         from .denn.communication_parallel import import_anyjev_l2
         result = import_anyjev_l2(args.result, args.head)
+    elif args.command == "communications-anyjev-text-ablation-import":
+        from .denn.communication_parallel import import_anyjev_text_ablation
+        result = import_anyjev_text_ablation(args.result, args.head)
     elif args.command == "align-events":
         from .alignment import build_event_targets
         result = build_event_targets()
