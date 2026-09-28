@@ -355,7 +355,7 @@ def export_anyjev_l2_bundle(config_path: Path = L2_CONFIG_PATH) -> dict:
     return report
 
 
-def import_anyjev_l2(path: Path) -> dict:
+def import_anyjev_l2(path: Path, head_path: Path | None = None) -> dict:
     """Import a chronological L2 result and compare it with the frozen numeric track."""
     parent = json.loads((root()/"reports"/"communication_parallel.json").read_text(encoding="utf-8"))
     bundle = json.loads((root()/"reports"/"communication_anyjev_l2_bundle.json").read_text(encoding="utf-8"))
@@ -423,12 +423,22 @@ def import_anyjev_l2(path: Path) -> dict:
         verdict = "does_not_beat_simple_majority_guess"
     else:
         verdict = "beats_simple_majority_guess_on_this_test"
+    result_bytes = path.read_bytes()
+    head_bytes = head_path.read_bytes() if head_path is not None else None
     identity = {"parent_dataset_id": parent["dataset_id"], "bundle_dataset_id": bundle["dataset_id"],
-                "result_sha256": hashlib.sha256(path.read_bytes()).hexdigest(), "rows": joined}
+                "result_sha256": hashlib.sha256(result_bytes).hexdigest(),
+                "head_sha256": hashlib.sha256(head_bytes).hexdigest() if head_bytes is not None else None,
+                "rows": joined}
     dataset_id = hashlib.sha256(json.dumps(identity, sort_keys=True, default=str,
                                             separators=(",", ":")).encode()).hexdigest()[:20]
     folder = root()/"gold"/"communication_anyjev_l2"/dataset_id
     _write_parquet(joined, folder/"comparison.parquet", "horizon_sessions,prediction_time,event_id")
+    (folder/"result.json").write_bytes(result_bytes)
+    files = {"comparison": (folder/"comparison.parquet").relative_to(root()).as_posix(),
+             "result": (folder/"result.json").relative_to(root()).as_posix()}
+    if head_bytes is not None:
+        (folder/"head.json").write_bytes(head_bytes)
+        files["head"] = (folder/"head.json").relative_to(root()).as_posix()
     report = {
         "dataset_id": dataset_id, "parent_dataset_id": parent["dataset_id"],
         "bundle_dataset_id": bundle["dataset_id"], "rows": len(joined), "horizon_sessions": 5,
@@ -442,7 +452,8 @@ def import_anyjev_l2(path: Path) -> dict:
         "elapsed_seconds": float(result["elapsed_seconds"]), "verdict": verdict,
         "combined_score": False, "numeric_prediction_in_state": False,
         "selection_scheme": result["selection_scheme"],
-        "files": {"comparison": (folder/"comparison.parquet").relative_to(root()).as_posix()},
+        "result_sha256": identity["result_sha256"], "head_sha256": identity["head_sha256"],
+        "files": files,
         "limitations": [
             "This test covers ECB/Eurosystem communication texts and a five-session horizon only.",
             "Historical full-text availability is non-strict, so this is research evidence rather than a live-trading claim.",
