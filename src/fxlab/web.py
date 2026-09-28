@@ -193,6 +193,7 @@ def policy_events(request: Request):
 def communications_report(request: Request):
     report = read_json("communications.json", None)
     targets = read_json("communication_targets.json", None)
+    parallel = read_json("communication_parallel.json", None)
     rows = []
     if report:
         with duckdb.connect() as con:
@@ -203,7 +204,7 @@ def communications_report(request: Request):
                 [str(root()/report["files"]["events"])],
             ).fetchall()
     return templates.TemplateResponse(request=request, name="communications.html",
-                                      context={"report": report, "targets": targets, "rows": rows})
+                                      context={"report": report, "targets": targets, "parallel": parallel, "rows": rows})
 
 
 @app.get("/reports/event-alignment", response_class=HTMLResponse)
@@ -537,6 +538,11 @@ def download(name: str):
     if communication_targets:
         files["communication_targets.json"] = root()/"reports"/"communication_targets.json"
         files["communication_targets.parquet"] = root()/communication_targets["files"]["targets"]
+    communication_parallel = read_json("communication_parallel.json", None)
+    if communication_parallel:
+        files["communication_parallel.json"] = root()/"reports"/"communication_parallel.json"
+        files["communication_quantitative_predictions.parquet"] = root()/communication_parallel["files"]["quantitative_predictions"]
+        files["communication_anyjev_jobs.jsonl"] = root()/communication_parallel["files"]["anyjev_jobs"]
     alignment = read_json("event_alignment.json", None)
     if alignment:
         files["event_alignment.json"] = root()/"reports"/"event_alignment.json"

@@ -1,0 +1,31 @@
+version: communication-parallel-1
+horizons: [1, 5, 20, 60]
+features:
+  - spread_2y_z60
+  - spread_10y_z60
+  - brent_asinh_change_20d
+  - wti_asinh_change_20d
+  - vix_z60
+  - eurusd_momentum_20d
+  - bk5_z60
+  - bk10_z60
+  - nfci_z60
+  - anfci_z60
+  - h41_tga_ratio_z252
+  - h41_rrp_ratio_z252
+  - h41_reserves_ratio_z252
+  - spx_ret_20d
+  - eu_ret_20d
+  - gold_ret_20d
+  - intraday_eurusd_return_pct
+ridge_lambdas: [0.01, 0.1, 1.0, 10.0]
+minimum_train_rows: 600
+minimum_validation_rows: 80
+minimum_test_rows: 25
+tracks:
+  quantitative: event_ridge_v1
+  language: anyjev_text_v1
+mixing:
+  combined_score: false
+  predictions_visible_to_each_other: false
+  comparison_only_after_freeze: true

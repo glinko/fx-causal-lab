@@ -103,6 +103,16 @@ sudo docker compose exec web fxlab ecb-policy-backfill --from 2023-09-01 --to 20
 sudo docker compose exec web fxlab ecb-policy-replay data/reports/ecb_policy_fetch.json
 ```
 
+Communication-event research:
+
+```bash
+sudo docker compose exec web fxlab communications-backfill --from 1999-01-01 --to 2024-02-29
+sudo docker compose exec web fxlab communications-targets
+sudo docker compose exec web fxlab communications-parallel
+```
+
+The last command writes the numeric predictions and AnyJev jobs separately. It does not run or combine the language-model answers.
+
 Backfill сохраняет FOEDB versions descriptor, metadata, необходимые chunks и каждую страницу решения. Replay проверяет SHA-256, дату URL, время 14:15 Europe/Berlin и три policy rates. Для доказательства автономности replay запускается с `docker run --network none` и bind mount каталога `data`.
 
 ## Event alignment — версия 0.7

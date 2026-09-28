@@ -402,3 +402,4 @@ Block-ablation (dMSE = изменение MSE при удалении ЦЕЛОГ
 - The separate Qwen3-8B checkpoint is retained for AnyJev L2 because it exposes the intermediate hidden state required by that method and fits the RTX 3090.
 - Quantitative and AnyJev predictions are independent experiment tracks. Neither track may consume the other track's prediction, and no average or combined score is produced in the first comparison.
 - Both frozen predictions are joined to the same event, prediction time and horizon only for reporting: both correct, quantitative only, AnyJev only or both wrong.
+- The first communication comparison uses a chronological numeric ridge model with 16 Tier A state variables plus the already observed intraday EUR/USD reaction. AnyJev receives the same structured state and historical speech text, but never the numeric forecast or future outcome.

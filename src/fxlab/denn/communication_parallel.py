@@ -1,0 +1,202 @@
+"""Independent numeric predictions and AnyJev jobs for communication events."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import math
+import os
+from datetime import date, datetime, timezone
+from pathlib import Path
+from statistics import fmean
+
+import duckdb
+import yaml
+
+from ..store import atomic_json, root
+from .anyjev import build_anyjev_job, load_anyjev_config
+from .market_forecast import _select_ridge
+from .pipeline import _correlation, _fit_ridge, _mse, _predict, _write_parquet
+from .state_vector import _fold_splits
+
+UTC = timezone.utc
+CONFIG_PATH = Path(os.environ.get("FXLAB_PROJECT", "."))/"config"/"communication_parallel.yaml"
+
+
+def _load_config(path: Path = CONFIG_PATH) -> tuple[dict, str]:
+    body = path.read_bytes()
+    config = yaml.safe_load(body)
+    if config.get("version") != "communication-parallel-1":
+        raise ValueError("Unsupported communication parallel config")
+    if sorted(config["horizons"]) != [1, 5, 20, 60]:
+        raise ValueError("Communication horizons must remain 1/5/20/60")
+    if config["mixing"] != {"combined_score": False, "predictions_visible_to_each_other": False,
+                            "comparison_only_after_freeze": True}:
+        raise ValueError("Communication model tracks must remain independent")
+    return config, hashlib.sha256(body.replace(b"\r\n", b"\n")).hexdigest()
+
+
+def _load_rows(config: dict) -> tuple[list[dict], dict]:
+    reports = root()/"reports"
+    targets_report = json.loads((reports/"communication_targets.json").read_text(encoding="utf-8"))
+    features_report = json.loads((reports/"tier_a_features.json").read_text(encoding="utf-8"))
+    communications_report = json.loads((reports/"communications.json").read_text(encoding="utf-8"))
+    feature_sql = ",".join(f'f."{name}"' for name in config["features"] if name != "intraday_eurusd_return_pct")
+    target_sql = ",".join(f't.target_end_{h}d,t.target_return_{h}d' for h in config["horizons"])
+    with duckdb.connect() as connection:
+        connection.execute("SET TimeZone='UTC'")
+        values = connection.execute(
+            f"SELECT t.event_id,t.prediction_time,t.target_start_date,{target_sql},"
+            f"t.intraday_eurusd_return_pct,{feature_sql},e.full_text "
+            "FROM read_parquet(?) t JOIN read_parquet(?) f ON f.feature_date=t.target_start_date "
+            "JOIN read_parquet(?) e USING(event_id) ORDER BY t.target_start_date,t.event_id",
+            [str(root()/targets_report["files"]["targets"]), str(root()/features_report["files"]["features"]),
+             str(root()/communications_report["files"]["events"])],
+        ).fetchall()
+    rows = []
+    base_count = 3 + 2 * len(config["horizons"])
+    for values in values:
+        row = {"event_id": values[0], "prediction_time": values[1],
+               "feature_date": date.fromisoformat(str(values[2]))}
+        position = 3
+        for horizon in config["horizons"]:
+            row[f"target_end_{horizon}d"] = date.fromisoformat(str(values[position]))
+            row[f"target_return_{horizon}d"] = float(values[position + 1])
+            position += 2
+        numeric_values = values[base_count:base_count + len(config["features"])]
+        if any(value is None for value in numeric_values):
+            continue
+        for name, value in zip(config["features"], numeric_values):
+            number = float(value)
+            if not math.isfinite(number):
+                raise ValueError(f"Non-finite communication feature: {name}")
+            row[name] = number
+        row["full_text"] = values[base_count + len(config["features"])]
+        rows.append(row)
+    if len(rows) < 1500:
+        raise ValueError("Too few complete communication rows")
+    inputs = {"targets": targets_report["dataset_id"], "features": features_report["dataset_id"],
+              "communications": communications_report["dataset_id"]}
+    return rows, inputs
+
+
+def _quantile(values: list[float], probability: float) -> float:
+    ordered = sorted(values)
+    position = (len(ordered) - 1) * probability
+    lower = int(math.floor(position)); upper = int(math.ceil(position))
+    return ordered[lower] if lower == upper else ordered[lower] + (ordered[upper] - ordered[lower]) * (position - lower)
+
+
+def _direction(value: float, lower: float, upper: float) -> str:
+    return "down" if value < lower else ("up" if value > upper else "flat")
+
+
+def _probabilities(forecast: float, residuals: list[float], lower: float, upper: float) -> dict[str, float]:
+    total = len(residuals)
+    down = sum(forecast + residual < lower for residual in residuals) / total
+    up = sum(forecast + residual > upper for residual in residuals) / total
+    return {"down": down, "flat": 1 - down - up, "up": up}
+
+
+def score_quantitative(rows: list[dict], config: dict) -> tuple[dict, list[dict]]:
+    features = list(config["features"])
+    minimums = (int(config["minimum_train_rows"]), int(config["minimum_validation_rows"]),
+                int(config["minimum_test_rows"]))
+    predictions, result = [], {}
+    years = range(rows[0]["feature_date"].year + 6, rows[-1]["feature_date"].year + 1)
+    for horizon in config["horizons"]:
+        target = f"target_return_{horizon}d"
+        fold_count = 0
+        actual_all, forecast_all = [], []
+        for test_year in years:
+            split = _fold_splits(rows, horizon, test_year, minimums)
+            if split is None:
+                continue
+            ridge = _select_ridge(split, features, target, [float(value) for value in config["ridge_lambdas"]])
+            selection_model = _fit_ridge(split["selection_train"], features, target, ridge)
+            residuals = [float(row[target]) - _predict(selection_model, row, features) for row in split["validation"]]
+            fit_actual = [float(row[target]) for row in split["fit_rows"]]
+            lower, upper = _quantile(fit_actual, 1/3), _quantile(fit_actual, 2/3)
+            model = _fit_ridge(split["fit_rows"], features, target, ridge)
+            for row in split["test_rows"]:
+                forecast = _predict(model, row, features)
+                probability = _probabilities(forecast, residuals, lower, upper)
+                actual = float(row[target])
+                predictions.append({
+                    "event_id": row["event_id"], "prediction_time": row["prediction_time"],
+                    "feature_date": row["feature_date"], "horizon_sessions": horizon,
+                    "track": "quantitative", "model_id": config["tracks"]["quantitative"],
+                    "forecast_return": forecast, "probability_down": probability["down"],
+                    "probability_flat": probability["flat"], "probability_up": probability["up"],
+                    "direction": max(probability, key=probability.get), "actual_return": actual,
+                    "actual_direction": _direction(actual, lower, upper), "lower_bound": lower,
+                    "upper_bound": upper, "fold_id": f"{test_year}-{horizon}d",
+                })
+                actual_all.append(actual); forecast_all.append(forecast)
+            fold_count += 1
+        if not fold_count:
+            raise ValueError(f"No communication folds for {horizon}d")
+        horizon_rows = [row for row in predictions if row["horizon_sessions"] == horizon]
+        result[f"{horizon}d"] = {
+            "predictions": len(horizon_rows), "folds": fold_count, "mse": _mse(actual_all, forecast_all),
+            "correlation": _correlation(actual_all, forecast_all),
+            "direction_accuracy": fmean(row["direction"] == row["actual_direction"] for row in horizon_rows),
+        }
+    return result, predictions
+
+
+def build_anyjev_jobs(rows: list[dict], predictions: list[dict]) -> list[dict]:
+    config, digest = load_anyjev_config()
+    by_event_horizon = {(row["event_id"], row["horizon_sessions"]): row for row in predictions}
+    jobs = []
+    for row in rows:
+        if not row.get("full_text"):
+            continue
+        for question in config["questions"]:
+            horizon = int(question["horizon_sessions"])
+            if (row["event_id"], horizon) not in by_event_horizon:
+                continue
+            snapshot = {"prediction_time": row["prediction_time"], "available_at_max": None,
+                        "point_in_time_status": "non_strict_historical_text",
+                        "strict_pit_eligible": False,
+                        "features": {item["id"]: row.get(item["id"]) for item in config["features"]},
+                        "published_text": row["full_text"]}
+            job = build_anyjev_job(snapshot, question["id"], config, digest)
+            job.update({"event_id": row["event_id"], "track": "anyjev",
+                        "model_id": "qwen38_27b_llama_l0", "actual_not_in_job": True})
+            jobs.append(job)
+    return jobs
+
+
+def build_communication_parallel(config_path: Path = CONFIG_PATH) -> dict:
+    config, config_hash = _load_config(config_path)
+    rows, inputs = _load_rows(config)
+    result, predictions = score_quantitative(rows, config)
+    jobs = build_anyjev_jobs(rows, predictions)
+    identity = {"config_sha256": config_hash, "inputs": inputs, "result": result,
+                "prediction_rows": len(predictions), "job_ids": [job["job_id"] for job in jobs]}
+    normalized_hash = hashlib.sha256(json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    dataset_id = normalized_hash[:20]
+    folder = root()/"gold"/"communication_parallel"/dataset_id
+    _write_parquet(predictions, folder/"quantitative_predictions.parquet", "horizon_sessions,feature_date,event_id")
+    folder.mkdir(parents=True, exist_ok=True)
+    jobs_path = folder/"anyjev_jobs.jsonl"
+    jobs_path.write_text("\n".join(json.dumps(job, ensure_ascii=False) for job in jobs) + "\n", encoding="utf-8")
+    report = {
+        "dataset_id": dataset_id, "parser": config["version"], "config_sha256": config_hash,
+        "input_dataset_ids": inputs, "complete_event_rows": len(rows),
+        "quantitative_predictions": len(predictions), "anyjev_jobs": len(jobs),
+        "anyjev_predictions": 0, "result": result, "mixing": config["mixing"],
+        "files": {"quantitative_predictions": (folder/"quantitative_predictions.parquet").relative_to(root()).as_posix(),
+                  "anyjev_jobs": jobs_path.relative_to(root()).as_posix()},
+        "status": "quantitative_ready_anyjev_jobs_ready",
+        "strict_pit_eligible": False,
+        "limitations": [
+            "The numeric track has no access to AnyJev outputs.",
+            "AnyJev jobs contain no future return, actual direction or numeric-model forecast.",
+            "Historical full-text availability is not exact, so this remains a non-strict research comparison.",
+        ], "generated_at": datetime.now(UTC).isoformat(),
+    }
+    atomic_json(folder/"manifest.json", report)
+    atomic_json(root()/"reports"/"communication_parallel.json", report)
+    return report
