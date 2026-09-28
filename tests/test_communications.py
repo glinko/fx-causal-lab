@@ -45,7 +45,9 @@ def test_parse_ea_ced_links_text_and_market_reaction():
 def test_communication_targets_store_outcomes_without_model_predictions(tmp_path, monkeypatch):
     monkeypatch.setenv("FXLAB_DATA", str(tmp_path))
     start = datetime(2020, 1, 1, 13, tzinfo=timezone.utc)
-    events = [{"event_id": "event-1", "event_time": start, "event_type": "speech",
+    events = [{"event_id": "event-before-market", "event_time": start - timedelta(days=1), "event_type": "speech",
+               "eurusd_return_pct": 0.2, "eurusd_abnormal": False, "speaker": "Old", "title": "Old", "full_text": "Old"},
+              {"event_id": "event-1", "event_time": start + timedelta(hours=1), "event_type": "speech",
                "eurusd_return_pct": 0.1, "eurusd_abnormal": False, "speaker": "Speaker",
                "title": "Title", "full_text": "Text"}]
     bars = [{"session_date": date(2020, 1, 1) + timedelta(days=index),

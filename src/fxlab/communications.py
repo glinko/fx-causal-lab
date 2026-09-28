@@ -204,6 +204,8 @@ def build_communication_targets() -> dict:
     bar_ends = [row[1] for row in bars]
     rows = []
     for event_id, event_time, event_type, reaction, abnormal, speaker, title, full_text in events:
+        if event_time < bar_ends[0]:
+            continue
         start_index = bisect_left(bar_ends, event_time)
         if start_index >= len(bars):
             continue
