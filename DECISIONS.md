@@ -403,3 +403,13 @@ Block-ablation (dMSE = изменение MSE при удалении ЦЕЛОГ
 - Quantitative and AnyJev predictions are independent experiment tracks. Neither track may consume the other track's prediction, and no average or combined score is produced in the first comparison.
 - Both frozen predictions are joined to the same event, prediction time and horizon only for reporting: both correct, quantitative only, AnyJev only or both wrong.
 - The first communication comparison uses a chronological numeric ridge model with 16 Tier A state variables plus the already observed intraday EUR/USD reaction. AnyJev receives the same structured state and historical speech text, but never the numeric forecast or future outcome.
+
+## 2026-09-28 — первая настоящая проверка AnyJev L2
+
+- Для горизонта пять торговых дней собрано 738 заявлений ECB/Евросистемы с текстом и известным последующим движением EUR/USD.
+- Разделение сделано по времени: 511 примеров 2013–2019 годов для обучения, 115 примеров 2020–2021 годов для выбора настроек и 112 примеров 2022–2024 годов для финальной проверки.
+- Вход AnyJev содержал текст и 16 числовых описаний состояния рынка. Фактический исход хранился отдельно как учебная метка. Прогноз числовой модели во вход не передавался.
+- AnyJev выбрал `down / flat / up` 59 / 42 / 11 раз. Значит, прежняя техническая проблема постоянного ответа устранена.
+- На финальной проверке AnyJev угадал 36 из 112 случаев (32.1%). Числовая модель угадала 38 из 112 (33.9%). Простая догадка самым частым исходом дала бы 41 из 112 (36.6%).
+- Ни AnyJev, ни числовая модель не превзошли простой ориентир на этом отрезке. Ответы не усредняются: оба угадали 11 раз, только числовая модель — 27, только AnyJev — 25, оба ошиблись — 49.
+- Это отрицательный исследовательский результат, а не поломка pipeline. Следующий текстовый тест должен отдельно измерить пользу текста: та же L2-голова без текста против варианта с текстом, после чего проверка повторяется для другого типа сообщений или другого временного окна.
