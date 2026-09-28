@@ -51,10 +51,11 @@ def test_communication_targets_store_outcomes_without_model_predictions(tmp_path
                "eurusd_return_pct": 0.1, "eurusd_abnormal": False, "speaker": "Speaker",
                "title": "Title", "full_text": "Text"}]
     bars = [{"session_date": date(2020, 1, 1) + timedelta(days=index),
+             "bar_start": start + timedelta(days=index, hours=-16),
              "bar_end": start + timedelta(days=index, hours=8), "close": 1 + index / 100,
              "complete": True} for index in range(62)]
     write_macro_parquet(events, tmp_path/"silver/events.parquet", ("event_time",))
-    write_macro_parquet(bars, tmp_path/"silver/bars.parquet", ("bar_end",))
+    write_macro_parquet(bars, tmp_path/"silver/bars.parquet", ("bar_start", "bar_end"))
     (tmp_path/"reports").mkdir()
     (tmp_path/"reports/communications.json").write_text(json.dumps({
         "dataset_id": "communications-1", "files": {"events": "silver/events.parquet"}}))

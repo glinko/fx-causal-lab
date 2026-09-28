@@ -198,21 +198,21 @@ def build_communication_targets() -> dict:
             [str(root()/communication_report["files"]["events"])],
         ).fetchall()
         bars = connection.execute(
-            "SELECT session_date,bar_end,close FROM read_parquet(?) WHERE complete ORDER BY bar_end",
+            "SELECT session_date,bar_start,bar_end,close FROM read_parquet(?) WHERE complete ORDER BY bar_end",
             [str(root()/bars_report["files"]["d1"])],
         ).fetchall()
-    bar_ends = [row[1] for row in bars]
+    bar_ends = [row[2] for row in bars]
     rows = []
     for event_id, event_time, event_type, reaction, abnormal, speaker, title, full_text in events:
-        if event_time < bar_ends[0]:
+        if event_time < bars[0][1]:
             continue
         start_index = bisect_left(bar_ends, event_time)
         if start_index >= len(bars):
             continue
         row = {
             "event_id": event_id, "event_time": event_time, "event_type": event_type,
-            "prediction_time": bars[start_index][1], "target_start_date": bars[start_index][0],
-            "start_close": float(bars[start_index][2]), "intraday_eurusd_return_pct": reaction,
+            "prediction_time": bars[start_index][2], "target_start_date": bars[start_index][0],
+            "start_close": float(bars[start_index][3]), "intraday_eurusd_return_pct": reaction,
             "intraday_eurusd_abnormal": abnormal, "speaker": speaker, "title": title,
             "text_present": full_text is not None, "text_available_at": None,
             "strict_pit_eligible": False,
@@ -225,7 +225,7 @@ def build_communication_targets() -> dict:
                 complete = False
                 break
             row[f"target_end_{horizon}d"] = bars[target_index][0]
-            row[f"target_return_{horizon}d"] = math.log(float(bars[target_index][2]) / row["start_close"])
+            row[f"target_return_{horizon}d"] = math.log(float(bars[target_index][3]) / row["start_close"])
         if complete:
             rows.append(row)
     if not rows:
