@@ -71,3 +71,5 @@ def test_pilot_import_compares_but_does_not_combine(tmp_path, monkeypatch):
     report = import_anyjev_pilot(response_path)
     assert report["counts"]["anyjev_only"] == 1
     assert report["combined_score"] is False
+    assert report["anyjev_direction_counts"] == {"down": 1, "flat": 0, "up": 0}
+    assert report["verdict"] == "degenerate_constant_prediction"

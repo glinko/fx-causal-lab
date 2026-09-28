@@ -177,7 +177,9 @@ def build_communication_parallel(config_path: Path = CONFIG_PATH) -> dict:
     result, predictions = score_quantitative(rows, config)
     jobs = build_anyjev_jobs(rows, predictions)
     identity = {"config_sha256": config_hash, "inputs": inputs, "result": result,
-                "prediction_rows": len(predictions), "job_ids": [job["job_id"] for job in jobs]}
+                "prediction_rows": len(predictions),
+                "jobs": [{"job_id": job["job_id"], "model_id": job["model_id"],
+                          "label_bounds": job["label_bounds"]} for job in jobs]}
     normalized_hash = hashlib.sha256(json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     dataset_id = normalized_hash[:20]
     folder = root()/"gold"/"communication_parallel"/dataset_id
@@ -250,6 +252,9 @@ def import_anyjev_pilot(path: Path) -> dict:
         })
     counts = {name: sum(row["comparison"] == name for row in joined)
               for name in ("both_correct", "quantitative_only", "anyjev_only", "both_wrong")}
+    direction_counts = {name: sum(row["anyjev_direction"] == name for row in joined)
+                        for name in ("down", "flat", "up")}
+    constant_direction = sum(value > 0 for value in direction_counts.values()) == 1
     by_horizon = {}
     for horizon in (1, 5, 20, 60):
         sample = [row for row in joined if row["horizon_sessions"] == horizon]
@@ -268,11 +273,12 @@ def import_anyjev_pilot(path: Path) -> dict:
     _write_parquet(joined, folder/"comparison.parquet", "horizon_sessions,prediction_time,event_id")
     report = {
         "dataset_id": dataset_id, "parent_dataset_id": parent["dataset_id"], "rows": len(joined),
-        "counts": counts, "by_horizon": by_horizon,
+        "counts": counts, "anyjev_direction_counts": direction_counts, "by_horizon": by_horizon,
         "average_seconds_per_job": fmean(row["elapsed_seconds"] for row in joined),
         "truncated_jobs": sum(row["state_chars_used"] < row["state_chars_total"] for row in joined),
         "files": {"comparison": (folder/"comparison.parquet").relative_to(root()).as_posix()},
         "pilot_only": True, "combined_score": False,
+        "verdict": "degenerate_constant_prediction" if constant_direction else "pipeline_operational",
         "limitations": ["This is a small infrastructure pilot, not a model-quality conclusion.",
                         "Long speeches are deterministically shortened for the pilot.",
                         "Historical full-text availability remains non-strict."],
