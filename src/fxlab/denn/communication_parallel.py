@@ -22,6 +22,7 @@ from .state_vector import _fold_splits
 UTC = timezone.utc
 CONFIG_PATH = Path(os.environ.get("FXLAB_PROJECT", "."))/"config"/"communication_parallel.yaml"
 L2_CONFIG_PATH = Path(os.environ.get("FXLAB_PROJECT", "."))/"config"/"anyjev_l2_chrono.yaml"
+L2_REPEAT_CONFIG_PATH = Path(os.environ.get("FXLAB_PROJECT", "."))/"config"/"anyjev_l2_repeat_2020.yaml"
 
 
 def _load_config(path: Path = CONFIG_PATH) -> tuple[dict, str]:
@@ -573,4 +574,121 @@ def import_anyjev_text_ablation(path: Path, head_path: Path | None = None) -> di
     }
     atomic_json(folder/"manifest.json", report)
     atomic_json(root()/"reports"/"communication_anyjev_text_ablation.json", report)
+    return report
+
+
+def import_anyjev_text_repeat(with_text_path: Path, without_text_path: Path,
+                              with_head_path: Path | None = None,
+                              without_head_path: Path | None = None,
+                              config_path: Path = L2_REPEAT_CONFIG_PATH) -> dict:
+    """Import the pre-registered 2020-2021 repeat of the paired text ablation."""
+    parent = json.loads((root()/"reports"/"communication_parallel.json").read_text(encoding="utf-8"))
+    bundle = json.loads((root()/"reports"/"communication_anyjev_l2_bundle.json").read_text(encoding="utf-8"))
+    original = json.loads((root()/"reports"/"communication_anyjev_text_ablation.json").read_text(encoding="utf-8"))
+    config_hash = hashlib.sha256(config_path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+    with_text = json.loads(with_text_path.read_text(encoding="utf-8"))
+    without_text = json.loads(without_text_path.read_text(encoding="utf-8"))
+    for result, expected_mode in ((with_text, "with_text"), (without_text, "without_text")):
+        if result.get("schema_version") != "fxlab-anyjev-l2-result-1" or result.get("status") != "complete":
+            raise ValueError(f"Invalid repeat result for {expected_mode}")
+        if result.get("state_mode") != expected_mode:
+            raise ValueError(f"Repeat expected {expected_mode}")
+        if result.get("bundle_sha256") != bundle["bundle_sha256"] or result.get("config_sha256") != config_hash:
+            raise ValueError("Repeat result does not match its frozen bundle/config")
+        if result.get("numeric_prediction_in_state") is not False:
+            raise ValueError("Numeric prediction leaked into the repeat")
+        if result.get("split_rows") != {"train": 363, "validation": 148, "test": 115}:
+            raise ValueError("Unexpected chronological row counts in the repeat")
+    with_by_job = {row["job_id"]: row for row in with_text["predictions"]}
+    without_by_job = {row["job_id"]: row for row in without_text["predictions"]}
+    if not with_by_job or set(with_by_job) != set(without_by_job):
+        raise ValueError("Repeat runs do not contain identical frozen test jobs")
+    for row in [*with_by_job.values(), *without_by_job.values()]:
+        if row.get("actual_not_in_request") is not True:
+            raise ValueError("Repeat prediction lacks outcome-separation provenance")
+        if any(name in row for name in ("actual_return", "actual_direction", "forecast_return", "combined_score")):
+            raise ValueError("Repeat result contains a forbidden outcome or numeric forecast")
+    with duckdb.connect() as connection:
+        numeric = connection.execute(
+            "SELECT event_id,horizon_sessions,actual_direction FROM read_parquet(?) WHERE horizon_sessions=5",
+            [str(root()/parent["files"]["quantitative_predictions"])],
+        ).fetchall()
+    actual_by_key = {(row[0], int(row[1])): str(row[2]) for row in numeric}
+    joined = []
+    for job_id in sorted(with_by_job):
+        text_row, no_text_row = with_by_job[job_id], without_by_job[job_id]
+        if text_row["event_id"] != no_text_row["event_id"]:
+            raise ValueError(f"Repeat pair identity mismatch: {job_id}")
+        actual = actual_by_key[(text_row["event_id"], int(text_row["horizon_sessions"]))]
+        text_correct = text_row["direction"] == actual
+        no_text_correct = no_text_row["direction"] == actual
+        comparison = ("both_correct" if text_correct and no_text_correct else
+                      "text_only" if text_correct else "no_text_only" if no_text_correct else "both_wrong")
+        joined.append({
+            "job_id": job_id, "event_id": text_row["event_id"],
+            "prediction_time": text_row["prediction_time"], "horizon_sessions": 5,
+            "with_text_direction": text_row["direction"], "without_text_direction": no_text_row["direction"],
+            "actual_direction": actual, "comparison": comparison,
+            "same_direction": text_row["direction"] == no_text_row["direction"],
+        })
+    counts = {name: sum(row["comparison"] == name for row in joined)
+              for name in ("both_correct", "text_only", "no_text_only", "both_wrong")}
+    with_accuracy = fmean(row["with_text_direction"] == row["actual_direction"] for row in joined)
+    without_accuracy = fmean(row["without_text_direction"] == row["actual_direction"] for row in joined)
+    accuracy_delta = with_accuracy - without_accuracy
+    loss_delta = float(without_text["test_log_loss"]) - float(with_text["test_log_loss"])
+    original_accuracy_delta = float(original["accuracy_delta_text_minus_no_text"])
+    original_loss_delta = float(original["log_loss_improvement_from_text"])
+    replicated = accuracy_delta > 0 and loss_delta > 0 and original_accuracy_delta > 0 and original_loss_delta > 0
+    verdict = "small_text_help_repeated" if replicated else "text_help_not_repeated"
+    with_bytes, without_bytes = with_text_path.read_bytes(), without_text_path.read_bytes()
+    with_head_bytes = with_head_path.read_bytes() if with_head_path is not None else None
+    without_head_bytes = without_head_path.read_bytes() if without_head_path is not None else None
+    hashes = {
+        "with_text_result_sha256": hashlib.sha256(with_bytes).hexdigest(),
+        "without_text_result_sha256": hashlib.sha256(without_bytes).hexdigest(),
+        "with_text_head_sha256": hashlib.sha256(with_head_bytes).hexdigest() if with_head_bytes else None,
+        "without_text_head_sha256": hashlib.sha256(without_head_bytes).hexdigest() if without_head_bytes else None,
+    }
+    identity = {"bundle_dataset_id": bundle["dataset_id"], "config_sha256": config_hash,
+                "hashes": hashes, "rows": joined}
+    dataset_id = hashlib.sha256(json.dumps(identity, sort_keys=True, default=str,
+                                            separators=(",", ":")).encode()).hexdigest()[:20]
+    folder = root()/"gold"/"communication_anyjev_text_repeat"/dataset_id
+    _write_parquet(joined, folder/"comparison.parquet", "prediction_time,event_id")
+    (folder/"with_text_result.json").write_bytes(with_bytes)
+    (folder/"without_text_result.json").write_bytes(without_bytes)
+    files = {"comparison": (folder/"comparison.parquet").relative_to(root()).as_posix(),
+             "with_text_result": (folder/"with_text_result.json").relative_to(root()).as_posix(),
+             "without_text_result": (folder/"without_text_result.json").relative_to(root()).as_posix()}
+    for name, body in (("with_text_head", with_head_bytes), ("without_text_head", without_head_bytes)):
+        if body is not None:
+            target = folder/f"{name}.json"
+            target.write_bytes(body)
+            files[name] = target.relative_to(root()).as_posix()
+    report = {
+        "dataset_id": dataset_id, "bundle_dataset_id": bundle["dataset_id"],
+        "config_sha256": config_hash, "test_period": "2020-2021", "rows": len(joined),
+        "horizon_sessions": 5, "model_id": with_text["model_id"], "level": "L2",
+        "split_rows": with_text["split_rows"], "counts": counts,
+        "with_text_accuracy": with_accuracy, "without_text_accuracy": without_accuracy,
+        "accuracy_delta_text_minus_no_text": accuracy_delta,
+        "with_text_log_loss": float(with_text["test_log_loss"]),
+        "without_text_log_loss": float(without_text["test_log_loss"]),
+        "log_loss_improvement_from_text": loss_delta,
+        "same_direction_share": fmean(row["same_direction"] for row in joined),
+        "majority_guess_accuracy": float(with_text["test_majority_class_accuracy"]),
+        "original_test_period": "2022-2024", "original_accuracy_delta": original_accuracy_delta,
+        "original_log_loss_improvement": original_loss_delta,
+        "replicated_direction_and_probability_improvement": replicated,
+        "verdict": verdict, "combined_score": False, "numeric_prediction_in_state": False,
+        "files": files, "hashes": hashes,
+        "limitations": [
+            "This is a second chronological window from the same ECB/Eurosystem communication corpus.",
+            "Both windows remain non-strict because exact historical text availability is not known.",
+            "Even repeated small improvement does not establish economic usefulness or causality.",
+        ], "generated_at": datetime.now(UTC).isoformat(),
+    }
+    atomic_json(folder/"manifest.json", report)
+    atomic_json(root()/"reports"/"communication_anyjev_text_repeat.json", report)
     return report

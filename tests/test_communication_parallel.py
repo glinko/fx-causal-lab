@@ -4,7 +4,7 @@ import json
 
 from fxlab.denn.communication_parallel import (build_anyjev_jobs, import_anyjev_l2,
                                                 import_anyjev_pilot, import_anyjev_text_ablation,
-                                                score_quantitative)
+                                                import_anyjev_text_repeat, score_quantitative)
 from fxlab.denn.pipeline import _write_parquet
 
 
@@ -141,4 +141,41 @@ def test_text_ablation_compares_identical_jobs(tmp_path, monkeypatch):
     report = import_anyjev_text_ablation(without_path)
     assert report["counts"]["text_only"] == 1
     assert report["verdict"] == "text_helped_on_this_test"
+    assert report["combined_score"] is False
+
+
+def test_text_repeat_requires_frozen_earlier_period(tmp_path, monkeypatch):
+    import hashlib
+
+    monkeypatch.setenv("FXLAB_DATA", str(tmp_path))
+    config_path = tmp_path/"repeat.yaml"
+    config_path.write_text("version: anyjev-l2-chrono-1\n")
+    config_hash = hashlib.sha256(config_path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+    numeric_path = tmp_path/"gold/numeric.parquet"
+    _write_parquet([{"event_id": "event-1", "horizon_sessions": 5, "actual_direction": "up"}],
+                   numeric_path, "event_id")
+    (tmp_path/"reports").mkdir()
+    (tmp_path/"reports/communication_parallel.json").write_text(json.dumps({
+        "files": {"quantitative_predictions": "gold/numeric.parquet"}}))
+    (tmp_path/"reports/communication_anyjev_l2_bundle.json").write_text(json.dumps({
+        "dataset_id": "bundle", "bundle_sha256": "bundle-hash"}))
+    (tmp_path/"reports/communication_anyjev_text_ablation.json").write_text(json.dumps({
+        "accuracy_delta_text_minus_no_text": 0.01, "log_loss_improvement_from_text": 0.01}))
+
+    def result(mode, direction, loss):
+        return {"schema_version": "fxlab-anyjev-l2-result-1", "status": "complete",
+                "bundle_sha256": "bundle-hash", "config_sha256": config_hash,
+                "numeric_prediction_in_state": False, "state_mode": mode, "model_id": "Qwen3-8B-b24",
+                "split_rows": {"train": 363, "validation": 148, "test": 115},
+                "test_log_loss": loss, "test_majority_class_accuracy": 0.4,
+                "predictions": [{"job_id": "job-1", "event_id": "event-1",
+                                 "prediction_time": "2021-01-01T00:00:00Z", "horizon_sessions": 5,
+                                 "direction": direction, "actual_not_in_request": True}]}
+
+    with_path, without_path = tmp_path/"repeat-with.json", tmp_path/"repeat-without.json"
+    with_path.write_text(json.dumps(result("with_text", "up", 0.2)))
+    without_path.write_text(json.dumps(result("without_text", "down", 0.3)))
+    report = import_anyjev_text_repeat(with_path, without_path, config_path=config_path)
+    assert report["counts"]["text_only"] == 1
+    assert report["replicated_direction_and_probability_improvement"] is True
     assert report["combined_score"] is False

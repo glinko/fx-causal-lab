@@ -1,0 +1,17 @@
+version: anyjev-l2-chrono-1
+horizon_sessions: 5
+model: Qwen3-8B-b24
+model_path: /home/user/ai/anyjev-runtime/models/Qwen3-8B-b24
+anyjev_commit: 45add301a7aa60ed3420c83d15c061e84e5bce61
+layer: 24
+max_state_chars: 3500
+splits:
+  train: {from: 2013-01-01, to: 2017-12-31}
+  validation: {from: 2018-01-01, to: 2019-12-31}
+  test: {from: 2020-01-01, to: 2021-12-31}
+ridge_lambdas: [0.1, 1.0, 10.0, 100.0]
+temperatures: [0.5, 0.75, 1.0, 1.5, 2.0, 3.0]
+options: [down, flat, up]
+mixing:
+  numeric_prediction_in_state: false
+  comparison_only_after_freeze: true
