@@ -162,8 +162,11 @@ def build_anyjev_jobs(rows: list[dict], predictions: list[dict]) -> list[dict]:
                         "features": {item["id"]: row.get(item["id"]) for item in config["features"]},
                         "published_text": row["full_text"]}
             job = build_anyjev_job(snapshot, question["id"], config, digest)
+            numeric_metadata = by_event_horizon[(row["event_id"], horizon)]
             job.update({"event_id": row["event_id"], "track": "anyjev",
-                        "model_id": "qwen38_27b_llama_l0", "actual_not_in_job": True})
+                        "model_id": "qwen38_27b_llama_l0", "actual_not_in_job": True,
+                        "label_bounds": {"down_below": numeric_metadata["lower_bound"],
+                                         "up_above": numeric_metadata["upper_bound"]}})
             jobs.append(job)
     return jobs
 
@@ -199,4 +202,82 @@ def build_communication_parallel(config_path: Path = CONFIG_PATH) -> dict:
     }
     atomic_json(folder/"manifest.json", report)
     atomic_json(root()/"reports"/"communication_parallel.json", report)
+    return report
+
+
+def import_anyjev_pilot(path: Path) -> dict:
+    """Join a bounded LLM pilot to frozen numeric predictions for reporting only."""
+    parent = json.loads((root()/"reports"/"communication_parallel.json").read_text(encoding="utf-8"))
+    responses = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    if not responses or len({row["job_id"] for row in responses}) != len(responses):
+        raise ValueError("AnyJev pilot is empty or contains duplicate jobs")
+    for row in responses:
+        if row.get("track") != "anyjev" or row.get("actual_not_in_request") is not True:
+            raise ValueError("Invalid AnyJev response provenance")
+        if any(name in row for name in ("actual_return", "actual_direction", "forecast_return", "combined_score")):
+            raise ValueError("AnyJev response contains forbidden outcome or numeric forecast")
+    with duckdb.connect() as connection:
+        connection.execute("SET TimeZone='UTC'")
+        numeric = connection.execute(
+            "SELECT event_id,prediction_time,horizon_sessions,direction,probability_down,probability_flat,"
+            "probability_up,actual_return,actual_direction FROM read_parquet(?)",
+            [str(root()/parent["files"]["quantitative_predictions"])],
+        ).fetchall()
+    numeric_by_key = {(row[0], int(row[2])): row for row in numeric}
+    joined = []
+    for response in responses:
+        key = (response["event_id"], int(response["horizon_sessions"]))
+        if key not in numeric_by_key:
+            raise ValueError(f"AnyJev response has no frozen numeric peer: {key}")
+        numeric_row = numeric_by_key[key]
+        actual_direction = numeric_row[8]
+        numeric_correct = numeric_row[3] == actual_direction
+        anyjev_correct = response["direction"] == actual_direction
+        comparison = ("both_correct" if numeric_correct and anyjev_correct else
+                      "quantitative_only" if numeric_correct else
+                      "anyjev_only" if anyjev_correct else "both_wrong")
+        probability = response["probabilities"]
+        joined.append({
+            "job_id": response["job_id"], "event_id": response["event_id"],
+            "prediction_time": numeric_row[1], "horizon_sessions": int(response["horizon_sessions"]),
+            "quantitative_direction": numeric_row[3], "quantitative_probability_down": float(numeric_row[4]),
+            "quantitative_probability_flat": float(numeric_row[5]), "quantitative_probability_up": float(numeric_row[6]),
+            "anyjev_direction": response["direction"], "anyjev_probability_down": float(probability["down"]),
+            "anyjev_probability_flat": float(probability["flat"]), "anyjev_probability_up": float(probability["up"]),
+            "actual_return": float(numeric_row[7]), "actual_direction": actual_direction,
+            "comparison": comparison, "state_chars_total": int(response["state_chars_total"]),
+            "state_chars_used": int(response["state_chars_used"]), "elapsed_seconds": float(response["elapsed_seconds"]),
+        })
+    counts = {name: sum(row["comparison"] == name for row in joined)
+              for name in ("both_correct", "quantitative_only", "anyjev_only", "both_wrong")}
+    by_horizon = {}
+    for horizon in (1, 5, 20, 60):
+        sample = [row for row in joined if row["horizon_sessions"] == horizon]
+        if sample:
+            by_horizon[f"{horizon}d"] = {
+                "rows": len(sample),
+                "quantitative_accuracy": fmean(row["quantitative_direction"] == row["actual_direction"] for row in sample),
+                "anyjev_accuracy": fmean(row["anyjev_direction"] == row["actual_direction"] for row in sample),
+                "same_answer": fmean(row["quantitative_direction"] == row["anyjev_direction"] for row in sample),
+            }
+    identity = {"parent_dataset_id": parent["dataset_id"], "job_ids": sorted(row["job_id"] for row in joined),
+                "rows": joined}
+    digest = hashlib.sha256(json.dumps(identity, sort_keys=True, default=str, separators=(",", ":")).encode()).hexdigest()
+    dataset_id = digest[:20]
+    folder = root()/"gold"/"communication_parallel_pilot"/dataset_id
+    _write_parquet(joined, folder/"comparison.parquet", "horizon_sessions,prediction_time,event_id")
+    report = {
+        "dataset_id": dataset_id, "parent_dataset_id": parent["dataset_id"], "rows": len(joined),
+        "counts": counts, "by_horizon": by_horizon,
+        "average_seconds_per_job": fmean(row["elapsed_seconds"] for row in joined),
+        "truncated_jobs": sum(row["state_chars_used"] < row["state_chars_total"] for row in joined),
+        "files": {"comparison": (folder/"comparison.parquet").relative_to(root()).as_posix()},
+        "pilot_only": True, "combined_score": False,
+        "limitations": ["This is a small infrastructure pilot, not a model-quality conclusion.",
+                        "Long speeches are deterministically shortened for the pilot.",
+                        "Historical full-text availability remains non-strict."],
+        "generated_at": datetime.now(UTC).isoformat(),
+    }
+    atomic_json(folder/"manifest.json", report)
+    atomic_json(root()/"reports"/"communication_parallel_pilot.json", report)
     return report

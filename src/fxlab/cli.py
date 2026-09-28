@@ -57,6 +57,8 @@ def main():
     communications_replay.add_argument("--to", dest="end", type=date.fromisoformat, default=date.today())
     commands.add_parser("communications-targets", help="Join EA-CED events to future 1/5/20/60-day outcomes")
     commands.add_parser("communications-parallel", help="Build independent numeric predictions and AnyJev jobs")
+    communication_import = commands.add_parser("communications-anyjev-import", help="Import a bounded AnyJev pilot")
+    communication_import.add_argument("responses", type=Path)
     commands.add_parser("align-events", help="Build leakage-aware EUR/USD targets for preserved events")
     commands.add_parser("baseline-experiments", help="Build descriptive M5 event baselines and replication status")
     commands.add_parser("graph-build", help="Validate and export the M6 causal-hypothesis graph")
@@ -152,6 +154,9 @@ def main():
     elif args.command == "communications-parallel":
         from .denn.communication_parallel import build_communication_parallel
         result = build_communication_parallel()
+    elif args.command == "communications-anyjev-import":
+        from .denn.communication_parallel import import_anyjev_pilot
+        result = import_anyjev_pilot(args.responses)
     elif args.command == "align-events":
         from .alignment import build_event_targets
         result = build_event_targets()

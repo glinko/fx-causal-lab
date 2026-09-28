@@ -1,6 +1,9 @@
 from datetime import date, datetime, timedelta, timezone
 
-from fxlab.denn.communication_parallel import build_anyjev_jobs, score_quantitative
+import json
+
+from fxlab.denn.communication_parallel import build_anyjev_jobs, import_anyjev_pilot, score_quantitative
+from fxlab.denn.pipeline import _write_parquet
 
 
 def rows():
@@ -38,10 +41,33 @@ def test_anyjev_jobs_contain_neither_actual_outcome_nor_numeric_prediction():
                    "nfci_z60", "anfci_z60", "h41_tga_ratio_z252", "h41_rrp_ratio_z252",
                    "h41_reserves_ratio_z252", "spx_ret_20d", "eu_ret_20d", "gold_ret_20d"]
     row.update({name: 0.1 for name in feature_ids})
-    predictions = [{"event_id": row["event_id"], "horizon_sessions": horizon} for horizon in (1, 5, 20, 60)]
+    predictions = [{"event_id": row["event_id"], "horizon_sessions": horizon,
+                    "lower_bound": -0.01, "upper_bound": 0.01} for horizon in (1, 5, 20, 60)]
     jobs = build_anyjev_jobs([row], predictions)
     assert len(jobs) == 4
     serialized = str(jobs)
     assert "actual_return" not in serialized
     assert "forecast_return" not in serialized
     assert all(job["actual_not_in_job"] is True and job["track"] == "anyjev" for job in jobs)
+    assert all(job["label_bounds"] == {"down_below": -0.01, "up_above": 0.01} for job in jobs)
+
+
+def test_pilot_import_compares_but_does_not_combine(tmp_path, monkeypatch):
+    monkeypatch.setenv("FXLAB_DATA", str(tmp_path))
+    numeric_path = tmp_path/"gold/numeric.parquet"
+    _write_parquet([{"event_id": "event-1", "prediction_time": "2020-01-01T00:00:00Z",
+                     "horizon_sessions": 5, "direction": "up", "probability_down": 0.1,
+                     "probability_flat": 0.2, "probability_up": 0.7, "actual_return": -0.01,
+                     "actual_direction": "down"}], numeric_path, "event_id")
+    (tmp_path/"reports").mkdir()
+    (tmp_path/"reports/communication_parallel.json").write_text(json.dumps({
+        "dataset_id": "parent", "files": {"quantitative_predictions": "gold/numeric.parquet"}}))
+    response_path = tmp_path/"response.jsonl"
+    response_path.write_text(json.dumps({"job_id": "job-1", "event_id": "event-1",
+        "prediction_time": "2020-01-01T00:00:00Z", "horizon_sessions": 5, "track": "anyjev",
+        "direction": "down", "probabilities": {"down": 0.8, "flat": 0.1, "up": 0.1},
+        "actual_not_in_request": True, "state_chars_total": 4000, "state_chars_used": 3500,
+        "elapsed_seconds": 2.0}) + "\n")
+    report = import_anyjev_pilot(response_path)
+    assert report["counts"]["anyjev_only"] == 1
+    assert report["combined_score"] is False
