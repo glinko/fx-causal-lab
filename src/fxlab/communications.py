@@ -23,6 +23,7 @@ SOURCE_URL = (
 )
 SOURCE_PAGE = "https://sites.google.com/site/istrefiklodiana/ea-ced"
 PARSER = "ea-ced-2024-07-18-v1"
+TARGET_PARSER = "communication-targets-v2"
 EVENT_FLAGS = {
     "t_account": "ecb_monetary_policy_account",
     "s_president": "ecb_president_communication",
@@ -231,7 +232,8 @@ def build_communication_targets() -> dict:
     if not rows:
         raise ValueError("No communication events overlap the complete D1 market history")
     signature = {"communications_dataset_id": communication_report["dataset_id"],
-                 "bars_dataset_id": bars_report["dataset_id"], "policy": "parallel-v1"}
+                 "bars_dataset_id": bars_report["dataset_id"], "parser": TARGET_PARSER,
+                 "policy": "parallel-v1"}
     dataset_id = hashlib.sha256(json.dumps(signature, sort_keys=True).encode()).hexdigest()[:20]
     folder = root()/"gold"/"communications"/dataset_id
     timestamps = ("event_time", "prediction_time")
@@ -242,7 +244,8 @@ def build_communication_targets() -> dict:
         coverage[f"{horizon}d"] = {"rows": len(values), "up": sum(value > 0 for value in values),
                                   "down_or_flat": sum(value <= 0 for value in values)}
     report = {
-        "dataset_id": dataset_id, "communications_dataset_id": communication_report["dataset_id"],
+        "dataset_id": dataset_id, "parser": TARGET_PARSER,
+        "communications_dataset_id": communication_report["dataset_id"],
         "bars_dataset_id": bars_report["dataset_id"], "rows": len(rows),
         "rows_with_text": sum(row["text_present"] for row in rows), "coverage": coverage,
         "first_prediction_time": rows[0]["prediction_time"].isoformat(),
