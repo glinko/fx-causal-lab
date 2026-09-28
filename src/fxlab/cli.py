@@ -59,6 +59,9 @@ def main():
     commands.add_parser("communications-parallel", help="Build independent numeric predictions and AnyJev jobs")
     communication_import = commands.add_parser("communications-anyjev-import", help="Import a bounded AnyJev pilot")
     communication_import.add_argument("responses", type=Path)
+    commands.add_parser("communications-anyjev-l2-export", help="Export the chronological 5-day AnyJev L2 bundle")
+    communication_l2_import = commands.add_parser("communications-anyjev-l2-import", help="Import a chronological AnyJev L2 result")
+    communication_l2_import.add_argument("result", type=Path)
     commands.add_parser("align-events", help="Build leakage-aware EUR/USD targets for preserved events")
     commands.add_parser("baseline-experiments", help="Build descriptive M5 event baselines and replication status")
     commands.add_parser("graph-build", help="Validate and export the M6 causal-hypothesis graph")
@@ -157,6 +160,12 @@ def main():
     elif args.command == "communications-anyjev-import":
         from .denn.communication_parallel import import_anyjev_pilot
         result = import_anyjev_pilot(args.responses)
+    elif args.command == "communications-anyjev-l2-export":
+        from .denn.communication_parallel import export_anyjev_l2_bundle
+        result = export_anyjev_l2_bundle()
+    elif args.command == "communications-anyjev-l2-import":
+        from .denn.communication_parallel import import_anyjev_l2
+        result = import_anyjev_l2(args.result)
     elif args.command == "align-events":
         from .alignment import build_event_targets
         result = build_event_targets()

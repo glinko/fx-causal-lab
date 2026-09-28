@@ -195,6 +195,7 @@ def communications_report(request: Request):
     targets = read_json("communication_targets.json", None)
     parallel = read_json("communication_parallel.json", None)
     pilot = read_json("communication_parallel_pilot.json", None)
+    l2 = read_json("communication_anyjev_l2.json", None)
     rows = []
     if report:
         with duckdb.connect() as con:
@@ -206,7 +207,7 @@ def communications_report(request: Request):
             ).fetchall()
     return templates.TemplateResponse(request=request, name="communications.html",
                                       context={"report": report, "targets": targets, "parallel": parallel,
-                                               "pilot": pilot, "rows": rows})
+                                               "pilot": pilot, "l2": l2, "rows": rows})
 
 
 @app.get("/reports/event-alignment", response_class=HTMLResponse)

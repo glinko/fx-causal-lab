@@ -21,6 +21,7 @@ from .state_vector import _fold_splits
 
 UTC = timezone.utc
 CONFIG_PATH = Path(os.environ.get("FXLAB_PROJECT", "."))/"config"/"communication_parallel.yaml"
+L2_CONFIG_PATH = Path(os.environ.get("FXLAB_PROJECT", "."))/"config"/"anyjev_l2_chrono.yaml"
 
 
 def _load_config(path: Path = CONFIG_PATH) -> tuple[dict, str]:
@@ -286,4 +287,168 @@ def import_anyjev_pilot(path: Path) -> dict:
     }
     atomic_json(folder/"manifest.json", report)
     atomic_json(root()/"reports"/"communication_parallel_pilot.json", report)
+    return report
+
+
+def export_anyjev_l2_bundle(config_path: Path = L2_CONFIG_PATH) -> dict:
+    """Export labeled states for a chronological AnyJev L2 run without numeric forecasts."""
+    config_bytes = config_path.read_bytes()
+    config = yaml.safe_load(config_bytes)
+    if config.get("version") != "anyjev-l2-chrono-1" or int(config["horizon_sessions"]) != 5:
+        raise ValueError("Unsupported AnyJev L2 chronological config")
+    if config["mixing"] != {"numeric_prediction_in_state": False, "comparison_only_after_freeze": True}:
+        raise ValueError("AnyJev and numeric predictions must remain independent")
+    parent = json.loads((root()/"reports"/"communication_parallel.json").read_text(encoding="utf-8"))
+    jobs_path = root()/parent["files"]["anyjev_jobs"]
+    jobs = [json.loads(line) for line in jobs_path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    horizon = int(config["horizon_sessions"])
+    with duckdb.connect() as connection:
+        numeric = connection.execute(
+            "SELECT event_id,horizon_sessions,feature_date,actual_direction FROM read_parquet(?) "
+            "WHERE horizon_sessions=?", [str(root()/parent["files"]["quantitative_predictions"]), horizon],
+        ).fetchall()
+    labels = {(row[0], int(row[1])): (str(row[2]), str(row[3])) for row in numeric}
+    label_index = {name: index for index, name in enumerate(config["options"])}
+    rows = []
+    for job in jobs:
+        if int(job["horizon_sessions"]) != horizon:
+            continue
+        key = (job["event_id"], horizon)
+        if key not in labels:
+            raise ValueError(f"AnyJev job has no frozen historical outcome: {key}")
+        feature_date, label = labels[key]
+        state = str(job["state"])
+        if any(token in state for token in ("actual_return", "actual_direction", "forecast_return",
+                                             "quantitative_direction", "probability_up")):
+            raise ValueError(f"Forbidden outcome or numeric prediction in state: {job['job_id']}")
+        rows.append({
+            "job_id": job["job_id"], "event_id": job["event_id"],
+            "prediction_time": job["prediction_time"], "feature_date": feature_date,
+            "horizon_sessions": horizon, "state": state, "state_sha256": job["state_sha256"],
+            "state_chars_total": len(state), "label": label, "label_index": label_index[label],
+            "label_is_separate_from_state": True, "numeric_prediction_in_state": False,
+        })
+    rows.sort(key=lambda row: (row["feature_date"], row["event_id"]))
+    split_counts = {}
+    for name in ("train", "validation", "test"):
+        start, end = str(config["splits"][name]["from"]), str(config["splits"][name]["to"])
+        split_counts[name] = sum(start <= row["feature_date"] <= end for row in rows)
+        if split_counts[name] == 0:
+            raise ValueError(f"Empty AnyJev L2 chronological split: {name}")
+    config_hash = hashlib.sha256(config_bytes.replace(b"\r\n", b"\n")).hexdigest()
+    identity = {"parent_dataset_id": parent["dataset_id"], "config_sha256": config_hash, "rows": rows}
+    dataset_id = hashlib.sha256(json.dumps(identity, sort_keys=True, separators=(",", ":")).encode()).hexdigest()[:20]
+    folder = root()/"gold"/"communication_anyjev_l2_bundle"/dataset_id
+    folder.mkdir(parents=True, exist_ok=True)
+    bundle_path = folder/"bundle.jsonl"
+    bundle_path.write_text("\n".join(json.dumps(row, ensure_ascii=False) for row in rows) + "\n", encoding="utf-8")
+    report = {
+        "dataset_id": dataset_id, "parent_dataset_id": parent["dataset_id"], "config_sha256": config_hash,
+        "horizon_sessions": horizon, "rows": len(rows), "split_rows": split_counts,
+        "bundle_sha256": hashlib.sha256(bundle_path.read_bytes()).hexdigest(),
+        "files": {"bundle": bundle_path.relative_to(root()).as_posix()},
+        "numeric_prediction_in_state": False, "label_is_separate_from_state": True,
+        "status": "ready_for_anyjev_l2", "generated_at": datetime.now(UTC).isoformat(),
+    }
+    atomic_json(folder/"manifest.json", report)
+    atomic_json(root()/"reports"/"communication_anyjev_l2_bundle.json", report)
+    return report
+
+
+def import_anyjev_l2(path: Path) -> dict:
+    """Import a chronological L2 result and compare it with the frozen numeric track."""
+    parent = json.loads((root()/"reports"/"communication_parallel.json").read_text(encoding="utf-8"))
+    bundle = json.loads((root()/"reports"/"communication_anyjev_l2_bundle.json").read_text(encoding="utf-8"))
+    result = json.loads(path.read_text(encoding="utf-8"))
+    if result.get("schema_version") != "fxlab-anyjev-l2-result-1" or result.get("status") != "complete":
+        raise ValueError("Invalid AnyJev L2 result")
+    if result.get("bundle_sha256") != bundle["bundle_sha256"] or result.get("config_sha256") != bundle["config_sha256"]:
+        raise ValueError("AnyJev L2 result does not match the frozen bundle/config")
+    if result.get("numeric_prediction_in_state") is not False or result.get("selection_scheme") != "past_train_then_validation_then_later_test":
+        raise ValueError("AnyJev L2 result violates the chronological separation contract")
+    responses = result.get("predictions", [])
+    if not responses or len({row["job_id"] for row in responses}) != len(responses):
+        raise ValueError("AnyJev L2 predictions are empty or duplicated")
+    for row in responses:
+        if row.get("track") != "anyjev" or row.get("level") != "L2" or row.get("split") != "test":
+            raise ValueError("Unexpected AnyJev L2 prediction provenance")
+        if row.get("actual_not_in_request") is not True:
+            raise ValueError("AnyJev L2 prediction does not attest outcome separation")
+        if any(name in row for name in ("actual_return", "actual_direction", "forecast_return", "combined_score")):
+            raise ValueError("AnyJev L2 prediction contains a forbidden outcome or numeric forecast")
+    with duckdb.connect() as connection:
+        numeric = connection.execute(
+            "SELECT event_id,prediction_time,horizon_sessions,direction,probability_down,probability_flat,"
+            "probability_up,actual_return,actual_direction FROM read_parquet(?)",
+            [str(root()/parent["files"]["quantitative_predictions"])],
+        ).fetchall()
+    numeric_by_key = {(row[0], int(row[2])): row for row in numeric}
+    joined = []
+    for response in responses:
+        key = (response["event_id"], int(response["horizon_sessions"]))
+        if key not in numeric_by_key:
+            raise ValueError(f"AnyJev L2 response has no frozen numeric peer: {key}")
+        numeric_row = numeric_by_key[key]
+        actual_direction = str(numeric_row[8])
+        numeric_correct = str(numeric_row[3]) == actual_direction
+        anyjev_correct = response["direction"] == actual_direction
+        comparison = ("both_correct" if numeric_correct and anyjev_correct else
+                      "quantitative_only" if numeric_correct else
+                      "anyjev_only" if anyjev_correct else "both_wrong")
+        probabilities = response["probabilities"]
+        joined.append({
+            "job_id": response["job_id"], "event_id": response["event_id"],
+            "prediction_time": numeric_row[1], "horizon_sessions": int(response["horizon_sessions"]),
+            "quantitative_direction": str(numeric_row[3]),
+            "quantitative_probability_down": float(numeric_row[4]),
+            "quantitative_probability_flat": float(numeric_row[5]),
+            "quantitative_probability_up": float(numeric_row[6]),
+            "anyjev_direction": response["direction"],
+            "anyjev_probability_down": float(probabilities["down"]),
+            "anyjev_probability_flat": float(probabilities["flat"]),
+            "anyjev_probability_up": float(probabilities["up"]),
+            "actual_return": float(numeric_row[7]), "actual_direction": actual_direction,
+            "comparison": comparison,
+        })
+    counts = {name: sum(row["comparison"] == name for row in joined)
+              for name in ("both_correct", "quantitative_only", "anyjev_only", "both_wrong")}
+    numeric_accuracy = fmean(row["quantitative_direction"] == row["actual_direction"] for row in joined)
+    anyjev_accuracy = fmean(row["anyjev_direction"] == row["actual_direction"] for row in joined)
+    direction_counts = {name: sum(row["anyjev_direction"] == name for row in joined)
+                        for name in ("down", "flat", "up")}
+    constant_direction = sum(value > 0 for value in direction_counts.values()) == 1
+    if constant_direction:
+        verdict = "constant_prediction"
+    elif anyjev_accuracy <= float(result["test_majority_class_accuracy"]):
+        verdict = "does_not_beat_simple_majority_guess"
+    else:
+        verdict = "beats_simple_majority_guess_on_this_test"
+    identity = {"parent_dataset_id": parent["dataset_id"], "bundle_dataset_id": bundle["dataset_id"],
+                "result_sha256": hashlib.sha256(path.read_bytes()).hexdigest(), "rows": joined}
+    dataset_id = hashlib.sha256(json.dumps(identity, sort_keys=True, default=str,
+                                            separators=(",", ":")).encode()).hexdigest()[:20]
+    folder = root()/"gold"/"communication_anyjev_l2"/dataset_id
+    _write_parquet(joined, folder/"comparison.parquet", "horizon_sessions,prediction_time,event_id")
+    report = {
+        "dataset_id": dataset_id, "parent_dataset_id": parent["dataset_id"],
+        "bundle_dataset_id": bundle["dataset_id"], "rows": len(joined), "horizon_sessions": 5,
+        "model_id": result["model_id"], "level": "L2", "split_rows": result["split_rows"],
+        "counts": counts, "direction_counts": direction_counts,
+        "quantitative_accuracy": numeric_accuracy, "anyjev_accuracy": anyjev_accuracy,
+        "majority_guess_accuracy": float(result["test_majority_class_accuracy"]),
+        "anyjev_log_loss": float(result["test_log_loss"]), "anyjev_brier": float(result["test_brier"]),
+        "selected_lambda": float(result["selected_lambda"]),
+        "selected_temperature": float(result["selected_temperature"]),
+        "elapsed_seconds": float(result["elapsed_seconds"]), "verdict": verdict,
+        "combined_score": False, "numeric_prediction_in_state": False,
+        "selection_scheme": result["selection_scheme"],
+        "files": {"comparison": (folder/"comparison.parquet").relative_to(root()).as_posix()},
+        "limitations": [
+            "This test covers ECB/Eurosystem communication texts and a five-session horizon only.",
+            "Historical full-text availability is non-strict, so this is research evidence rather than a live-trading claim.",
+            "The numeric and AnyJev predictions are shown side by side and are never averaged.",
+        ], "generated_at": datetime.now(UTC).isoformat(),
+    }
+    atomic_json(folder/"manifest.json", report)
+    atomic_json(root()/"reports"/"communication_anyjev_l2.json", report)
     return report

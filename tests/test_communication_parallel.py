@@ -2,7 +2,8 @@ from datetime import date, datetime, timedelta, timezone
 
 import json
 
-from fxlab.denn.communication_parallel import build_anyjev_jobs, import_anyjev_pilot, score_quantitative
+from fxlab.denn.communication_parallel import (build_anyjev_jobs, import_anyjev_l2,
+                                                import_anyjev_pilot, score_quantitative)
 from fxlab.denn.pipeline import _write_parquet
 
 
@@ -73,3 +74,35 @@ def test_pilot_import_compares_but_does_not_combine(tmp_path, monkeypatch):
     assert report["combined_score"] is False
     assert report["anyjev_direction_counts"] == {"down": 1, "flat": 0, "up": 0}
     assert report["verdict"] == "degenerate_constant_prediction"
+
+
+def test_l2_import_keeps_tracks_separate(tmp_path, monkeypatch):
+    monkeypatch.setenv("FXLAB_DATA", str(tmp_path))
+    numeric_path = tmp_path/"gold/numeric.parquet"
+    _write_parquet([{"event_id": "event-1", "prediction_time": "2023-01-01T00:00:00Z",
+                     "horizon_sessions": 5, "direction": "up", "probability_down": 0.1,
+                     "probability_flat": 0.2, "probability_up": 0.7, "actual_return": -0.01,
+                     "actual_direction": "down"}], numeric_path, "event_id")
+    (tmp_path/"reports").mkdir()
+    (tmp_path/"reports/communication_parallel.json").write_text(json.dumps({
+        "dataset_id": "parent", "files": {"quantitative_predictions": "gold/numeric.parquet"}}))
+    (tmp_path/"reports/communication_anyjev_l2_bundle.json").write_text(json.dumps({
+        "dataset_id": "bundle", "bundle_sha256": "bundle-hash", "config_sha256": "config-hash"}))
+    result_path = tmp_path/"result.json"
+    result_path.write_text(json.dumps({
+        "schema_version": "fxlab-anyjev-l2-result-1", "status": "complete",
+        "bundle_sha256": "bundle-hash", "config_sha256": "config-hash",
+        "numeric_prediction_in_state": False,
+        "selection_scheme": "past_train_then_validation_then_later_test",
+        "model_id": "Qwen3-8B-b24", "split_rows": {"train": 10, "validation": 3, "test": 1},
+        "test_majority_class_accuracy": 1.0, "test_log_loss": 0.2, "test_brier": 0.1,
+        "selected_lambda": 1.0, "selected_temperature": 1.0, "elapsed_seconds": 3.0,
+        "predictions": [{"job_id": "job-1", "event_id": "event-1",
+                         "horizon_sessions": 5, "track": "anyjev", "level": "L2", "split": "test",
+                         "direction": "down", "probabilities": {"down": 0.8, "flat": 0.1, "up": 0.1},
+                         "actual_not_in_request": True}],
+    }))
+    report = import_anyjev_l2(result_path)
+    assert report["counts"]["anyjev_only"] == 1
+    assert report["combined_score"] is False
+    assert report["numeric_prediction_in_state"] is False
