@@ -2,7 +2,8 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from fxlab.denn.anyjev import build_anyjev_job, load_anyjev_config, render_world_state, return_bucket
+from fxlab.denn.anyjev import (build_anyjev_job, llama_cpp_choice_probabilities,
+                               load_anyjev_config, render_world_state, return_bucket)
 
 
 def snapshot():
@@ -47,3 +48,13 @@ def test_return_bucket_uses_frozen_past_fold_bounds():
     with pytest.raises(ValueError):
         return_bucket(0.0, 0.01, -0.01)
 
+
+def test_llama_cpp_choice_probabilities_ignore_unconstrained_tokens():
+    response = {"choices": [{"logprobs": {"content": [{"top_logprobs": [
+        {"token": "\n", "logprob": -0.1}, {"token": " A", "logprob": -1.0},
+        {"token": " B", "logprob": -2.0}, {"token": " C", "logprob": -3.0},
+    ]}]}}]}
+    result = llama_cpp_choice_probabilities(response, {" A": "up", " B": "down", " C": "unclear"})
+    assert set(result) == {"up", "down", "unclear"}
+    assert sum(result.values()) == pytest.approx(1.0)
+    assert result["up"] > result["down"] > result["unclear"]

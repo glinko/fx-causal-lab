@@ -393,3 +393,10 @@ Block-ablation (dMSE = изменение MSE при удалении ЦЕЛОГ
 - CFTC EUR TFF собран за 2006-06-13–2026-09-22: 1 059 недельных строк. Для 1 020 старых строк точная дата доступности неизвестна, поэтому они не допускаются в строгие эксперименты. Данные и контрольная сумма повторены из сохранённого манифеста без сети.
 - EIA stocks и U.S. crude production собраны за 2004-01-02–2026-09-18: по 1 186 недельных строк, всего 2 372. Офлайн-повтор дал тот же dataset `1093478fb3f52833f42d`.
 - Все относительные пути в новых и затронутых манифестах приведены к единому виду с `/`, чтобы локальный пакет переносился на Ubuntu без ручного исправления.
+# 2026-09-27 — Communications data and two Qwen roles
+
+- EA-CED is the first communications research dataset: it provides broad ECB/Eurosystem event coverage, Bloomberg-reported event times, cleaned intraday market reactions and a large ECB speech text collection.
+- Event selection must be independent of the observed EUR/USD move. Famous events can be case studies, but they cannot define the training sample.
+- Complete historical speech text is retrospective evidence until its exact `available_at` is known. It may be used for topic/tone research, but not silently treated as a pre-event input.
+- The existing Qwen3.8-27B `llama.cpp` service is retained and used without reload for an L0/L1 comparison based on option token probabilities.
+- The separate Qwen3-8B checkpoint is retained for AnyJev L2 because it exposes the intermediate hidden state required by that method and fits the RTX 3090.

@@ -48,6 +48,13 @@ def main():
     ecb_policy.add_argument("--to", dest="end", type=date.fromisoformat, default=date.today())
     ecb_policy_replay = commands.add_parser("ecb-policy-replay", help="Normalize preserved ECB policy snapshots offline")
     ecb_policy_replay.add_argument("manifest", type=Path)
+    communications = commands.add_parser("communications-backfill", help="Fetch EA-CED ECB communications, texts and reactions")
+    communications.add_argument("--from", dest="start", type=date.fromisoformat, default=date(1999, 1, 1))
+    communications.add_argument("--to", dest="end", type=date.fromisoformat, default=date.today())
+    communications_replay = commands.add_parser("communications-replay", help="Normalize a preserved EA-CED workbook offline")
+    communications_replay.add_argument("manifest", type=Path)
+    communications_replay.add_argument("--from", dest="start", type=date.fromisoformat, default=date(1999, 1, 1))
+    communications_replay.add_argument("--to", dest="end", type=date.fromisoformat, default=date.today())
     commands.add_parser("align-events", help="Build leakage-aware EUR/USD targets for preserved events")
     commands.add_parser("baseline-experiments", help="Build descriptive M5 event baselines and replication status")
     commands.add_parser("graph-build", help="Validate and export the M6 causal-hypothesis graph")
@@ -131,6 +138,12 @@ def main():
     elif args.command == "ecb-policy-replay":
         from .ecb_policy import replay_ecb_policy
         result = replay_ecb_policy(args.manifest)
+    elif args.command == "communications-backfill":
+        from .communications import backfill_ea_ced
+        result = backfill_ea_ced(args.start, args.end)
+    elif args.command == "communications-replay":
+        from .communications import replay_ea_ced
+        result = replay_ea_ced(args.manifest, args.start, args.end)
     elif args.command == "align-events":
         from .alignment import build_event_targets
         result = build_event_targets()

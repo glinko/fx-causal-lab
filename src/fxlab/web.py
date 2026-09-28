@@ -189,6 +189,21 @@ def policy_events(request: Request):
                                       context={"fomc": fomc, "ecb": ecb, "fomc_rows": fomc_rows, "ecb_rows": ecb_rows})
 
 
+@app.get("/reports/communications", response_class=HTMLResponse)
+def communications_report(request: Request):
+    report = read_json("communications.json", None)
+    rows = []
+    if report:
+        with duckdb.connect() as con:
+            con.execute("SET TimeZone='UTC'")
+            rows = con.execute(
+                "SELECT event_time, speaker, title, eurusd_return_pct "
+                "FROM read_parquet(?) WHERE eurusd_abnormal ORDER BY event_time DESC LIMIT 30",
+                [str(root()/report["files"]["events"])],
+            ).fetchall()
+    return templates.TemplateResponse(request=request, name="communications.html", context={"report": report, "rows": rows})
+
+
 @app.get("/reports/event-alignment", response_class=HTMLResponse)
 def event_alignment(request: Request):
     report = read_json("event_alignment.json", None)
@@ -511,6 +526,11 @@ def download(name: str):
     if ecb_policy:
         files["ecb_policy.json"] = root()/"reports"/"ecb_policy.json"
         files["ecb_policy_decisions.parquet"] = root()/ecb_policy["files"]["decisions"]
+    communications = read_json("communications.json", None)
+    if communications:
+        files["communications.json"] = root()/"reports"/"communications.json"
+        files["ea_ced_events.parquet"] = root()/communications["files"]["events"]
+        files["anyjev_text_examples.parquet"] = root()/communications["files"]["anyjev_examples"]
     alignment = read_json("event_alignment.json", None)
     if alignment:
         files["event_alignment.json"] = root()/"reports"/"event_alignment.json"

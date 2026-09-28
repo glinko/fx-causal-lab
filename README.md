@@ -2,7 +2,7 @@
 
 Исследовательский MVP EUR/USD на Ubuntu: публичные источники, provenance, проверки доступности и веб-отчёты.
 
-Версия 0.27.2: отдельный AnyJev/Qwen3-8B runtime установлен и проверен на RTX 3090. Добавлен стабильный контракт заданий для горизонтов 1/5/20/60 дней, защита от данных из будущего и зафиксирован compatibility patch для свежей конфигурации Qwen3. Текущий Qwen3.8-27B Hermes после теста автоматически восстановлен.
+Версия 0.28.0: интегрирована открытая EA-CED с заявлениями ECB, точным временем и внутридневной реакцией EUR/USD. Тексты подготовлены для AnyJev как ретроспективный набор с явной защитой от ложного времени доступности. Действующий Qwen3.8-27B проверен как L0/L1-кандидат без смены модели; Qwen3-8B остаётся совместимым runtime для настоящего AnyJev L2.
 
 ```bash
 pip install -c requirements.lock '.[test]'
@@ -44,7 +44,7 @@ uvicorn fxlab.web:app --host 127.0.0.1 --port 8088
 pytest -q
 ```
 
-[Веб-журнал](http://192.168.88.15:8088) · [Tier A world-state](http://192.168.88.15:8088/reports/tier-a) · [Memory ablation](http://192.168.88.15:8088/reports/denn-memory-ablation) · [Timing audit](http://192.168.88.15:8088/reports/denn-timing-audit) · [State-vector suite](http://192.168.88.15:8088/reports/denn-state-vector) · [Grouped suite](http://192.168.88.15:8088/reports/denn-grouped) · [План AnyJev](http://192.168.88.15:8088/reports/anyjev) · [Подробный roadmap](http://192.168.88.15:8088/reports/roadmap) · [Spectral stability](http://192.168.88.15:8088/reports/denn-spectral-stability) · [Data Coverage Matrix](http://192.168.88.15:8088/reports/data-coverage)
+[Веб-журнал](http://192.168.88.15:8088) · [Заявления ECB](http://192.168.88.15:8088/reports/communications) · [Tier A world-state](http://192.168.88.15:8088/reports/tier-a) · [Memory ablation](http://192.168.88.15:8088/reports/denn-memory-ablation) · [Timing audit](http://192.168.88.15:8088/reports/denn-timing-audit) · [State-vector suite](http://192.168.88.15:8088/reports/denn-state-vector) · [Grouped suite](http://192.168.88.15:8088/reports/denn-grouped) · [План AnyJev](http://192.168.88.15:8088/reports/anyjev) · [Подробный roadmap](http://192.168.88.15:8088/reports/roadmap) · [Spectral stability](http://192.168.88.15:8088/reports/denn-spectral-stability) · [Data Coverage Matrix](http://192.168.88.15:8088/reports/data-coverage)
 
 137 737 валидных H1 с сентября 2004 по сентябрь 2026 года; 5 744 дневные сессии, из них 5 732 полные. В истории найден 21 отсутствующий час. 13 некорректных свечей поставщика исключены, дубликатов нет. Пропуски не заполняются. Повторная сборка из сохранённых исходников дала тот же результат и ту же контрольную сумму.
 

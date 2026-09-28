@@ -94,3 +94,22 @@ def build_anyjev_job(snapshot: dict, question_id: str, config: dict, config_sha2
     payload["job_id"] = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()[:24]
     return payload
 
+
+def llama_cpp_choice_probabilities(response: dict, token_to_option: dict[str, str]) -> dict[str, float]:
+    """Normalize selected llama.cpp token log-probabilities for an AnyJev L0 comparison."""
+    try:
+        candidates = response["choices"][0]["logprobs"]["content"][0]["top_logprobs"]
+    except (KeyError, IndexError, TypeError) as error:
+        raise ValueError("llama.cpp response has no top token probabilities") from error
+    scores = {}
+    for candidate in candidates:
+        token = candidate.get("token")
+        if token in token_to_option:
+            scores[token_to_option[token]] = float(candidate["logprob"])
+    missing = set(token_to_option.values()) - set(scores)
+    if missing:
+        raise ValueError(f"llama.cpp response is missing option probabilities: {sorted(missing)}")
+    peak = max(scores.values())
+    weights = {option: math.exp(score - peak) for option, score in scores.items()}
+    total = sum(weights.values())
+    return {option: weight / total for option, weight in weights.items()}
