@@ -400,3 +400,5 @@ Block-ablation (dMSE = изменение MSE при удалении ЦЕЛОГ
 - Complete historical speech text is retrospective evidence until its exact `available_at` is known. It may be used for topic/tone research, but not silently treated as a pre-event input.
 - The existing Qwen3.8-27B `llama.cpp` service is retained and used without reload for an L0/L1 comparison based on option token probabilities.
 - The separate Qwen3-8B checkpoint is retained for AnyJev L2 because it exposes the intermediate hidden state required by that method and fits the RTX 3090.
+- Quantitative and AnyJev predictions are independent experiment tracks. Neither track may consume the other track's prediction, and no average or combined score is produced in the first comparison.
+- Both frozen predictions are joined to the same event, prediction time and horizon only for reporting: both correct, quantitative only, AnyJev only or both wrong.

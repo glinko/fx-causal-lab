@@ -192,6 +192,7 @@ def policy_events(request: Request):
 @app.get("/reports/communications", response_class=HTMLResponse)
 def communications_report(request: Request):
     report = read_json("communications.json", None)
+    targets = read_json("communication_targets.json", None)
     rows = []
     if report:
         with duckdb.connect() as con:
@@ -201,7 +202,8 @@ def communications_report(request: Request):
                 "FROM read_parquet(?) WHERE eurusd_abnormal ORDER BY event_time DESC LIMIT 30",
                 [str(root()/report["files"]["events"])],
             ).fetchall()
-    return templates.TemplateResponse(request=request, name="communications.html", context={"report": report, "rows": rows})
+    return templates.TemplateResponse(request=request, name="communications.html",
+                                      context={"report": report, "targets": targets, "rows": rows})
 
 
 @app.get("/reports/event-alignment", response_class=HTMLResponse)
@@ -531,6 +533,10 @@ def download(name: str):
         files["communications.json"] = root()/"reports"/"communications.json"
         files["ea_ced_events.parquet"] = root()/communications["files"]["events"]
         files["anyjev_text_examples.parquet"] = root()/communications["files"]["anyjev_examples"]
+    communication_targets = read_json("communication_targets.json", None)
+    if communication_targets:
+        files["communication_targets.json"] = root()/"reports"/"communication_targets.json"
+        files["communication_targets.parquet"] = root()/communication_targets["files"]["targets"]
     alignment = read_json("event_alignment.json", None)
     if alignment:
         files["event_alignment.json"] = root()/"reports"/"event_alignment.json"

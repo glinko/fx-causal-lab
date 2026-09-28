@@ -3,6 +3,8 @@
 import hashlib
 import io
 import json
+import math
+from bisect import bisect_left
 from datetime import date, datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -181,3 +183,82 @@ def replay_ea_ced(manifest: Path | dict, start: date = date(1999, 1, 1), end: da
 
 def backfill_ea_ced(start: date = date(1999, 1, 1), end: date = date.max) -> dict:
     return replay_ea_ced(fetch_ea_ced(), start, end)
+
+
+def build_communication_targets() -> dict:
+    """Attach future D1 market outcomes while keeping model tracks absent and separate."""
+    communication_report = json.loads((root()/"reports"/"communications.json").read_text(encoding="utf-8"))
+    bars_report = json.loads((root()/"reports"/"bars.json").read_text(encoding="utf-8"))
+    import duckdb
+    with duckdb.connect() as connection:
+        connection.execute("SET TimeZone='UTC'")
+        events = connection.execute(
+            "SELECT event_id,event_time,event_type,eurusd_return_pct,eurusd_abnormal,"
+            "speaker,title,full_text FROM read_parquet(?) ORDER BY event_time,event_id",
+            [str(root()/communication_report["files"]["events"])],
+        ).fetchall()
+        bars = connection.execute(
+            "SELECT session_date,bar_end,close FROM read_parquet(?) WHERE complete ORDER BY bar_end",
+            [str(root()/bars_report["files"]["d1"])],
+        ).fetchall()
+    bar_ends = [row[1] for row in bars]
+    rows = []
+    for event_id, event_time, event_type, reaction, abnormal, speaker, title, full_text in events:
+        start_index = bisect_left(bar_ends, event_time)
+        if start_index >= len(bars):
+            continue
+        row = {
+            "event_id": event_id, "event_time": event_time, "event_type": event_type,
+            "prediction_time": bars[start_index][1], "target_start_date": bars[start_index][0],
+            "start_close": float(bars[start_index][2]), "intraday_eurusd_return_pct": reaction,
+            "intraday_eurusd_abnormal": abnormal, "speaker": speaker, "title": title,
+            "text_present": full_text is not None, "text_available_at": None,
+            "strict_pit_eligible": False,
+            "track_policy": "quantitative_and_anyjev_run_separately",
+        }
+        complete = True
+        for horizon in (1, 5, 20, 60):
+            target_index = start_index + horizon
+            if target_index >= len(bars):
+                complete = False
+                break
+            row[f"target_end_{horizon}d"] = bars[target_index][0]
+            row[f"target_return_{horizon}d"] = math.log(float(bars[target_index][2]) / row["start_close"])
+        if complete:
+            rows.append(row)
+    if not rows:
+        raise ValueError("No communication events overlap the complete D1 market history")
+    signature = {"communications_dataset_id": communication_report["dataset_id"],
+                 "bars_dataset_id": bars_report["dataset_id"], "policy": "parallel-v1"}
+    dataset_id = hashlib.sha256(json.dumps(signature, sort_keys=True).encode()).hexdigest()[:20]
+    folder = root()/"gold"/"communications"/dataset_id
+    timestamps = ("event_time", "prediction_time")
+    write_macro_parquet(rows, folder/"targets.parquet", timestamps)
+    coverage = {}
+    for horizon in (1, 5, 20, 60):
+        values = [row[f"target_return_{horizon}d"] for row in rows]
+        coverage[f"{horizon}d"] = {"rows": len(values), "up": sum(value > 0 for value in values),
+                                  "down_or_flat": sum(value <= 0 for value in values)}
+    report = {
+        "dataset_id": dataset_id, "communications_dataset_id": communication_report["dataset_id"],
+        "bars_dataset_id": bars_report["dataset_id"], "rows": len(rows),
+        "rows_with_text": sum(row["text_present"] for row in rows), "coverage": coverage,
+        "first_prediction_time": rows[0]["prediction_time"].isoformat(),
+        "last_prediction_time": rows[-1]["prediction_time"].isoformat(),
+        "files": {"targets": (folder/"targets.parquet").relative_to(root()).as_posix()},
+        "track_policy": {
+            "quantitative": "numeric features and statistical models only",
+            "anyjev": "text and structured-state LLM readout only",
+            "comparison": "side by side after both predictions are frozen",
+            "combined_score": False,
+        },
+        "strict_pit_eligible": False,
+        "limitations": [
+            "The first complete NY17 close after the event is the common prediction boundary.",
+            "Full historical speech text has unknown exact availability and remains non-strict.",
+            "This dataset stores outcomes only; it does not mix or precompute either model prediction.",
+        ], "generated_at": datetime.now(UTC).isoformat(),
+    }
+    atomic_json(folder/"manifest.json", report)
+    atomic_json(root()/"reports"/"communication_targets.json", report)
+    return report

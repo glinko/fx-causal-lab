@@ -1,9 +1,11 @@
-from datetime import date
+import json
+from datetime import date, datetime, timedelta, timezone
 from io import BytesIO
 
 from openpyxl import Workbook
 
-from fxlab.communications import parse_ea_ced
+from fxlab.communications import build_communication_targets, parse_ea_ced
+from fxlab.macro import write_macro_parquet
 
 
 def workbook_bytes():
@@ -38,3 +40,25 @@ def test_parse_ea_ced_links_text_and_market_reaction():
     assert examples[0]["text"] == "Full speech text"
     assert examples[0]["strict_pit_eligible"] is False
     assert summary["median_absolute_eurusd_return_pct"] == 0.25
+
+
+def test_communication_targets_store_outcomes_without_model_predictions(tmp_path, monkeypatch):
+    monkeypatch.setenv("FXLAB_DATA", str(tmp_path))
+    start = datetime(2020, 1, 1, 13, tzinfo=timezone.utc)
+    events = [{"event_id": "event-1", "event_time": start, "event_type": "speech",
+               "eurusd_return_pct": 0.1, "eurusd_abnormal": False, "speaker": "Speaker",
+               "title": "Title", "full_text": "Text"}]
+    bars = [{"session_date": date(2020, 1, 1) + timedelta(days=index),
+             "bar_end": start + timedelta(days=index, hours=8), "close": 1 + index / 100,
+             "complete": True} for index in range(62)]
+    write_macro_parquet(events, tmp_path/"silver/events.parquet", ("event_time",))
+    write_macro_parquet(bars, tmp_path/"silver/bars.parquet", ("bar_end",))
+    (tmp_path/"reports").mkdir()
+    (tmp_path/"reports/communications.json").write_text(json.dumps({
+        "dataset_id": "communications-1", "files": {"events": "silver/events.parquet"}}))
+    (tmp_path/"reports/bars.json").write_text(json.dumps({
+        "dataset_id": "bars-1", "files": {"d1": "silver/bars.parquet"}}))
+    report = build_communication_targets()
+    assert report["rows"] == report["rows_with_text"] == 1
+    assert report["coverage"]["60d"]["rows"] == 1
+    assert report["track_policy"]["combined_score"] is False

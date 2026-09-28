@@ -1,0 +1,15 @@
+version: parallel-predictions-1
+horizons: [1, 5, 20, 60]
+tracks:
+  quantitative:
+    id: denn_numeric
+    inputs: numeric_point_in_time_features
+  language:
+    id: anyjev_text
+    inputs: published_text_and_structured_state
+comparison:
+  join_keys: [event_id, prediction_time, horizon_sessions]
+  display: side_by_side
+  allowed_outcomes: [both_correct, quantitative_only, anyjev_only, both_wrong]
+  combined_score: forbidden
+  ensemble: forbidden_until_separately_registered
