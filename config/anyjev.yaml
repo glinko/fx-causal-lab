@@ -1,0 +1,46 @@
+# AnyJev shadow pilot. Real labels and thresholds are fitted inside each past-only fold.
+version: anyjev-fx-1
+mode: shadow
+strict_pit_eligible: false
+runtime:
+  host: 192.168.88.122
+  model: Qwen/Qwen3-8B
+  local_checkpoint: /home/user/ai/anyjev-runtime/models/Qwen3-8B-b24
+  blocks: 24
+  anyjev_commit: 45add301a7aa60ed3420c83d15c061e84e5bce61
+questions:
+  - {id: fx_return_1d_v1, horizon_sessions: 1}
+  - {id: fx_return_5d_v1, horizon_sessions: 5}
+  - {id: fx_return_20d_v1, horizon_sessions: 20}
+  - {id: fx_return_60d_v1, horizon_sessions: 60}
+options:
+  - {id: down, text: EUR/USD falls}
+  - {id: flat, text: EUR/USD stays broadly flat}
+  - {id: up, text: EUR/USD rises}
+labeling:
+  method: train_fold_terciles
+  lower_quantile: 0.3333333333
+  upper_quantile: 0.6666666667
+minimum_labels_per_question: 300
+features:
+  - {id: spread_2y_z60, title: US minus euro-area 2Y yield spread, unit: rolling z-score}
+  - {id: spread_10y_z60, title: US minus euro-area 10Y yield spread, unit: rolling z-score}
+  - {id: brent_asinh_change_20d, title: Brent change over 20 sessions, unit: transformed change}
+  - {id: wti_asinh_change_20d, title: WTI change over 20 sessions, unit: transformed change}
+  - {id: vix_z60, title: VIX, unit: rolling z-score}
+  - {id: eurusd_momentum_20d, title: EUR/USD momentum over 20 sessions, unit: log return}
+  - {id: bk5_z60, title: US minus euro-area 5Y inflation expectation, unit: rolling z-score}
+  - {id: bk10_z60, title: US minus euro-area 10Y inflation expectation, unit: rolling z-score}
+  - {id: nfci_z60, title: US financial conditions, unit: rolling z-score}
+  - {id: anfci_z60, title: Adjusted US financial conditions, unit: rolling z-score}
+  - {id: h41_tga_ratio_z252, title: US Treasury account relative to Fed assets, unit: rolling z-score}
+  - {id: h41_rrp_ratio_z252, title: Fed reverse repo relative to Fed assets, unit: rolling z-score}
+  - {id: h41_reserves_ratio_z252, title: Bank reserves relative to Fed assets, unit: rolling z-score}
+  - {id: spx_ret_20d, title: S&P 500 change over 20 sessions, unit: log return}
+  - {id: eu_ret_20d, title: European equities change over 20 sessions, unit: log return}
+  - {id: gold_ret_20d, title: Gold change over 20 sessions, unit: log return}
+validation:
+  scheme: expanding_yearly
+  calibration: previous_year_only
+  embargo_sessions_by_horizon: {1: 1, 5: 5, 20: 20, 60: 60}
+

@@ -194,3 +194,15 @@ sudo docker compose exec web fxlab denn-spectral
 Команда работает офлайн поверх текущих `data_coverage.json`, common D1 Parquet и совпадающего `denn_baseline.json`. Она публикует standardized changes, FFT/Welch band metrics, Haar wavelet energy и корреляции для лагов −60…+60 в `data/gold/denn_spectral/<dataset_id>/`. Report доступен на `/reports/denn-spectral`.
 
 Периоды измеряются в common-grid sessions. Результат full-sample и non-strict: он предназначен для выбора проверяемых rolling-stability гипотез, а не для causal claim или торгового сигнала.
+
+## AnyJev GPU runtime — версия 0.27.2
+
+Runtime установлен отдельно на `user@192.168.88.122` в `/home/user/ai/anyjev-runtime`. Он использует Python 3.12, AnyJev commit `45add301a7aa60ed3420c83d15c061e84e5bce61` и локальный `Qwen/Qwen3-8B`, сокращённый до 24 блоков. Полный checkpoint занимает около 16 ГБ, сокращённый — около 11 ГБ.
+
+Зафиксированный Hub revision исходной модели: `b968826d9c46dd6066d109eabc6255188de91218`. Сокращённый `model.safetensors` имеет размер `11750787272` байта и SHA-256 `3d3f45c503b5f414ba0141b9b92ee3fba580b1fe9048cd5ebe318dfcabda2657`. Полный runtime manifest находится на GPU-узле в `/home/user/ai/anyjev-runtime/runtime-manifest.json`.
+
+RTX 3090 не вмещает одновременно основной Qwen3.8-27B и AnyJev Qwen3-8B. До добавления отдельной операции в GPU broker AnyJev запускается только контролируемым smoke-скриптом `/home/user/ai/anyjev-runtime/run-smoke-with-restore.sh`. Скрипт проверяет пустую GPU, запускает тест и через shell trap восстанавливает `qwen38-dflash.service` и `hermes-gpu-broker.service` даже при ошибке.
+
+AnyJev 0.1.0 требует локальный compatibility patch для нового списка `layer_types` в конфигурации Qwen3. Копия патча находится в `tools/anyjev-qwen3-layer-types.patch`; точный набор Python-пакетов зафиксирован на GPU-узле в `/home/user/ai/anyjev-runtime/requirements.freeze.txt`.
+
+Результат `/home/user/ai/anyjev-runtime/smoke-result.json` использует искусственные тексты и метки. Он доказывает только загрузку модели, обучение L2-головы, выдачу вероятностей и восстановление сервисов. Его нельзя публиковать как проверку рынка.

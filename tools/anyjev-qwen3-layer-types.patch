@@ -1,0 +1,16 @@
+diff --git a/anyjev/truncate.py b/anyjev/truncate.py
+index d93b888..006a80b 100644
+--- a/anyjev/truncate.py
++++ b/anyjev/truncate.py
+@@ -74,6 +74,11 @@ def truncate(model: str, blocks: int, out: str, *, dtype: Optional[str] = None,
+     save_file(keep, os.path.join(out, "model.safetensors"), metadata={"format": "pt"})
+ 
+     cfg.num_hidden_layers = blocks
++    # Recent Qwen3 configs mirror the layer count in an explicit layer_types list.
++    # Keep the config internally consistent when the upper blocks are removed.
++    layer_types = getattr(cfg, "layer_types", None)
++    if isinstance(layer_types, (list, tuple)) and len(layer_types) == total:
++        cfg.layer_types = list(layer_types[:blocks])
+     cfg.save_pretrained(out)
+     # record where this came from: a truncated model is not the model it is named after
+     meta = {"anyjev_truncated_from": model, "kept_blocks": blocks, "original_blocks": total,
